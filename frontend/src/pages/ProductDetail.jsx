@@ -4,6 +4,13 @@ import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
+const getImageUrl = (url) => {
+  if (!url) return 'https://via.placeholder.com/500x400?text=No+Image';
+  if (url.startsWith('http')) return url;
+  const frontendUrl = process.env.REACT_APP_FRONTEND_URL || '';
+  return `${frontendUrl}${url}`;
+};
+
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -111,11 +118,10 @@ const ProductDetail = () => {
         </button>
 
         <div className="product-detail-grid">
-          <div>
+          <div className="product-detail-image">
             <img
-              src={product.image_url || 'https://via.placeholder.com/500x400?text=No+Image'}
+              src={getImageUrl(product.image_url)}
               alt={product.name}
-              className="product-detail-image"
             />
           </div>
 

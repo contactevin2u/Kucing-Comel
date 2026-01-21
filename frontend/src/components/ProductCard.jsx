@@ -3,6 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
+const getImageUrl = (url) => {
+  if (!url) return 'https://via.placeholder.com/300x200?text=No+Image';
+  if (url.startsWith('http')) return url;
+  // For local images, use the frontend URL
+  const frontendUrl = process.env.REACT_APP_FRONTEND_URL || '';
+  return `${frontendUrl}${url}`;
+};
+
 const ProductCard = ({ product }) => {
   const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
@@ -54,7 +62,7 @@ const ProductCard = ({ product }) => {
         {/* Product Image */}
         <div className="product-image-wrapper">
           <img
-            src={product.image_url || 'https://via.placeholder.com/300x200?text=No+Image'}
+            src={getImageUrl(product.image_url)}
             alt={product.name}
             className="product-image"
           />

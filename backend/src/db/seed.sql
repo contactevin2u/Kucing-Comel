@@ -1,8 +1,12 @@
 -- Kucing Comel Sample Data
 -- Run this after schema.sql to populate with sample products
 
--- Sample Cat Products
+-- Lilien Products (Featured)
 INSERT INTO products (name, description, price, image_url, category, stock) VALUES
+('Lilien Premium Super Clumping Cat Litter 6L', 'Premium quality super clumping cat litter. Superior odor control, low dust formula, easy to scoop. Keeps your cat''s litter box fresh and clean.', 25.90, '/products/litter-6l.jpg', 'Litter', 200),
+('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L', 'Bulk pack of 6 bags - Save more! Premium quality super clumping cat litter with superior odor control. Low dust formula, easy to scoop.', 139.90, '/products/litter-carton.jpg', 'Litter', 50),
+('Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats in 3 delicious flavours! Perfect for training, bonding, or just spoiling your beloved cat. Made with real ingredients.', 18.90, '/products/creamy-treats.jpg', 'Food', 300),
+
 -- Cat Food
 ('Premium Cat Food - Salmon', 'High-quality salmon-flavored dry cat food. Rich in omega-3 for healthy coat.', 45.99, 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400', 'Food', 100),
 ('Wet Cat Food - Tuna Variety Pack', '12-pack of premium wet cat food with real tuna chunks.', 35.50, 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400', 'Food', 75),
