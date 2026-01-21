@@ -42,10 +42,9 @@ services:
     staticPublishPath: frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        fromService:
-          type: web
-          name: kucing-comel-api
-          property: host
+        value: https://kucing-comel-api.onrender.com
+      - key: REACT_APP_FRONTEND_URL
+        value: https://kucing-comel-frontend.onrender.com
       - key: REACT_APP_STRIPE_PUBLIC_KEY
         sync: false
     headers:

@@ -1,4 +1,13 @@
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Handle API URL - add https:// if missing (Render's host property returns just hostname)
+const getApiUrl = () => {
+  const url = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  return `https://${url}`;
+};
+
+const API_URL = getApiUrl();
 
 const getHeaders = () => {
   const token = localStorage.getItem('token');
