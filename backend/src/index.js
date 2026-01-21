@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const errorHandler = require('./middleware/errorHandler');
 const { handleWebhook } = require('./controllers/paymentController');
+const initializeDatabase = require('./db/init');
 
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
@@ -51,9 +52,12 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+
+  // Auto-initialize database on startup
+  await initializeDatabase();
 });
 
 module.exports = app;
