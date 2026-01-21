@@ -14,40 +14,64 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar">
-      <div className="container">
-        <Link to="/" className="logo">
-          <span>🐱</span> Kucing Comel
-        </Link>
-
-        <div className="nav-links">
-          <Link to="/">Shop</Link>
-
-          {isAuthenticated ? (
-            <>
-              <Link to="/orders">Orders</Link>
-              <Link to="/cart" className="cart-icon">
-                🛒
-                {cart.item_count > 0 && (
-                  <span className="cart-badge">{cart.item_count}</span>
-                )}
-              </Link>
-              <span style={{ color: '#95A5A6' }}>Hi, {user?.name?.split(' ')[0]}</span>
-              <button onClick={handleLogout} className="btn btn-outline btn-sm">
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login">Login</Link>
-              <Link to="/register" className="btn btn-primary btn-sm">
-                Sign Up
-              </Link>
-            </>
-          )}
-        </div>
+    <>
+      {/* Top Banner */}
+      <div className="top-banner">
+        Summer Sale up to 50% off!
+        <a href="/#promo">Shop now!</a>
       </div>
-    </nav>
+
+      {/* Main Navbar */}
+      <nav className="navbar">
+        <div className="container">
+          {/* Left Navigation */}
+          <div className="nav-left">
+            <Link to="/">Home</Link>
+            <Link to="/?category=Food">Food</Link>
+            <Link to="/?category=Toys">Toys</Link>
+            <Link to="/?category=Accessories">Accessories</Link>
+          </div>
+
+          {/* Center Logo */}
+          <Link to="/" className="logo">
+            <span>🐱</span> Kucing Comel
+          </Link>
+
+          {/* Right Navigation */}
+          <div className="nav-right">
+            {isAuthenticated ? (
+              <>
+                <Link to="/orders">My Orders</Link>
+                <div className="nav-icons">
+                  <button className="nav-icon" title="Search">🔍</button>
+                  <button className="nav-icon" title="Wishlist">♡</button>
+                  <Link to="/cart" className="nav-icon" title="Cart">
+                    🛒
+                    {cart.item_count > 0 && (
+                      <span className="cart-badge">{cart.item_count}</span>
+                    )}
+                  </Link>
+                  <button
+                    className="nav-icon"
+                    onClick={handleLogout}
+                    title={`Logout (${user?.name?.split(' ')[0]})`}
+                  >
+                    👤
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <Link to="/login">Login</Link>
+                <Link to="/register" className="btn btn-primary btn-sm">
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+    </>
   );
 };
 

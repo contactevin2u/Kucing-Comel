@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -7,6 +7,7 @@ const ProductCard = ({ product }) => {
   const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
   const navigate = useNavigate();
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
@@ -25,34 +26,72 @@ const ProductCard = ({ product }) => {
     }
   };
 
+  const handleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsWishlisted(!isWishlisted);
+  };
+
+  const isOnSale = product.stock > 50;
+  const isNew = product.id <= 5;
+
   return (
     <div className="product-card">
+      {/* Badge */}
+      {isOnSale && <span className="product-badge">SALE</span>}
+      {isNew && !isOnSale && <span className="product-badge" style={{ background: '#00BFB3' }}>NEW</span>}
+
+      {/* Wishlist Button */}
+      <button
+        className="product-wishlist"
+        onClick={handleWishlist}
+        style={{ color: isWishlisted ? '#FF7B54' : '#B2BEC3' }}
+      >
+        {isWishlisted ? '♥' : '♡'}
+      </button>
+
       <Link to={`/product/${product.id}`}>
-        <img
-          src={product.image_url || 'https://via.placeholder.com/300x200?text=No+Image'}
-          alt={product.name}
-          className="product-image"
-        />
+        {/* Product Image */}
+        <div className="product-image-wrapper">
+          <img
+            src={product.image_url || 'https://via.placeholder.com/300x200?text=No+Image'}
+            alt={product.name}
+            className="product-image"
+          />
+        </div>
+
+        {/* Product Info */}
         <div className="product-info">
           <span className="product-category">{product.category}</span>
           <h3 className="product-name">{product.name}</h3>
-          <p className="product-price">RM {parseFloat(product.price).toFixed(2)}</p>
+
+          {/* Rating */}
+          <div className="product-rating">
+            <span className="stars">★★★★★</span>
+            <span className="rating-count">(24)</span>
+          </div>
+
+          {/* Price Row */}
+          <div className="product-price-row">
+            <div>
+              <span className="product-price">RM {parseFloat(product.price).toFixed(2)}</span>
+              {isOnSale && (
+                <span className="product-price-old">
+                  RM {(parseFloat(product.price) * 1.3).toFixed(2)}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={handleAddToCart}
+              className="add-to-cart-btn"
+              disabled={product.stock === 0}
+              title={product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+            >
+              🛒
+            </button>
+          </div>
         </div>
       </Link>
-      <div className="product-info">
-        <div className="product-actions">
-          <Link to={`/product/${product.id}`} className="btn btn-outline btn-sm">
-            View
-          </Link>
-          <button
-            onClick={handleAddToCart}
-            className="btn btn-primary btn-sm"
-            disabled={product.stock === 0}
-          >
-            {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-          </button>
-        </div>
-      </div>
     </div>
   );
 };
