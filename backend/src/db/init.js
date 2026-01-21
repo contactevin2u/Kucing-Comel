@@ -13,7 +13,28 @@ async function initializeDatabase() {
     `);
 
     if (tableCheck.rows[0].exists) {
-      console.log('Database already initialized');
+      // Check if Lilien products exist
+      const lilienCheck = await db.query(`
+        SELECT EXISTS (
+          SELECT FROM products WHERE name LIKE 'Lilien%'
+        );
+      `);
+
+      if (lilienCheck.rows[0].exists) {
+        console.log('Database already initialized with Lilien products');
+        return;
+      }
+
+      // Add new Lilien products
+      console.log('Adding new Lilien products...');
+      await db.query(`
+        INSERT INTO products (name, description, price, image_url, category, stock) VALUES
+        ('Lilien Premium Super Clumping Cat Litter 6L', 'Premium quality super clumping cat litter. Superior odor control, low dust formula, easy to scoop.', 25.90, '/products/litter-6l.jpg', 'Litter', 200),
+        ('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L', 'Bulk pack of 6 bags - Save more! Premium quality super clumping cat litter.', 139.90, '/products/litter-carton.jpg', 'Litter', 50),
+        ('Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats in 3 delicious flavours!', 18.90, '/products/creamy-treats.jpg', 'Food', 300)
+        ON CONFLICT DO NOTHING;
+      `);
+      console.log('Lilien products added!');
       return;
     }
 
