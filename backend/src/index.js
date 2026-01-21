@@ -52,12 +52,15 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
-app.listen(PORT, async () => {
+// Bind to 0.0.0.0 for Render
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 
-  // Auto-initialize database on startup
-  await initializeDatabase();
+  // Auto-initialize database on startup (non-blocking)
+  initializeDatabase().catch(err => {
+    console.error('Database initialization error:', err.message);
+  });
 });
 
 module.exports = app;
