@@ -14,8 +14,17 @@ const paymentRoutes = require('./routes/payments');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Build allowed origins - handle FRONTEND_URL that might be hostname only
+const getFrontendOrigin = () => {
+  const url = process.env.FRONTEND_URL;
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `https://${url}`;
+};
+
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
+  getFrontendOrigin(),
+  'https://kucing-comel-frontend.onrender.com',
   'http://localhost:3000',
   'http://localhost:3001'
 ].filter(Boolean);
