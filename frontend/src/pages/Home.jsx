@@ -5,10 +5,7 @@ import ProductCard from '../components/ProductCard';
 
 const categories = [
   { name: 'Food', image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=200', label: 'FOOD' },
-  { name: 'Toys', image: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=200', label: 'TOYS' },
-  { name: 'Beds', image: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=200', label: 'BEDS' },
-  { name: 'Grooming', image: 'https://images.unsplash.com/photo-1478098711619-5ab0b478d6e6?w=200', label: 'GROOMING' },
-  { name: 'Accessories', image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200', label: 'ACCESSORIES' },
+  { name: 'Litter', image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=200', label: 'LITTER' },
 ];
 
 const Home = () => {
@@ -105,32 +102,7 @@ const Home = () => {
       {/* Promo Cards Section */}
       <section className="promo-section" id="promo">
         <div className="container">
-          <div className="promo-grid">
-            {/* Promo Card 1 */}
-            <div className="promo-card teal">
-              <div className="promo-discount">50%<sup>OFF</sup></div>
-              <h3>Cat Toys</h3>
-              <Link to="/?category=Toys" className="btn btn-white btn-sm">SHOP NOW</Link>
-              <img
-                src="https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=300"
-                alt="Cat toys"
-                className="promo-image"
-              />
-            </div>
-
-            {/* Promo Card 2 */}
-            <div className="promo-card yellow">
-              <div className="promo-discount" style={{ fontSize: '2rem' }}>BUY 1<br /><span style={{ fontSize: '1.5rem' }}>GET 1</span></div>
-              <h3>Cat Accessories</h3>
-              <Link to="/?category=Accessories" className="btn btn-white btn-sm">SHOP NOW</Link>
-              <img
-                src="https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=300"
-                alt="Cat accessories"
-                className="promo-image"
-              />
-            </div>
-
-            {/* Promo Card 3 */}
+          <div className="promo-grid promo-grid-2">
             <div className="promo-card coral">
               <div className="promo-discount">30%<sup>OFF</sup></div>
               <h3>Cat Food</h3>
@@ -138,6 +110,18 @@ const Home = () => {
               <img
                 src="https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?w=300"
                 alt="Cat food"
+                className="promo-image"
+              />
+            </div>
+
+            {/* Promo Card - Cat Litter */}
+            <div className="promo-card teal">
+              <div className="promo-discount">NEW</div>
+              <h3>Cat Litter</h3>
+              <Link to="/?category=Litter" className="btn btn-white btn-sm">SHOP NOW</Link>
+              <img
+                src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=300"
+                alt="Cat litter"
                 className="promo-image"
               />
             </div>
@@ -179,12 +163,12 @@ const Home = () => {
         <div className="container">
           <div className="banner-grid">
             <div className="banner-card yellow">
-              <span className="banner-label">New collection</span>
-              <h3>Fun toys for cats</h3>
+              <span className="banner-label">Premium quality</span>
+              <h3>Cat Litter</h3>
               <div className="banner-discount">NEW</div>
               <img
-                src="https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=250"
-                alt="Cat toys"
+                src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=250"
+                alt="Cat litter"
                 className="banner-image"
               />
             </div>
