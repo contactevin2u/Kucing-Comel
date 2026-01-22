@@ -38,9 +38,9 @@ export const CartProvider = ({ children }) => {
     fetchCart();
   }, [fetchCart]);
 
-  const addToCart = async (productId, quantity = 1) => {
+  const addToCart = async (productId, quantity = 1, variantId = null) => {
     try {
-      const data = await api.addToCart(productId, quantity);
+      const data = await api.addToCart(productId, quantity, variantId);
       setCart(data);
       return { success: true };
     } catch (error) {

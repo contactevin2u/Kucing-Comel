@@ -30,6 +30,26 @@ const formatProduct = (product, isMember) => {
   }
 };
 
+// Helper function to format variant based on user authentication
+const formatVariant = (variant, isMember) => {
+  if (isMember) {
+    return {
+      id: variant.id,
+      variant_name: variant.variant_name,
+      price: variant.member_price || variant.price,
+      originalPrice: variant.price,
+      stock: variant.stock
+    };
+  } else {
+    return {
+      id: variant.id,
+      variant_name: variant.variant_name,
+      price: variant.price,
+      stock: variant.stock
+    };
+  }
+};
+
 const getAllProducts = async (req, res, next) => {
   try {
     const { category, search, sort, limit = 50, offset = 0 } = req.query;
@@ -100,7 +120,24 @@ const getProductById = async (req, res, next) => {
       return res.status(404).json({ error: 'Product not found.' });
     }
 
-    res.json({ product: formatProduct(result.rows[0], isMember) });
+    // Fetch variants for this product
+    const variantsResult = await db.query(
+      'SELECT * FROM product_variants WHERE product_id = $1 AND is_active = true ORDER BY id ASC',
+      [id]
+    );
+
+    const product = formatProduct(result.rows[0], isMember);
+    const variants = variantsResult.rows.map(v => formatVariant(v, isMember));
+
+    // If product has variants, include them in the response
+    if (variants.length > 0) {
+      product.variants = variants;
+      product.hasVariants = true;
+    } else {
+      product.hasVariants = false;
+    }
+
+    res.json({ product });
   } catch (error) {
     next(error);
   }

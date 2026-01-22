@@ -31,6 +31,9 @@ const CartItem = ({ item }) => {
         <Link to={`/product/${item.product_id}`}>
           <h4 className="cart-item-name">{item.name}</h4>
         </Link>
+        {item.variant_name && (
+          <p className="cart-item-variant">Option: {item.variant_name}</p>
+        )}
         <p className="cart-item-price">RM {parseFloat(item.price).toFixed(2)}</p>
 
         <div className="cart-item-actions">

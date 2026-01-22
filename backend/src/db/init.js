@@ -8,6 +8,9 @@ async function initializeDatabase() {
 
     if (isProduction) {
       // PostgreSQL initialization
+      console.log('Checking PostgreSQL database...');
+
+      // Check if products table exists
       const tableCheck = await db.query(`
         SELECT EXISTS (
           SELECT FROM information_schema.tables
@@ -15,84 +18,157 @@ async function initializeDatabase() {
         );
       `);
 
-      if (tableCheck.rows[0].exists) {
-        // Delete ALL products and reseed with correct prices
-        console.log('Resetting products with correct prices...');
-        await db.query(`DELETE FROM products`);
+      if (!tableCheck.rows[0].exists) {
+        // First time setup - run full schema and seed
+        console.log('Initializing database...');
+        const schemaPath = path.join(__dirname, 'schema-pg.sql');
+        const schema = fs.readFileSync(schemaPath, 'utf8');
+        await db.query(schema);
+        console.log('Schema created');
 
-        // Insert products one at a time
-        try {
-          await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ('Lilien Premium Super Clumping Cat Litter 6L', 'Premium quality super clumping cat litter. Superior odor control, low dust formula, easy to scoop.', 7.60, 6.84, '/products/litter-6l.jpg', 'Litter', 200)`);
-          console.log('Product 1 inserted');
-        } catch (e) {
-          console.error('Product 1 error:', e.message);
+        const seedPath = path.join(__dirname, 'seed-pg.sql');
+        const seed = fs.readFileSync(seedPath, 'utf8');
+        await db.query(seed);
+        console.log('Seed data inserted');
+      } else {
+        // Database exists - ensure product_variants table exists
+        const variantsTableCheck = await db.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_name = 'product_variants'
+          );
+        `);
+
+        if (!variantsTableCheck.rows[0].exists) {
+          console.log('Creating product_variants table...');
+          await db.query(`
+            CREATE TABLE IF NOT EXISTS product_variants (
+              id SERIAL PRIMARY KEY,
+              product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+              variant_name VARCHAR(255) NOT NULL,
+              price DECIMAL(10, 2) NOT NULL,
+              member_price DECIMAL(10, 2),
+              stock INTEGER DEFAULT 0,
+              is_active BOOLEAN DEFAULT true,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_product_variants_product ON product_variants(product_id);
+          `);
+          console.log('product_variants table created');
+
+          // Add variant_id column to cart_items if not exists
+          try {
+            await db.query(`ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS variant_id INTEGER REFERENCES product_variants(id) ON DELETE CASCADE`);
+            console.log('Added variant_id to cart_items');
+          } catch (e) {
+            console.log('variant_id column may already exist');
+          }
+
+          // Seed variants
+          console.log('Seeding product variants...');
+          await seedVariants();
         }
-
-        try {
-          await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L', 'Bulk pack of 6 bags - Save more! Premium quality super clumping cat litter.', 139.90, 119.90, '/products/litter-carton.jpg', 'Litter', 50)`);
-          console.log('Product 2 inserted');
-        } catch (e) {
-          console.error('Product 2 error:', e.message);
-        }
-
-        try {
-          await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ('Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats in 3 delicious flavours!', 18.90, 15.90, '/products/creamy-treats.jpg', 'Food', 300)`);
-          console.log('Product 3 inserted');
-        } catch (e) {
-          console.error('Product 3 error:', e.message);
-        }
-
-        console.log('Products reseeded!');
-        return;
+        console.log('Database already initialized');
       }
-
-      console.log('Initializing database...');
-      const schemaPath = path.join(__dirname, 'schema-pg.sql');
-      const schema = fs.readFileSync(schemaPath, 'utf8');
-      await db.query(schema);
-      console.log('Schema created');
-
-      const seedPath = path.join(__dirname, 'seed-pg.sql');
-      const seed = fs.readFileSync(seedPath, 'utf8');
-      await db.query(seed);
-      console.log('Seed data inserted');
 
     } else {
       // SQLite initialization
+      console.log('Checking SQLite database...');
+
       const tableCheck = db.query(`
         SELECT name FROM sqlite_master
         WHERE type='table' AND name='products'
       `);
 
-      if (tableCheck.rows.length > 0) {
-        console.log('Resetting products...');
-        db.query(`DELETE FROM products`);
+      if (tableCheck.rows.length === 0) {
+        // First time setup
+        console.log('Initializing database...');
+        const schemaPath = path.join(__dirname, 'schema.sql');
+        const schema = fs.readFileSync(schemaPath, 'utf8');
+        db.db.exec(schema);
+        console.log('Schema created');
 
-        db.db.exec(`
-          INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES
-          ('Lilien Premium Super Clumping Cat Litter 6L', 'Premium quality super clumping cat litter. Superior odor control, low dust formula, easy to scoop.', 7.60, 6.84, '/products/litter-6l.jpg', 'Litter', 200),
-          ('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L', 'Bulk pack of 6 bags - Save more! Premium quality super clumping cat litter.', 139.90, 119.90, '/products/litter-carton.jpg', 'Litter', 50),
-          ('Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats in 3 delicious flavours!', 18.90, 15.90, '/products/creamy-treats.jpg', 'Food', 300)
+        const seedPath = path.join(__dirname, 'seed.sql');
+        const seed = fs.readFileSync(seedPath, 'utf8');
+        db.db.exec(seed);
+        console.log('Seed data inserted');
+      } else {
+        // Check if product_variants table exists
+        const variantsCheck = db.query(`
+          SELECT name FROM sqlite_master
+          WHERE type='table' AND name='product_variants'
         `);
-        console.log('Products reseeded!');
-        return;
+
+        if (variantsCheck.rows.length === 0) {
+          console.log('Creating product_variants table...');
+          db.db.exec(`
+            CREATE TABLE IF NOT EXISTS product_variants (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+              variant_name TEXT NOT NULL,
+              price REAL NOT NULL,
+              member_price REAL,
+              stock INTEGER DEFAULT 0,
+              is_active INTEGER DEFAULT 1,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_product_variants_product ON product_variants(product_id);
+          `);
+          console.log('product_variants table created');
+
+          // Seed variants for SQLite
+          db.db.exec(`
+            INSERT OR IGNORE INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES
+            (1, 'Original', 7.60, 6.84, 80),
+            (1, 'Lavender', 8.00, 7.20, 60),
+            (1, 'Green Tea', 8.00, 7.20, 60),
+            (2, 'Original', 159.00, 143.10, 20),
+            (2, 'Lavender', 168.00, 151.20, 15),
+            (2, 'Green Tea', 168.00, 151.20, 15),
+            (3, 'Chicken', 14.00, 12.60, 100),
+            (3, 'Tuna', 14.00, 12.60, 100),
+            (3, 'Salmon', 14.00, 12.60, 100),
+            (3, 'Mixed (3 Flavours Box)', 42.00, 37.80, 50);
+          `);
+          console.log('Product variants seeded');
+        }
+        console.log('Database already initialized');
       }
-
-      console.log('Initializing database...');
-      const schemaPath = path.join(__dirname, 'schema.sql');
-      const schema = fs.readFileSync(schemaPath, 'utf8');
-      db.db.exec(schema);
-      console.log('Schema created');
-
-      const seedPath = path.join(__dirname, 'seed.sql');
-      const seed = fs.readFileSync(seedPath, 'utf8');
-      db.db.exec(seed);
-      console.log('Seed data inserted');
     }
 
     console.log('Database initialization complete!');
   } catch (error) {
     console.error('Database initialization error:', error.message);
+  }
+}
+
+async function seedVariants() {
+  try {
+    // Get product IDs
+    const products = await db.query('SELECT id, name FROM products ORDER BY id');
+
+    for (const product of products.rows) {
+      if (product.name.includes('Litter 6L') && !product.name.includes('CARTON')) {
+        // Single bag variants
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Original', 7.60, 6.84, 80) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Lavender', 8.00, 7.20, 60) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Green Tea', 8.00, 7.20, 60) ON CONFLICT DO NOTHING`, [product.id]);
+      } else if (product.name.includes('CARTON')) {
+        // Carton variants
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Original', 159.00, 143.10, 20) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Lavender', 168.00, 151.20, 15) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Green Tea', 168.00, 151.20, 15) ON CONFLICT DO NOTHING`, [product.id]);
+      } else if (product.name.includes('Treats')) {
+        // Treats variants
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Chicken', 14.00, 12.60, 100) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Tuna', 14.00, 12.60, 100) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Salmon', 14.00, 12.60, 100) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Mixed (3 Flavours Box)', 42.00, 37.80, 50) ON CONFLICT DO NOTHING`, [product.id]);
+      }
+    }
+    console.log('Product variants seeded');
+  } catch (error) {
+    console.error('Error seeding variants:', error.message);
   }
 }
 

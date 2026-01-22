@@ -81,11 +81,14 @@ export const api = {
     return handleResponse(res);
   },
 
-  addToCart: async (productId, quantity = 1) => {
+  addToCart: async (productId, quantity = 1, variantId = null) => {
+    const body = { product_id: productId, quantity };
+    if (variantId) body.variant_id = variantId;
+
     const res = await fetch(`${API_URL}/api/cart/add`, {
       method: 'POST',
       headers: getHeaders(),
-      body: JSON.stringify({ product_id: productId, quantity })
+      body: JSON.stringify(body)
     });
     return handleResponse(res);
   },

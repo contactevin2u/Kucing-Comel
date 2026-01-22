@@ -12,15 +12,38 @@ const getCart = async (req, res, next) => {
     const cartId = cartResult.rows[0].id;
 
     const itemsResult = await db.query(
-      `SELECT ci.id, ci.quantity, p.id as product_id, p.name, p.price, p.image_url, p.stock
+      `SELECT ci.id, ci.quantity, ci.variant_id,
+              p.id as product_id, p.name, p.price, p.member_price, p.image_url, p.stock,
+              pv.variant_name, pv.price as variant_price, pv.member_price as variant_member_price, pv.stock as variant_stock
        FROM cart_items ci
        JOIN products p ON ci.product_id = p.id
+       LEFT JOIN product_variants pv ON ci.variant_id = pv.id
        WHERE ci.cart_id = $1 AND p.is_active = true
        ORDER BY ci.created_at DESC`,
       [cartId]
     );
 
-    const items = itemsResult.rows;
+    // Format items with variant info and member pricing
+    const items = itemsResult.rows.map(item => {
+      const useVariantPrice = item.variant_id && item.variant_price;
+      const price = useVariantPrice ? item.variant_price : item.price;
+      const memberPrice = useVariantPrice ? item.variant_member_price : item.member_price;
+      const stock = useVariantPrice ? item.variant_stock : item.stock;
+
+      return {
+        id: item.id,
+        quantity: item.quantity,
+        product_id: item.product_id,
+        variant_id: item.variant_id,
+        name: item.name,
+        variant_name: item.variant_name,
+        price: memberPrice || price, // Use member price if available (user is logged in)
+        original_price: price,
+        image_url: item.image_url,
+        stock: stock
+      };
+    });
+
     const total = items.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
 
     res.json({
@@ -36,7 +59,7 @@ const getCart = async (req, res, next) => {
 
 const addToCart = async (req, res, next) => {
   try {
-    const { product_id, quantity = 1 } = req.body;
+    const { product_id, variant_id, quantity = 1 } = req.body;
 
     if (!product_id) {
       return res.status(400).json({ error: 'Product ID is required.' });
@@ -46,6 +69,7 @@ const addToCart = async (req, res, next) => {
       return res.status(400).json({ error: 'Quantity must be at least 1.' });
     }
 
+    // Check if product exists
     const productResult = await db.query(
       'SELECT id, stock FROM products WHERE id = $1 AND is_active = true',
       [product_id]
@@ -55,11 +79,27 @@ const addToCart = async (req, res, next) => {
       return res.status(404).json({ error: 'Product not found.' });
     }
 
-    const product = productResult.rows[0];
-    if (product.stock < quantity) {
+    // Determine stock to check (variant stock or product stock)
+    let availableStock = productResult.rows[0].stock;
+
+    // If variant_id provided, validate and use variant stock
+    if (variant_id) {
+      const variantResult = await db.query(
+        'SELECT id, stock FROM product_variants WHERE id = $1 AND product_id = $2 AND is_active = true',
+        [variant_id, product_id]
+      );
+
+      if (variantResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Product variant not found.' });
+      }
+      availableStock = variantResult.rows[0].stock;
+    }
+
+    if (availableStock < quantity) {
       return res.status(400).json({ error: 'Not enough stock available.' });
     }
 
+    // Get or create cart
     let cartResult = await db.query('SELECT id FROM carts WHERE user_id = $1', [req.user.id]);
 
     if (cartResult.rows.length === 0) {
@@ -71,14 +111,20 @@ const addToCart = async (req, res, next) => {
 
     const cartId = cartResult.rows[0].id;
 
-    const existingItem = await db.query(
-      'SELECT id, quantity FROM cart_items WHERE cart_id = $1 AND product_id = $2',
-      [cartId, product_id]
-    );
+    // Check for existing item with same product and variant
+    const existingItemQuery = variant_id
+      ? 'SELECT id, quantity FROM cart_items WHERE cart_id = $1 AND product_id = $2 AND variant_id = $3'
+      : 'SELECT id, quantity FROM cart_items WHERE cart_id = $1 AND product_id = $2 AND variant_id IS NULL';
+
+    const existingItemParams = variant_id
+      ? [cartId, product_id, variant_id]
+      : [cartId, product_id];
+
+    const existingItem = await db.query(existingItemQuery, existingItemParams);
 
     if (existingItem.rows.length > 0) {
       const newQuantity = existingItem.rows[0].quantity + quantity;
-      if (newQuantity > product.stock) {
+      if (newQuantity > availableStock) {
         return res.status(400).json({ error: 'Not enough stock available.' });
       }
       await db.query(
@@ -87,8 +133,8 @@ const addToCart = async (req, res, next) => {
       );
     } else {
       await db.query(
-        'INSERT INTO cart_items (cart_id, product_id, quantity) VALUES ($1, $2, $3)',
-        [cartId, product_id, quantity]
+        'INSERT INTO cart_items (cart_id, product_id, variant_id, quantity) VALUES ($1, $2, $3, $4)',
+        [cartId, product_id, variant_id || null, quantity]
       );
     }
 
@@ -116,9 +162,11 @@ const updateCartItem = async (req, res, next) => {
     const cartId = cartResult.rows[0].id;
 
     const itemResult = await db.query(
-      `SELECT ci.id, ci.product_id, p.stock
+      `SELECT ci.id, ci.product_id, ci.variant_id, p.stock,
+              pv.stock as variant_stock
        FROM cart_items ci
        JOIN products p ON ci.product_id = p.id
+       LEFT JOIN product_variants pv ON ci.variant_id = pv.id
        WHERE ci.id = $1 AND ci.cart_id = $2`,
       [item_id, cartId]
     );
@@ -127,10 +175,13 @@ const updateCartItem = async (req, res, next) => {
       return res.status(404).json({ error: 'Cart item not found.' });
     }
 
+    const item = itemResult.rows[0];
+    const availableStock = item.variant_id ? item.variant_stock : item.stock;
+
     if (quantity <= 0) {
       await db.query('DELETE FROM cart_items WHERE id = $1', [item_id]);
     } else {
-      if (quantity > itemResult.rows[0].stock) {
+      if (quantity > availableStock) {
         return res.status(400).json({ error: 'Not enough stock available.' });
       }
       await db.query('UPDATE cart_items SET quantity = $1 WHERE id = $2', [quantity, item_id]);
@@ -193,15 +244,37 @@ async function getCartData(userId) {
   const cartId = cartResult.rows[0].id;
 
   const itemsResult = await db.query(
-    `SELECT ci.id, ci.quantity, p.id as product_id, p.name, p.price, p.image_url, p.stock
+    `SELECT ci.id, ci.quantity, ci.variant_id,
+            p.id as product_id, p.name, p.price, p.member_price, p.image_url, p.stock,
+            pv.variant_name, pv.price as variant_price, pv.member_price as variant_member_price, pv.stock as variant_stock
      FROM cart_items ci
      JOIN products p ON ci.product_id = p.id
+     LEFT JOIN product_variants pv ON ci.variant_id = pv.id
      WHERE ci.cart_id = $1 AND p.is_active = true
      ORDER BY ci.created_at DESC`,
     [cartId]
   );
 
-  const items = itemsResult.rows;
+  const items = itemsResult.rows.map(item => {
+    const useVariantPrice = item.variant_id && item.variant_price;
+    const price = useVariantPrice ? item.variant_price : item.price;
+    const memberPrice = useVariantPrice ? item.variant_member_price : item.member_price;
+    const stock = useVariantPrice ? item.variant_stock : item.stock;
+
+    return {
+      id: item.id,
+      quantity: item.quantity,
+      product_id: item.product_id,
+      variant_id: item.variant_id,
+      name: item.name,
+      variant_name: item.variant_name,
+      price: memberPrice || price,
+      original_price: price,
+      image_url: item.image_url,
+      stock: stock
+    };
+  });
+
   const total = items.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
 
   return {
