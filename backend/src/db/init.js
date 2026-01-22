@@ -16,26 +16,18 @@ async function initializeDatabase() {
       `);
 
       if (tableCheck.rows[0].exists) {
-        console.log('Cleaning up non-Lilien products...');
-        await db.query(`DELETE FROM products WHERE name NOT LIKE 'Lilien%' AND name NOT LIKE '%Lilien%'`);
+        // Delete ALL products and reseed with correct prices
+        console.log('Resetting products with correct prices...');
+        await db.query(`DELETE FROM products`);
 
-        // Update existing product prices using LIKE for flexible matching
-        console.log('Updating product prices...');
-        await db.query(`UPDATE products SET price = 7.60, member_price = 6.84 WHERE name LIKE 'Lilien Premium Super Clumping Cat Litter 6L%' AND name NOT LIKE '%CARTON%'`);
-        await db.query(`UPDATE products SET price = 139.90, member_price = 119.90 WHERE name LIKE '%CARTON%Lilien%'`);
-        await db.query(`UPDATE products SET price = 18.90, member_price = 15.90 WHERE name LIKE 'Lilien Creamy Cat Treats%'`);
-        console.log('Prices updated!');
-
-        const lilienCheck = await db.query(`
-          SELECT EXISTS (
-            SELECT FROM products WHERE name LIKE 'Lilien%' OR name LIKE '%Lilien%'
-          );
+        await db.query(`
+          INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES
+          ('Lilien Premium Super Clumping Cat Litter 6L', 'Premium quality super clumping cat litter. Superior odor control, low dust formula, easy to scoop. Keeps your cat''s litter box fresh and clean.', 7.60, 6.84, '/products/litter-6l.jpg', 'Litter', 200),
+          ('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L', 'Bulk pack of 6 bags - Save more! Premium quality super clumping cat litter with superior odor control. Low dust formula, easy to scoop.', 139.90, 119.90, '/products/litter-carton.jpg', 'Litter', 50),
+          ('Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats in 3 delicious flavours! Perfect for training, bonding, or just spoiling your beloved cat. Made with real ingredients.', 18.90, 15.90, '/products/creamy-treats.jpg', 'Food', 300)
         `);
-
-        if (lilienCheck.rows[0].exists) {
-          console.log('Database ready with Lilien products only');
-          return;
-        }
+        console.log('Products reseeded with correct prices!');
+        return;
 
         console.log('Adding Lilien products...');
         await db.query(`
