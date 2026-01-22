@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import ProductCard from '../components/ProductCard';
@@ -12,6 +12,7 @@ const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const productsRef = useRef(null);
 
   const currentCategory = searchParams.get('category') || '';
 
@@ -40,6 +41,10 @@ const Home = () => {
       searchParams.set('category', category);
     }
     setSearchParams(searchParams);
+
+    setTimeout(() => {
+      productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   return (
@@ -130,7 +135,7 @@ const Home = () => {
       </section>
 
       {/* Products Section */}
-      <section className="products-section">
+      <section className="products-section" ref={productsRef}>
         <div className="container">
           <div className="products-header">
             <h2>{currentCategory || 'All Products'}</h2>
