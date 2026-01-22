@@ -129,7 +129,15 @@ const ProductDetail = () => {
             <span className="product-category">{product.category}</span>
             <h1>{product.name}</h1>
 
-            <p className="product-detail-price">RM {parseFloat(product.price).toFixed(2)}</p>
+            <div className="product-detail-price-wrapper">
+              <p className="product-detail-price">RM {parseFloat(product.price).toFixed(2)}</p>
+              {product.isMember && product.originalPrice && (
+                <>
+                  <span className="product-detail-price-old">RM {parseFloat(product.originalPrice).toFixed(2)}</span>
+                  <span className="member-badge">MEMBER PRICE</span>
+                </>
+              )}
+            </div>
 
             <p className={`stock-info ${stockStatus.class}`}>{stockStatus.text}</p>
 

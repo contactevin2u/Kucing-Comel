@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS products (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price DECIMAL(10, 2) NOT NULL,
+    member_price DECIMAL(10, 2),
     image_url VARCHAR(500),
     category VARCHAR(100),
     stock INTEGER DEFAULT 0,

@@ -40,14 +40,14 @@ const ProductCard = ({ product }) => {
     setIsWishlisted(!isWishlisted);
   };
 
-  const isOnSale = product.stock > 50;
   const isNew = product.id <= 5;
+  const isMemberPrice = product.isMember && product.originalPrice;
 
   return (
     <div className="product-card">
       {/* Badge */}
-      {isOnSale && <span className="product-badge">SALE</span>}
-      {isNew && !isOnSale && <span className="product-badge" style={{ background: '#00BFB3' }}>NEW</span>}
+      {isMemberPrice && <span className="product-badge" style={{ background: '#FF7B54' }}>MEMBER</span>}
+      {isNew && !isMemberPrice && <span className="product-badge" style={{ background: '#00BFB3' }}>NEW</span>}
 
       {/* Wishlist Button */}
       <button
@@ -83,9 +83,9 @@ const ProductCard = ({ product }) => {
           <div className="product-price-row">
             <div>
               <span className="product-price">RM {parseFloat(product.price).toFixed(2)}</span>
-              {isOnSale && (
+              {isMemberPrice && (
                 <span className="product-price-old">
-                  RM {(parseFloat(product.price) * 1.3).toFixed(2)}
+                  RM {parseFloat(product.originalPrice).toFixed(2)}
                 </span>
               )}
             </div>

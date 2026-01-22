@@ -1219,11 +1219,34 @@ img {
   color: var(--dark);
 }
 
+.product-detail-price-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin: 25px 0;
+}
+
 .product-detail-price {
   font-size: 2.5rem;
   color: var(--teal);
   font-weight: 700;
-  margin: 25px 0;
+  margin: 0;
+}
+
+.product-detail-price-old {
+  font-size: 1.5rem;
+  color: var(--gray);
+  text-decoration: line-through;
+}
+
+.member-badge {
+  background: var(--coral);
+  color: white;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .product-detail-description {

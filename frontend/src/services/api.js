@@ -52,15 +52,19 @@ export const api = {
     return handleResponse(res);
   },
 
-  // Products
+  // Products - pass auth header to get member pricing if logged in
   getProducts: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_URL}/api/products?${query}`);
+    const res = await fetch(`${API_URL}/api/products?${query}`, {
+      headers: getHeaders()
+    });
     return handleResponse(res);
   },
 
   getProduct: async (id) => {
-    const res = await fetch(`${API_URL}/api/products/${id}`);
+    const res = await fetch(`${API_URL}/api/products/${id}`, {
+      headers: getHeaders()
+    });
     return handleResponse(res);
   },
 
