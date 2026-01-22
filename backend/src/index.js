@@ -49,7 +49,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
   res.json({
     name: 'Kucing Comel API',
-    version: '1.0.6',
+    version: '1.0.7',
     endpoints: {
       health: '/api/health',
       products: '/api/products',
@@ -66,6 +66,9 @@ app.get('/api/health', (req, res) => {
 const db = require('./config/database');
 app.get('/api/reseed', async (req, res) => {
   try {
+    // Add member_price column if it doesn't exist
+    await db.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS member_price DECIMAL(10, 2)`);
+
     await db.query(`DELETE FROM products`);
 
     await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
