@@ -19,11 +19,11 @@ async function initializeDatabase() {
         console.log('Cleaning up non-Lilien products...');
         await db.query(`DELETE FROM products WHERE name NOT LIKE 'Lilien%' AND name NOT LIKE '%Lilien%'`);
 
-        // Update existing product prices
+        // Update existing product prices using LIKE for flexible matching
         console.log('Updating product prices...');
-        await db.query(`UPDATE products SET price = 7.60, member_price = 6.84 WHERE name = 'Lilien Premium Super Clumping Cat Litter 6L'`);
-        await db.query(`UPDATE products SET price = 139.90, member_price = 119.90 WHERE name = '[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L'`);
-        await db.query(`UPDATE products SET price = 18.90, member_price = 15.90 WHERE name = 'Lilien Creamy Cat Treats - 3 Flavours Box'`);
+        await db.query(`UPDATE products SET price = 7.60, member_price = 6.84 WHERE name LIKE 'Lilien Premium Super Clumping Cat Litter 6L%' AND name NOT LIKE '%CARTON%'`);
+        await db.query(`UPDATE products SET price = 139.90, member_price = 119.90 WHERE name LIKE '%CARTON%Lilien%'`);
+        await db.query(`UPDATE products SET price = 18.90, member_price = 15.90 WHERE name LIKE 'Lilien Creamy Cat Treats%'`);
         console.log('Prices updated!');
 
         const lilienCheck = await db.query(`

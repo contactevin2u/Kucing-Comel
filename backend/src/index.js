@@ -49,7 +49,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
   res.json({
     name: 'Kucing Comel API',
-    version: '1.0.2',
+    version: '1.0.3',
     endpoints: {
       health: '/api/health',
       products: '/api/products',
