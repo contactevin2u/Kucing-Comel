@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import ProductCard from '../components/ProductCard';
+import HeroCarousel from '../components/HeroCarousel';
 
 const categories = [
   { name: 'Food', image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=200', label: 'FOOD' },
@@ -49,35 +50,8 @@ const Home = () => {
 
   return (
     <div>
-      {/* Hero Section */}
-      <section className="hero">
-        <div className="hero-background">
-          <div className="hero-bg-left"></div>
-          <div className="hero-bg-right"></div>
-          <div className="hero-bg-accent"></div>
-        </div>
-        <div className="container">
-          <div className="hero-content">
-            <h1>The Best Choice<br />For Your Cats</h1>
-            <p>
-              Discover premium products for your beloved feline friends.
-              From nutritious food to fun toys, we have everything!
-            </p>
-            <Link to="/?category=Food" className="btn btn-white btn-lg">
-              DISCOVER
-            </Link>
-          </div>
-          <div className="hero-image">
-            <div className="paw-decoration paw-1">🐾</div>
-            <div className="paw-decoration paw-2">🐾</div>
-            <img
-              src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500"
-              alt="Cute cat"
-              style={{ borderRadius: '20px', maxWidth: '400px' }}
-            />
-          </div>
-        </div>
-      </section>
+      {/* Hero Carousel */}
+      <HeroCarousel />
 
       {/* Categories Section */}
       <section className="categories-section">
