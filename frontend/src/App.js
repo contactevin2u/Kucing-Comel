@@ -9,9 +9,6 @@ import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Orders from './pages/Orders';
-import AdminLogin from './pages/AdminLogin';
-import Admin from './pages/Admin';
-import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 
 function App() {
   return (
@@ -26,15 +23,6 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/orders" element={<Orders />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedAdminRoute>
-                <Admin />
-              </ProtectedAdminRoute>
-            }
-          />
         </Routes>
       </main>
       <Footer />

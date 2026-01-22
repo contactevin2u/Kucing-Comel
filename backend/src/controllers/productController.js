@@ -82,79 +82,8 @@ const getCategories = async (req, res, next) => {
   }
 };
 
-const createProduct = async (req, res, next) => {
-  try {
-    const { name, description, price, image_url, category, stock } = req.body;
-
-    if (!name || !price) {
-      return res.status(400).json({ error: 'Name and price are required.' });
-    }
-
-    const result = await db.query(
-      `INSERT INTO products (name, description, price, image_url, category, stock)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING *`,
-      [name, description, price, image_url, category, stock || 0]
-    );
-
-    res.status(201).json({ product: result.rows[0] });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updateProduct = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { name, description, price, image_url, category, stock, is_active } = req.body;
-
-    const result = await db.query(
-      `UPDATE products SET
-        name = COALESCE($1, name),
-        description = COALESCE($2, description),
-        price = COALESCE($3, price),
-        image_url = COALESCE($4, image_url),
-        category = COALESCE($5, category),
-        stock = COALESCE($6, stock),
-        is_active = COALESCE($7, is_active)
-       WHERE id = $8 RETURNING *`,
-      [name, description, price, image_url, category, stock, is_active, id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Product not found.' });
-    }
-
-    res.json({ product: result.rows[0] });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const deleteProduct = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-
-    const result = await db.query(
-      'UPDATE products SET is_active = false WHERE id = $1 RETURNING id',
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Product not found.' });
-    }
-
-    res.json({ message: 'Product deleted successfully.' });
-  } catch (error) {
-    next(error);
-  }
-};
-
 module.exports = {
   getAllProducts,
   getProductById,
-  getCategories,
-  createProduct,
-  updateProduct,
-  deleteProduct
+  getCategories
 };
