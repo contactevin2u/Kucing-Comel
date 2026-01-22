@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }) => {
     const data = await api.login({ email, password });
     localStorage.setItem('token', data.token);
     setUser(data.user);
+    window.dispatchEvent(new Event('authChange'));
     return data;
   };
 
@@ -46,12 +47,14 @@ export const AuthProvider = ({ children }) => {
     const data = await api.register(userData);
     localStorage.setItem('token', data.token);
     setUser(data.user);
+    window.dispatchEvent(new Event('authChange'));
     return data;
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    window.dispatchEvent(new Event('authChange'));
   };
 
   const value = {

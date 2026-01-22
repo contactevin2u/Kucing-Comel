@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
+import TopBanner from './components/TopBanner';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -13,6 +14,7 @@ import Orders from './pages/Orders';
 function App() {
   return (
     <div className="App">
+      <TopBanner />
       <Navbar />
       <main style={{ minHeight: 'calc(100vh - 300px)' }}>
         <Routes>
