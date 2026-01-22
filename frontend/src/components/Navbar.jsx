@@ -15,12 +15,6 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Top Banner */}
-      <div className="top-banner">
-        Summer Sale up to 50% off!
-        <a href="/#promo">Shop now!</a>
-      </div>
-
       {/* Main Navbar */}
       <nav className="navbar">
         <div className="container">
