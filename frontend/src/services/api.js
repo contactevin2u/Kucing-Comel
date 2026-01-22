@@ -17,6 +17,14 @@ const getHeaders = () => {
   };
 };
 
+const getAdminHeaders = () => {
+  const token = localStorage.getItem('adminToken');
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` })
+  };
+};
+
 const handleResponse = async (response) => {
   const data = await response.json();
   if (!response.ok) {
@@ -148,6 +156,23 @@ export const api = {
   getPaymentStatus: async (orderId) => {
     const res = await fetch(`${API_URL}/api/payments/status/${orderId}`, {
       headers: getHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  // Admin
+  adminLogin: async (credentials) => {
+    const res = await fetch(`${API_URL}/api/admin/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials)
+    });
+    return handleResponse(res);
+  },
+
+  verifyAdmin: async () => {
+    const res = await fetch(`${API_URL}/api/admin/verify`, {
+      headers: getAdminHeaders()
     });
     return handleResponse(res);
   }

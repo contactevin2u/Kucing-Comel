@@ -62,4 +62,33 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-module.exports = { auth, optionalAuth, adminOnly };
+const adminAuth = (req, res, next) => {
+  try {
+    const authHeader = req.header('Authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Access denied. No admin token provided.' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required.' });
+    }
+
+    req.admin = { email: decoded.email, role: decoded.role };
+    req.token = token;
+    next();
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid admin token.' });
+    }
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Admin token expired.' });
+    }
+    res.status(500).json({ error: 'Admin authentication failed.' });
+  }
+};
+
+module.exports = { auth, optionalAuth, adminOnly, adminAuth };
