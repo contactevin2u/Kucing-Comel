@@ -2,22 +2,24 @@ const db = require('../config/database');
 
 const getOrders = async (req, res, next) => {
   try {
-    const result = await db.query(
-      `SELECT o.*,
-        (SELECT json_agg(json_build_object(
-          'id', oi.id,
-          'product_id', oi.product_id,
-          'product_name', oi.product_name,
-          'product_price', oi.product_price,
-          'quantity', oi.quantity
-        )) FROM order_items oi WHERE oi.order_id = o.id) as items
-       FROM orders o
-       WHERE o.user_id = $1
-       ORDER BY o.created_at DESC`,
+    const ordersResult = db.query(
+      `SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC`,
       [req.user.id]
     );
 
-    res.json({ orders: result.rows });
+    // Get items for each order
+    const orders = ordersResult.rows.map(order => {
+      const itemsResult = db.query(
+        'SELECT * FROM order_items WHERE order_id = $1',
+        [order.id]
+      );
+      return {
+        ...order,
+        items: itemsResult.rows
+      };
+    });
+
+    res.json({ orders });
   } catch (error) {
     next(error);
   }
@@ -27,7 +29,7 @@ const getOrderById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const orderResult = await db.query(
+    const orderResult = db.query(
       'SELECT * FROM orders WHERE id = $1 AND user_id = $2',
       [id, req.user.id]
     );
@@ -36,7 +38,7 @@ const getOrderById = async (req, res, next) => {
       return res.status(404).json({ error: 'Order not found.' });
     }
 
-    const itemsResult = await db.query(
+    const itemsResult = db.query(
       'SELECT * FROM order_items WHERE order_id = $1',
       [id]
     );
@@ -53,18 +55,14 @@ const getOrderById = async (req, res, next) => {
 };
 
 const createOrder = async (req, res, next) => {
-  const client = await db.pool.connect();
-
   try {
-    await client.query('BEGIN');
-
     const { shipping_name, shipping_address, shipping_phone } = req.body;
 
     if (!shipping_name || !shipping_address || !shipping_phone) {
       return res.status(400).json({ error: 'Shipping details are required.' });
     }
 
-    const cartResult = await client.query('SELECT id FROM carts WHERE user_id = $1', [req.user.id]);
+    const cartResult = db.query('SELECT id FROM carts WHERE user_id = $1', [req.user.id]);
 
     if (cartResult.rows.length === 0) {
       return res.status(400).json({ error: 'Cart not found.' });
@@ -72,7 +70,7 @@ const createOrder = async (req, res, next) => {
 
     const cartId = cartResult.rows[0].id;
 
-    const itemsResult = await client.query(
+    const itemsResult = db.query(
       `SELECT ci.id, ci.quantity, p.id as product_id, p.name, p.price, p.stock
        FROM cart_items ci
        JOIN products p ON ci.product_id = p.id
@@ -84,9 +82,9 @@ const createOrder = async (req, res, next) => {
       return res.status(400).json({ error: 'Cart is empty.' });
     }
 
+    // Check stock
     for (const item of itemsResult.rows) {
       if (item.quantity > item.stock) {
-        await client.query('ROLLBACK');
         return res.status(400).json({
           error: `Not enough stock for ${item.name}. Available: ${item.stock}`
         });
@@ -98,49 +96,50 @@ const createOrder = async (req, res, next) => {
       0
     );
 
-    const orderResult = await client.query(
-      `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING *`,
-      [req.user.id, totalAmount, shipping_name, shipping_address, shipping_phone]
-    );
+    // Use SQLite transaction
+    const transaction = db.db.transaction(() => {
+      // Create order
+      const orderStmt = db.db.prepare(
+        `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone)
+         VALUES (?, ?, ?, ?, ?)`
+      );
+      const orderInfo = orderStmt.run(req.user.id, totalAmount, shipping_name, shipping_address, shipping_phone);
+      const orderId = orderInfo.lastInsertRowid;
 
-    const order = orderResult.rows[0];
-
-    for (const item of itemsResult.rows) {
-      await client.query(
+      // Create order items and update stock
+      const insertItemStmt = db.db.prepare(
         `INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [order.id, item.product_id, item.name, item.price, item.quantity]
+         VALUES (?, ?, ?, ?, ?)`
       );
+      const updateStockStmt = db.db.prepare('UPDATE products SET stock = stock - ? WHERE id = ?');
 
-      await client.query(
-        'UPDATE products SET stock = stock - $1 WHERE id = $2',
-        [item.quantity, item.product_id]
-      );
-    }
+      for (const item of itemsResult.rows) {
+        insertItemStmt.run(orderId, item.product_id, item.name, item.price, item.quantity);
+        updateStockStmt.run(item.quantity, item.product_id);
+      }
 
-    await client.query('DELETE FROM cart_items WHERE cart_id = $1', [cartId]);
+      // Clear cart
+      const clearCartStmt = db.db.prepare('DELETE FROM cart_items WHERE cart_id = ?');
+      clearCartStmt.run(cartId);
 
-    await client.query('COMMIT');
+      return orderId;
+    });
 
-    const finalItemsResult = await db.query(
-      'SELECT * FROM order_items WHERE order_id = $1',
-      [order.id]
-    );
+    const orderId = transaction();
+
+    // Get the created order
+    const orderResult = db.query('SELECT * FROM orders WHERE id = $1', [orderId]);
+    const finalItemsResult = db.query('SELECT * FROM order_items WHERE order_id = $1', [orderId]);
 
     res.status(201).json({
       message: 'Order created successfully.',
       order: {
-        ...order,
+        ...orderResult.rows[0],
         items: finalItemsResult.rows
       }
     });
   } catch (error) {
-    await client.query('ROLLBACK');
     next(error);
-  } finally {
-    client.release();
   }
 };
 
@@ -155,10 +154,9 @@ const updateOrderStatus = async (req, res, next) => {
       return res.status(400).json({ error: 'Invalid status.' });
     }
 
-    const result = await db.query(
-      'UPDATE orders SET status = $1 WHERE id = $2 RETURNING *',
-      [status, id]
-    );
+    db.query('UPDATE orders SET status = $1 WHERE id = $2', [status, id]);
+
+    const result = db.query('SELECT * FROM orders WHERE id = $1', [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Order not found.' });

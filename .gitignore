@@ -12,6 +12,9 @@ node_modules/
 frontend/build/
 dist/
 
+# SQLite database
+backend/data/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

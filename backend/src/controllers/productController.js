@@ -47,7 +47,7 @@ const getAllProducts = async (req, res, next) => {
 
     if (search) {
       paramCount++;
-      query += ` AND (name ILIKE $${paramCount} OR description ILIKE $${paramCount})`;
+      query += ` AND (LOWER(name) LIKE LOWER($${paramCount}) OR LOWER(description) LIKE LOWER($${paramCount}))`;
       params.push(`%${search}%`);
     }
 
