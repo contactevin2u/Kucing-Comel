@@ -45,6 +45,19 @@ app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), han
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Root welcome route
+app.get('/', (req, res) => {
+  res.json({
+    name: 'Kucing Comel API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      products: '/api/products',
+      categories: '/api/products/categories'
+    }
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
