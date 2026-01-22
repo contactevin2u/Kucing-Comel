@@ -49,7 +49,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
   res.json({
     name: 'Kucing Comel API',
-    version: '1.0.5',
+    version: '1.0.6',
     endpoints: {
       health: '/api/health',
       products: '/api/products',
@@ -60,6 +60,27 @@ app.get('/', (req, res) => {
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Manual reseed endpoint for debugging
+const db = require('./config/database');
+app.get('/api/reseed', async (req, res) => {
+  try {
+    await db.query(`DELETE FROM products`);
+
+    await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      ['Lilien Premium Super Clumping Cat Litter 6L', 'Premium quality super clumping cat litter.', 7.60, 6.84, '/products/litter-6l.jpg', 'Litter', 200]);
+
+    await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      ['[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L', 'Bulk pack of 6 bags.', 139.90, 119.90, '/products/litter-carton.jpg', 'Litter', 50]);
+
+    await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      ['Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats!', 18.90, 15.90, '/products/creamy-treats.jpg', 'Food', 300]);
+
+    res.json({ success: true, message: 'Products reseeded!' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 app.use('/api/auth', authRoutes);
