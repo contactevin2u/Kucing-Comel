@@ -86,11 +86,6 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = async () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
     setAdding(true);
     const result = await addToCart(product.id, quantity, selectedVariant?.id);
     setAdding(false);
@@ -103,11 +98,6 @@ const ProductDetail = () => {
   };
 
   const handleBuyNow = async () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
     setAdding(true);
     const result = await addToCart(product.id, quantity, selectedVariant?.id);
     setAdding(false);
