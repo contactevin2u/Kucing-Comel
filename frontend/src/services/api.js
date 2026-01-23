@@ -142,6 +142,21 @@ export const api = {
     return handleResponse(res);
   },
 
+  // Guest orders (no auth required)
+  createGuestOrder: async (orderData) => {
+    const res = await fetch(`${API_URL}/api/orders/guest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderData)
+    });
+    return handleResponse(res);
+  },
+
+  getGuestOrder: async (orderId, email) => {
+    const res = await fetch(`${API_URL}/api/orders/guest/${orderId}?email=${encodeURIComponent(email)}`);
+    return handleResponse(res);
+  },
+
   // Payments
   createPaymentIntent: async (orderId) => {
     const res = await fetch(`${API_URL}/api/payments/create-intent`, {
@@ -165,11 +180,15 @@ export const api = {
     return handleResponse(res);
   },
 
-  initiateSenangPayPayment: async (orderId) => {
+  initiateSenangPayPayment: async (orderId, guestEmail = null) => {
+    const body = { order_id: orderId };
+    if (guestEmail) {
+      body.guest_email = guestEmail;
+    }
     const res = await fetch(`${API_URL}/api/senangpay/initiate`, {
       method: 'POST',
       headers: getHeaders(),
-      body: JSON.stringify({ order_id: orderId })
+      body: JSON.stringify(body)
     });
     return handleResponse(res);
   },

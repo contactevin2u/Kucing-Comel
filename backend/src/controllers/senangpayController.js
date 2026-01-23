@@ -57,30 +57,53 @@ const generateQueryHash = (orderId) => {
 
 /**
  * Initiate SenangPay payment
- * Returns payment URL and parameters for redirect
+ * Supports both authenticated users and guest checkout
  */
 const initiatePayment = async (req, res, next) => {
   try {
-    const { order_id } = req.body;
+    const { order_id, guest_email } = req.body;
 
     if (!order_id) {
       return res.status(400).json({ error: 'Order ID is required.' });
     }
 
-    // Verify order belongs to user and is unpaid
-    const orderResult = await db.query(
-      `SELECT o.*, u.name as user_name, u.email as user_email
-       FROM orders o
-       JOIN users u ON o.user_id = u.id
-       WHERE o.id = $1 AND o.user_id = $2`,
-      [order_id, req.user.id]
-    );
+    let order;
 
-    if (orderResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Order not found.' });
+    // Check if this is a guest order or authenticated user order
+    if (req.user) {
+      // Authenticated user - verify order belongs to them
+      const orderResult = await db.query(
+        `SELECT o.*, u.name as user_name, u.email as user_email
+         FROM orders o
+         LEFT JOIN users u ON o.user_id = u.id
+         WHERE o.id = $1 AND o.user_id = $2`,
+        [order_id, req.user.id]
+      );
+
+      if (orderResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found.' });
+      }
+
+      order = orderResult.rows[0];
+    } else {
+      // Guest checkout - verify order with guest_email
+      if (!guest_email) {
+        return res.status(400).json({ error: 'Email is required for guest checkout.' });
+      }
+
+      const orderResult = await db.query(
+        `SELECT * FROM orders WHERE id = $1 AND guest_email = $2`,
+        [order_id, guest_email.toLowerCase()]
+      );
+
+      if (orderResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found.' });
+      }
+
+      order = orderResult.rows[0];
+      order.user_email = order.guest_email;
+      order.user_name = order.shipping_name;
     }
-
-    const order = orderResult.rows[0];
 
     if (order.payment_status === 'paid') {
       return res.status(400).json({ error: 'Order is already paid.' });
@@ -125,7 +148,7 @@ const initiatePayment = async (req, res, next) => {
           amount: amountInSen,
           order_id: senangpayOrderId,
           name: order.shipping_name || order.user_name,
-          email: order.user_email,
+          email: order.user_email || order.guest_email,
           phone: order.shipping_phone || '',
           // Mock hash for testing
           hash: 'mock_hash_' + senangpayOrderId
@@ -149,7 +172,7 @@ const initiatePayment = async (req, res, next) => {
         amount: amountInSen,
         order_id: senangpayOrderId,
         name: order.shipping_name || order.user_name,
-        email: order.user_email,
+        email: order.user_email || order.guest_email,
         phone: order.shipping_phone || '',
         hash: hash
       },
@@ -179,6 +202,10 @@ const handleMockPayment = async (req, res, next) => {
     // Generate mock transaction ID
     const mockTransactionId = `MOCK-TXN-${Date.now()}`;
 
+    // Get order to check if it's a guest order
+    const orderResult = await db.query('SELECT guest_email FROM orders WHERE id = $1', [originalOrderId]);
+    const isGuestOrder = orderResult.rows.length > 0 && orderResult.rows[0].guest_email;
+
     if (action === 'success') {
       // Simulate successful payment
       await db.query(
@@ -192,13 +219,19 @@ const handleMockPayment = async (req, res, next) => {
 
       console.log(`[MOCK MODE] Order ${originalOrderId} marked as paid`);
 
+      // Redirect URL depends on whether it's a guest order
+      const redirectUrl = isGuestOrder
+        ? `${FRONTEND_URL}/order-success?order_id=${originalOrderId}`
+        : `${FRONTEND_URL}/orders?payment=success`;
+
       return res.json({
         success: true,
         status_id: '1',
         order_id: order_id,
         transaction_id: mockTransactionId,
         msg: 'Payment successful (MOCK)',
-        redirect_url: `${FRONTEND_URL}/orders?payment=success`
+        redirect_url: redirectUrl,
+        is_guest: isGuestOrder
       });
     } else {
       // Simulate failed payment
@@ -215,7 +248,8 @@ const handleMockPayment = async (req, res, next) => {
         order_id: order_id,
         transaction_id: null,
         msg: 'Payment failed (MOCK)',
-        redirect_url: `${FRONTEND_URL}/checkout?payment=failed&msg=Mock+payment+declined`
+        redirect_url: `${FRONTEND_URL}/checkout?payment=failed&msg=Mock+payment+declined`,
+        is_guest: isGuestOrder
       });
     }
   } catch (error) {
@@ -243,6 +277,10 @@ const handleReturn = async (req, res, next) => {
     // Extract original order ID from SenangPay order reference (KC-{id}-{timestamp})
     const originalOrderId = order_id.split('-')[1];
 
+    // Check if this is a guest order
+    const orderResult = await db.query('SELECT guest_email FROM orders WHERE id = $1', [originalOrderId]);
+    const isGuestOrder = orderResult.rows.length > 0 && orderResult.rows[0].guest_email;
+
     // Update order status based on payment result
     if (status_id === '1') {
       // Payment successful
@@ -255,7 +293,10 @@ const handleReturn = async (req, res, next) => {
         [transaction_id, originalOrderId]
       );
 
-      // Redirect to success page
+      // Redirect to appropriate success page
+      if (isGuestOrder) {
+        return res.redirect(`${FRONTEND_URL}/order-success?order_id=${originalOrderId}`);
+      }
       return res.redirect(`${FRONTEND_URL}/orders?payment=success`);
     } else {
       // Payment failed
@@ -324,22 +365,41 @@ const handleCallback = async (req, res, next) => {
 
 /**
  * Query order status from SenangPay
+ * Supports both authenticated users and guest orders
  */
 const queryOrderStatus = async (req, res, next) => {
   try {
     const { order_id } = req.params;
+    const { email } = req.query; // For guest orders
 
-    // Get order from database
-    const orderResult = await db.query(
-      'SELECT * FROM orders WHERE id = $1 AND user_id = $2',
-      [order_id, req.user.id]
-    );
+    let order;
 
-    if (orderResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Order not found.' });
+    // Check if authenticated user or guest
+    if (req.user) {
+      const orderResult = await db.query(
+        'SELECT * FROM orders WHERE id = $1 AND user_id = $2',
+        [order_id, req.user.id]
+      );
+
+      if (orderResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found.' });
+      }
+
+      order = orderResult.rows[0];
+    } else if (email) {
+      const orderResult = await db.query(
+        'SELECT * FROM orders WHERE id = $1 AND guest_email = $2',
+        [order_id, email.toLowerCase()]
+      );
+
+      if (orderResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found.' });
+      }
+
+      order = orderResult.rows[0];
+    } else {
+      return res.status(400).json({ error: 'Authentication or email required.' });
     }
-
-    const order = orderResult.rows[0];
 
     // ============================================================
     // MOCK MODE: Return local database status only

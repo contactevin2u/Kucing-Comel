@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -9,7 +9,7 @@ import { useCart } from '../context/CartContext';
  * MOCK PAYMENT PAGE
  * ============================================================
  * This page simulates the SenangPay payment experience for development.
- * It allows testing the full payment flow without a real SenangPay account.
+ * Supports both authenticated users and guest checkout.
  *
  * TO SWITCH TO REAL SENANGPAY:
  * 1. Set PAYMENT_MODE=senangpay in backend .env
@@ -20,21 +20,14 @@ import { useCart } from '../context/CartContext';
 
 const MockPayment = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { isAuthenticated } = useAuth();
-  const { refreshCart } = useCart();
+  const { clearCart } = useCart();
 
   const [processing, setProcessing] = useState(false);
   const [paymentData, setPaymentData] = useState(null);
 
-  // Parse payment data from URL or sessionStorage
+  // Get payment data from sessionStorage
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
-    // Get payment data from sessionStorage (set by checkout page)
     const storedData = sessionStorage.getItem('mockPaymentData');
     if (storedData) {
       setPaymentData(JSON.parse(storedData));
@@ -42,7 +35,7 @@ const MockPayment = () => {
       // No payment data, redirect back to cart
       navigate('/cart');
     }
-  }, [isAuthenticated, navigate, searchParams]);
+  }, [navigate]);
 
   const handlePayment = async (action) => {
     if (!paymentData) return;
@@ -56,11 +49,20 @@ const MockPayment = () => {
       sessionStorage.removeItem('mockPaymentData');
 
       if (response.success) {
-        // Payment successful - refresh cart and redirect
-        refreshCart();
-        navigate('/orders', {
-          state: { message: 'Payment successful! Thank you for your order. (MOCK)' }
-        });
+        // Payment successful - clear cart
+        clearCart();
+
+        // Redirect based on user type
+        if (response.is_guest || !isAuthenticated) {
+          // Guest order - extract order ID and redirect to success page
+          const orderId = paymentData.order_id.split('-')[1];
+          navigate(`/order-success?order_id=${orderId}`);
+        } else {
+          // Authenticated user - redirect to orders page
+          navigate('/orders', {
+            state: { message: 'Payment successful! Thank you for your order. (MOCK)' }
+          });
+        }
       } else {
         // Payment failed - redirect back to checkout
         navigate('/checkout?payment=failed&msg=' + encodeURIComponent(response.msg));

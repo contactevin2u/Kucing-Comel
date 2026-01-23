@@ -49,6 +49,15 @@ async function initializeDatabase() {
           console.log('SenangPay columns may already exist');
         }
 
+        // Add guest checkout column
+        try {
+          await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS guest_email VARCHAR(255)`);
+          await db.query(`ALTER TABLE orders ALTER COLUMN user_id DROP NOT NULL`);
+          console.log('Guest checkout column added to orders table');
+        } catch (e) {
+          console.log('Guest checkout column may already exist');
+        }
+
         if (!variantsTableCheck.rows[0].exists) {
           console.log('Creating product_variants table...');
           await db.query(`
@@ -112,6 +121,11 @@ async function initializeDatabase() {
         } catch (e) { /* column exists */ }
         try {
           db.db.exec(`ALTER TABLE orders ADD COLUMN transaction_id TEXT`);
+        } catch (e) { /* column exists */ }
+
+        // Add guest checkout column for SQLite
+        try {
+          db.db.exec(`ALTER TABLE orders ADD COLUMN guest_email TEXT`);
         } catch (e) { /* column exists */ }
 
         // Check if product_variants table exists

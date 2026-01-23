@@ -8,17 +8,7 @@ import { useCart } from '../context/CartContext';
 
 /**
  * ============================================================
- * CHECKOUT PAGE
- * ============================================================
- * Supports both Stripe and SenangPay payment methods.
- *
- * SENANGPAY MODES:
- * - "mock"      : Uses local mock payment page (for development)
- * - "senangpay" : Redirects to real SenangPay (after approval)
- *
- * TO SWITCH TO REAL SENANGPAY:
- * 1. Set PAYMENT_MODE=senangpay in backend .env
- * 2. Add real SENANGPAY_MERCHANT_ID and SENANGPAY_SECRET_KEY
+ * CHECKOUT PAGE - Supports both logged-in users and guests
  * ============================================================
  */
 
@@ -100,7 +90,7 @@ const StripeCheckoutForm = ({ order, onSuccess }) => {
   );
 };
 
-const SenangPayCheckoutForm = ({ order, onProcessing }) => {
+const SenangPayCheckoutForm = ({ order, guestEmail, onProcessing }) => {
   const navigate = useNavigate();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
@@ -111,14 +101,19 @@ const SenangPayCheckoutForm = ({ order, onProcessing }) => {
     onProcessing(true);
 
     try {
-      const response = await api.initiateSenangPayPayment(order.id);
+      // Pass guest email if this is a guest order
+      const response = await api.initiateSenangPayPayment(order.id, guestEmail);
 
       if (response.success) {
+        // Store guest email in sessionStorage for mock payment page
+        if (guestEmail) {
+          sessionStorage.setItem('guestEmail', guestEmail);
+        }
+
         // ============================================================
         // MOCK MODE: Navigate to local mock payment page
         // ============================================================
         if (response.mode === 'mock') {
-          // Store payment data in sessionStorage for mock payment page
           sessionStorage.setItem('mockPaymentData', JSON.stringify(response.params));
           navigate('/mock-payment');
           return;
@@ -131,7 +126,6 @@ const SenangPayCheckoutForm = ({ order, onProcessing }) => {
         form.method = 'POST';
         form.action = response.payment_url;
 
-        // Add all params as hidden fields
         Object.entries(response.params).forEach(([key, value]) => {
           const input = document.createElement('input');
           input.type = 'hidden';
@@ -192,7 +186,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, isAuthenticated } = useAuth();
-  const { cart, refreshCart } = useCart();
+  const { cart, clearCart, getCartItemsForOrder, isGuestCart } = useCart();
 
   const [step, setStep] = useState(1);
   const [order, setOrder] = useState(null);
@@ -201,6 +195,7 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState('senangpay');
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [paymentMode, setPaymentMode] = useState(null);
+  const [guestEmail, setGuestEmail] = useState('');
 
   const [shippingData, setShippingData] = useState({
     shipping_name: user?.name || '',
@@ -234,13 +229,12 @@ const Checkout = () => {
     }
   }, [searchParams]);
 
+  // Redirect if cart is empty (but allow if we have an order)
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-    } else if (cart.items.length === 0 && !order) {
+    if (cart.items.length === 0 && !order) {
       navigate('/cart');
     }
-  }, [isAuthenticated, cart.items.length, order, navigate]);
+  }, [cart.items.length, order, navigate]);
 
   const handleShippingSubmit = async (e) => {
     e.preventDefault();
@@ -250,11 +244,40 @@ const Checkout = () => {
       return;
     }
 
+    // Guest checkout requires email
+    if (!isAuthenticated && !guestEmail) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    // Validate email format for guests
+    if (!isAuthenticated) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(guestEmail)) {
+        setError('Please enter a valid email address');
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const data = await api.createOrder(shippingData);
+      let data;
+
+      if (isAuthenticated) {
+        // Authenticated user - use regular order endpoint
+        data = await api.createOrder(shippingData);
+      } else {
+        // Guest checkout - use guest order endpoint
+        const orderData = {
+          ...shippingData,
+          guest_email: guestEmail,
+          items: getCartItemsForOrder()
+        };
+        data = await api.createGuestOrder(orderData);
+      }
+
       setOrder(data.order);
       setStep(2);
     } catch (err) {
@@ -265,18 +288,40 @@ const Checkout = () => {
   };
 
   const handlePaymentSuccess = () => {
-    refreshCart();
-    navigate('/orders', {
-      state: { message: 'Payment successful! Thank you for your order.' }
-    });
+    clearCart();
+    if (isAuthenticated) {
+      navigate('/orders', {
+        state: { message: 'Payment successful! Thank you for your order.' }
+      });
+    } else {
+      // Guest - redirect to order success page
+      navigate(`/order-success?order_id=${order.id}`);
+    }
   };
-
-  if (!isAuthenticated) return null;
 
   return (
     <div className="checkout-page">
       <div className="container">
         <h1 style={{ marginBottom: '30px' }}>Checkout</h1>
+
+        {/* Guest Checkout Notice */}
+        {!isAuthenticated && (
+          <div style={{
+            background: '#e3f2fd',
+            border: '1px solid #2196F3',
+            borderRadius: '8px',
+            padding: '12px 20px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <span style={{ fontSize: '1.2rem' }}>&#128100;</span>
+            <span style={{ fontSize: '0.9rem', color: '#1565C0' }}>
+              Checking out as guest. <a href="/login" style={{ color: '#1565C0', fontWeight: '600' }}>Login</a> to track your orders.
+            </span>
+          </div>
+        )}
 
         {/* Mock Mode Banner */}
         {paymentMode === 'mock' && (
@@ -292,7 +337,7 @@ const Checkout = () => {
           }}>
             <span style={{ fontSize: '1.2rem' }}>&#9888;</span>
             <span style={{ fontSize: '0.9rem', color: '#856404' }}>
-              <strong>Development Mode:</strong> SenangPay integration pending approval. Payments are simulated.
+              <strong>Development Mode:</strong> Payments are simulated.
             </span>
           </div>
         )}
@@ -350,10 +395,27 @@ const Checkout = () => {
             {step === 1 && (
               <form onSubmit={handleShippingSubmit}>
                 <div className="form-section">
-                  <h3>Shipping Information</h3>
+                  <h3>Contact & Shipping Information</h3>
+
+                  {/* Email field for guests */}
+                  {!isAuthenticated && (
+                    <div className="form-group">
+                      <label>Email Address *</label>
+                      <input
+                        type="email"
+                        value={guestEmail}
+                        onChange={(e) => setGuestEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        required
+                      />
+                      <small style={{ color: '#666', fontSize: '0.8rem' }}>
+                        Order confirmation will be sent to this email
+                      </small>
+                    </div>
+                  )}
 
                   <div className="form-group">
-                    <label>Full Name</label>
+                    <label>Full Name *</label>
                     <input
                       type="text"
                       value={shippingData.shipping_name}
@@ -364,7 +426,7 @@ const Checkout = () => {
                   </div>
 
                   <div className="form-group">
-                    <label>Phone Number</label>
+                    <label>Phone Number *</label>
                     <input
                       type="tel"
                       value={shippingData.shipping_phone}
@@ -375,7 +437,7 @@ const Checkout = () => {
                   </div>
 
                   <div className="form-group">
-                    <label>Shipping Address</label>
+                    <label>Shipping Address *</label>
                     <textarea
                       value={shippingData.shipping_address}
                       onChange={(e) => setShippingData({ ...shippingData, shipping_address: e.target.value })}
@@ -445,43 +507,50 @@ const Checkout = () => {
                     </div>
                   </div>
 
-                  <div
-                    onClick={() => !isRedirecting && setPaymentMethod('stripe')}
-                    style={{
-                      padding: '15px 20px',
-                      border: paymentMethod === 'stripe' ? '2px solid #635BFF' : '2px solid #e0e0e0',
-                      borderRadius: '8px',
-                      cursor: isRedirecting ? 'not-allowed' : 'pointer',
-                      background: paymentMethod === 'stripe' ? '#f0f0ff' : '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '15px',
-                      opacity: isRedirecting ? 0.6 : 1
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === 'stripe'}
-                      onChange={() => setPaymentMethod('stripe')}
-                      disabled={isRedirecting}
-                    />
-                    <div>
-                      <strong>Stripe</strong>
-                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>
-                        Credit/Debit Card (International)
-                      </p>
+                  {/* Only show Stripe for authenticated users */}
+                  {isAuthenticated && (
+                    <div
+                      onClick={() => !isRedirecting && setPaymentMethod('stripe')}
+                      style={{
+                        padding: '15px 20px',
+                        border: paymentMethod === 'stripe' ? '2px solid #635BFF' : '2px solid #e0e0e0',
+                        borderRadius: '8px',
+                        cursor: isRedirecting ? 'not-allowed' : 'pointer',
+                        background: paymentMethod === 'stripe' ? '#f0f0ff' : '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '15px',
+                        opacity: isRedirecting ? 0.6 : 1
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        checked={paymentMethod === 'stripe'}
+                        onChange={() => setPaymentMethod('stripe')}
+                        disabled={isRedirecting}
+                      />
+                      <div>
+                        <strong>Stripe</strong>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>
+                          Credit/Debit Card (International)
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Payment Form based on selected method */}
-                {paymentMethod === 'stripe' ? (
+                {paymentMethod === 'stripe' && isAuthenticated ? (
                   <Elements stripe={stripePromise}>
                     <StripeCheckoutForm order={order} onSuccess={handlePaymentSuccess} />
                   </Elements>
                 ) : (
-                  <SenangPayCheckoutForm order={order} onProcessing={setIsRedirecting} />
+                  <SenangPayCheckoutForm
+                    order={order}
+                    guestEmail={!isAuthenticated ? guestEmail : null}
+                    onProcessing={setIsRedirecting}
+                  />
                 )}
 
                 {error && <div className="alert alert-error" style={{ marginTop: '15px' }}>{error}</div>}

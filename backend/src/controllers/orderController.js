@@ -54,6 +54,41 @@ const getOrderById = async (req, res, next) => {
   }
 };
 
+// Get order by ID for guest (using email verification)
+const getGuestOrderById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required to view guest order.' });
+    }
+
+    const orderResult = db.query(
+      'SELECT * FROM orders WHERE id = $1 AND guest_email = $2',
+      [id, email.toLowerCase()]
+    );
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found.' });
+    }
+
+    const itemsResult = db.query(
+      'SELECT * FROM order_items WHERE order_id = $1',
+      [id]
+    );
+
+    res.json({
+      order: {
+        ...orderResult.rows[0],
+        items: itemsResult.rows
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const createOrder = async (req, res, next) => {
   try {
     const { shipping_name, shipping_address, shipping_phone } = req.body;
@@ -143,6 +178,128 @@ const createOrder = async (req, res, next) => {
   }
 };
 
+/**
+ * Create guest order - allows checkout without login
+ * Accepts cart items directly instead of from database cart
+ */
+const createGuestOrder = async (req, res, next) => {
+  try {
+    const {
+      shipping_name,
+      shipping_address,
+      shipping_phone,
+      guest_email,
+      items // Array of { product_id, quantity, variant_id? }
+    } = req.body;
+
+    // Validate required fields
+    if (!shipping_name || !shipping_address || !shipping_phone) {
+      return res.status(400).json({ error: 'Shipping details are required.' });
+    }
+
+    if (!guest_email) {
+      return res.status(400).json({ error: 'Email is required for guest checkout.' });
+    }
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Cart items are required.' });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(guest_email)) {
+      return res.status(400).json({ error: 'Invalid email format.' });
+    }
+
+    // Get product details and validate stock
+    const productIds = items.map(item => item.product_id);
+    const placeholders = productIds.map((_, i) => `$${i + 1}`).join(',');
+
+    const productsResult = db.query(
+      `SELECT id, name, price, stock, is_active FROM products WHERE id IN (${placeholders})`,
+      productIds
+    );
+
+    const productsMap = {};
+    for (const product of productsResult.rows) {
+      productsMap[product.id] = product;
+    }
+
+    // Validate all products exist and have stock
+    const orderItems = [];
+    for (const item of items) {
+      const product = productsMap[item.product_id];
+
+      if (!product) {
+        return res.status(400).json({ error: `Product with ID ${item.product_id} not found.` });
+      }
+
+      if (!product.is_active) {
+        return res.status(400).json({ error: `${product.name} is no longer available.` });
+      }
+
+      if (item.quantity > product.stock) {
+        return res.status(400).json({
+          error: `Not enough stock for ${product.name}. Available: ${product.stock}`
+        });
+      }
+
+      orderItems.push({
+        product_id: product.id,
+        name: product.name,
+        price: parseFloat(product.price),
+        quantity: item.quantity
+      });
+    }
+
+    const totalAmount = orderItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+
+    // Use SQLite transaction
+    const transaction = db.db.transaction(() => {
+      // Create order (user_id is NULL for guest)
+      const orderStmt = db.db.prepare(
+        `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone, guest_email)
+         VALUES (?, ?, ?, ?, ?, ?)`
+      );
+      const orderInfo = orderStmt.run(null, totalAmount, shipping_name, shipping_address, shipping_phone, guest_email.toLowerCase());
+      const orderId = orderInfo.lastInsertRowid;
+
+      // Create order items and update stock
+      const insertItemStmt = db.db.prepare(
+        `INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity)
+         VALUES (?, ?, ?, ?, ?)`
+      );
+      const updateStockStmt = db.db.prepare('UPDATE products SET stock = stock - ? WHERE id = ?');
+
+      for (const item of orderItems) {
+        insertItemStmt.run(orderId, item.product_id, item.name, item.price, item.quantity);
+        updateStockStmt.run(item.quantity, item.product_id);
+      }
+
+      return orderId;
+    });
+
+    const orderId = transaction();
+
+    // Get the created order
+    const orderResult = db.query('SELECT * FROM orders WHERE id = $1', [orderId]);
+    const finalItemsResult = db.query('SELECT * FROM order_items WHERE order_id = $1', [orderId]);
+
+    res.status(201).json({
+      message: 'Order created successfully.',
+      order: {
+        ...orderResult.rows[0],
+        items: finalItemsResult.rows
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const updateOrderStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -171,6 +328,8 @@ const updateOrderStatus = async (req, res, next) => {
 module.exports = {
   getOrders,
   getOrderById,
+  getGuestOrderById,
   createOrder,
+  createGuestOrder,
   updateOrderStatus
 };

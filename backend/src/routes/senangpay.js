@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { auth } = require('../middleware/auth');
+const { auth, optionalAuth } = require('../middleware/auth');
 const {
   initiatePayment,
   handleMockPayment,
@@ -15,29 +15,28 @@ const {
 // ============================================================
 // These routes handle both MOCK and REAL SenangPay modes.
 // The mode is controlled by PAYMENT_MODE environment variable.
+// Supports both authenticated users and guest checkout.
 // ============================================================
 
 // Get SenangPay configuration (public)
 // Returns current mode (mock/senangpay) and payment URL
 router.get('/config', getConfig);
 
-// Initiate payment (requires auth)
-// In mock mode: returns mock payment page URL
-// In real mode: returns SenangPay payment URL with hash
-router.post('/initiate', auth, initiatePayment);
+// Initiate payment (supports both auth and guest)
+// For guests: pass guest_email in request body
+router.post('/initiate', optionalAuth, initiatePayment);
 
-// Query order status (requires auth)
-// In mock mode: returns local database status
-// In real mode: queries SenangPay API
-router.get('/status/:order_id', auth, queryOrderStatus);
+// Query order status (supports both auth and guest)
+// For guests: pass email as query parameter
+router.get('/status/:order_id', optionalAuth, queryOrderStatus);
 
 // ============================================================
 // MOCK MODE ENDPOINTS
 // ============================================================
 // These endpoints simulate SenangPay behavior for development
 
-// Process mock payment (simulates SenangPay payment processing)
-router.post('/mock-process', auth, handleMockPayment);
+// Process mock payment (no auth - accessible from mock payment page)
+router.post('/mock-process', handleMockPayment);
 
 // ============================================================
 // REAL SENANGPAY ENDPOINTS
