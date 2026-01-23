@@ -573,7 +573,7 @@ const Checkout = () => {
                       rel="noopener noreferrer"
                       style={{ color: '#2196F3', textDecoration: 'underline' }}
                     >
-                      Terms & Conditions
+                      TERMS & CONDITIONS
                     </a>
                     <span style={{ color: '#ccc' }}>|</span>
                     <a
@@ -582,7 +582,7 @@ const Checkout = () => {
                       rel="noopener noreferrer"
                       style={{ color: '#2196F3', textDecoration: 'underline' }}
                     >
-                      Cancellation Policy
+                      PRIVACY POLICY
                     </a>
                     <span style={{ color: '#ccc' }}>|</span>
                     <a
@@ -591,7 +591,7 @@ const Checkout = () => {
                       rel="noopener noreferrer"
                       style={{ color: '#2196F3', textDecoration: 'underline' }}
                     >
-                      Refund Policy
+                      CANCELLATION, AND REFUND POLICY
                     </a>
                     <span style={{ color: '#ccc' }}>|</span>
                     <a
@@ -600,7 +600,7 @@ const Checkout = () => {
                       rel="noopener noreferrer"
                       style={{ color: '#2196F3', textDecoration: 'underline' }}
                     >
-                      Privacy Policy
+                      SHIPPING POLICY
                     </a>
                   </div>
                 </div>
@@ -643,7 +643,7 @@ const Checkout = () => {
                         style={{ color: '#2196F3' }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Terms & Conditions
+                        TERMS & CONDITIONS
                       </a>
                       ,{' '}
                       <a
@@ -653,9 +653,9 @@ const Checkout = () => {
                         style={{ color: '#2196F3' }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Cancellation
+                        PRIVACY POLICY
                       </a>
-                      {' & '}
+                      ,{' '}
                       <a
                         href="http://app.senangpay.my/policy/5501769075421854"
                         target="_blank"
@@ -663,7 +663,7 @@ const Checkout = () => {
                         style={{ color: '#2196F3' }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Refund Policy
+                        CANCELLATION, AND REFUND POLICY
                       </a>
                       , and{' '}
                       <a
@@ -673,7 +673,7 @@ const Checkout = () => {
                         style={{ color: '#2196F3' }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Privacy Policy
+                        SHIPPING POLICY
                       </a>
                     </span>
                   </label>

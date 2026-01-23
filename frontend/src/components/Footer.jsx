@@ -61,28 +61,28 @@ const Footer = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Terms & Conditions
+              TERMS & CONDITIONS
             </a>
             <a
               href="http://app.senangpay.my/policy/5501769075421852"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Cancellation Policy
+              PRIVACY POLICY
             </a>
             <a
               href="http://app.senangpay.my/policy/5501769075421854"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Refund Policy
+              CANCELLATION, AND REFUND POLICY
             </a>
             <a
               href="http://app.senangpay.my/policy/5501769075421855"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Privacy Policy
+              SHIPPING POLICY
             </a>
           </div>
         </div>
