@@ -14,7 +14,7 @@ import { useCart } from '../context/CartContext';
 
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY || 'pk_test_placeholder');
 
-const StripeCheckoutForm = ({ order, onSuccess }) => {
+const StripeCheckoutForm = ({ order, onSuccess, policyAgreed }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
@@ -81,8 +81,12 @@ const StripeCheckoutForm = ({ order, onSuccess }) => {
       <button
         type="submit"
         className="btn btn-primary btn-lg"
-        style={{ width: '100%' }}
-        disabled={!stripe || processing}
+        style={{
+          width: '100%',
+          background: policyAgreed ? '' : '#ccc',
+          cursor: policyAgreed && !processing ? 'pointer' : 'not-allowed'
+        }}
+        disabled={!stripe || processing || !policyAgreed}
       >
         {processing ? 'Processing...' : `Pay RM ${order.total_amount}`}
       </button>
@@ -90,7 +94,7 @@ const StripeCheckoutForm = ({ order, onSuccess }) => {
   );
 };
 
-const SenangPayCheckoutForm = ({ order, guestEmail, onProcessing }) => {
+const SenangPayCheckoutForm = ({ order, guestEmail, onProcessing, policyAgreed }) => {
   const navigate = useNavigate();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
@@ -172,9 +176,13 @@ const SenangPayCheckoutForm = ({ order, guestEmail, onProcessing }) => {
       <button
         type="button"
         className="btn btn-primary btn-lg"
-        style={{ width: '100%', background: '#4CAF50' }}
+        style={{
+          width: '100%',
+          background: policyAgreed ? '#4CAF50' : '#ccc',
+          cursor: policyAgreed && !processing ? 'pointer' : 'not-allowed'
+        }}
         onClick={handleSenangPayPayment}
-        disabled={processing}
+        disabled={processing || !policyAgreed}
       >
         {processing ? 'Redirecting...' : `Pay RM ${order.total_amount} with SenangPay`}
       </button>
@@ -196,6 +204,7 @@ const Checkout = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [paymentMode, setPaymentMode] = useState(null);
   const [guestEmail, setGuestEmail] = useState('');
+  const [policyAgreed, setPolicyAgreed] = useState(false);
 
   const [shippingData, setShippingData] = useState({
     shipping_name: user?.name || '',
@@ -540,16 +549,138 @@ const Checkout = () => {
                   )}
                 </div>
 
+                {/* Policy Links */}
+                <div style={{
+                  padding: '15px',
+                  background: '#f8f9fa',
+                  borderRadius: '8px',
+                  marginBottom: '20px',
+                  fontSize: '0.85rem'
+                }}>
+                  <p style={{ margin: '0 0 10px 0', fontWeight: '500' }}>
+                    Please review our policies:
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                    <a
+                      href="http://app.senangpay.my/policy/5501769075421851"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#2196F3', textDecoration: 'underline' }}
+                    >
+                      Terms & Conditions
+                    </a>
+                    <span style={{ color: '#ccc' }}>|</span>
+                    <a
+                      href="http://app.senangpay.my/policy/5501769075421852"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#2196F3', textDecoration: 'underline' }}
+                    >
+                      Cancellation Policy
+                    </a>
+                    <span style={{ color: '#ccc' }}>|</span>
+                    <a
+                      href="http://app.senangpay.my/policy/5501769075421854"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#2196F3', textDecoration: 'underline' }}
+                    >
+                      Refund Policy
+                    </a>
+                    <span style={{ color: '#ccc' }}>|</span>
+                    <a
+                      href="http://app.senangpay.my/policy/5501769075421855"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#2196F3', textDecoration: 'underline' }}
+                    >
+                      Privacy Policy
+                    </a>
+                  </div>
+                </div>
+
+                {/* Policy Agreement Checkbox */}
+                <div style={{
+                  padding: '15px',
+                  border: policyAgreed ? '2px solid #4CAF50' : '2px solid #e0e0e0',
+                  borderRadius: '8px',
+                  marginBottom: '20px',
+                  background: policyAgreed ? '#f0fff0' : '#fff'
+                }}>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem'
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={policyAgreed}
+                      onChange={(e) => setPolicyAgreed(e.target.checked)}
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        marginTop: '2px',
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <span>
+                      I agree to the{' '}
+                      <a
+                        href="http://app.senangpay.my/policy/5501769075421851"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#2196F3' }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Terms & Conditions
+                      </a>
+                      ,{' '}
+                      <a
+                        href="http://app.senangpay.my/policy/5501769075421852"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#2196F3' }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Cancellation
+                      </a>
+                      {' & '}
+                      <a
+                        href="http://app.senangpay.my/policy/5501769075421854"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#2196F3' }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Refund Policy
+                      </a>
+                      , and{' '}
+                      <a
+                        href="http://app.senangpay.my/policy/5501769075421855"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#2196F3' }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Privacy Policy
+                      </a>
+                    </span>
+                  </label>
+                </div>
+
                 {/* Payment Form based on selected method */}
                 {paymentMethod === 'stripe' && isAuthenticated ? (
                   <Elements stripe={stripePromise}>
-                    <StripeCheckoutForm order={order} onSuccess={handlePaymentSuccess} />
+                    <StripeCheckoutForm order={order} onSuccess={handlePaymentSuccess} policyAgreed={policyAgreed} />
                   </Elements>
                 ) : (
                   <SenangPayCheckoutForm
                     order={order}
                     guestEmail={!isAuthenticated ? guestEmail : null}
                     onProcessing={setIsRedirecting}
+                    policyAgreed={policyAgreed}
                   />
                 )}
 
