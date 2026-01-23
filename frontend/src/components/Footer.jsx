@@ -50,7 +50,10 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Legal/Policies */}
+          {/* ============================================================
+             Required for SenangPay approval - Policy links must be
+             publicly visible in footer on all pages
+             ============================================================ */}
           <div className="footer-section">
             <h4>Legal</h4>
             <a

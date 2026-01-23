@@ -78,6 +78,7 @@ const StripeCheckoutForm = ({ order, onSuccess, policyAgreed }) => {
 
       {error && <div className="alert alert-error">{error}</div>}
 
+      {/* Required for SenangPay approval - Button disabled until policy consent */}
       <button
         type="submit"
         className="btn btn-primary btn-lg"
@@ -173,6 +174,7 @@ const SenangPayCheckoutForm = ({ order, guestEmail, onProcessing, policyAgreed }
 
       {error && <div className="alert alert-error">{error}</div>}
 
+      {/* Required for SenangPay approval - Button disabled until policy consent */}
       <button
         type="button"
         className="btn btn-primary btn-lg"
@@ -204,6 +206,7 @@ const Checkout = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [paymentMode, setPaymentMode] = useState(null);
   const [guestEmail, setGuestEmail] = useState('');
+  // Required for SenangPay approval - Track policy consent state
   const [policyAgreed, setPolicyAgreed] = useState(false);
 
   const [shippingData, setShippingData] = useState({
@@ -549,7 +552,10 @@ const Checkout = () => {
                   )}
                 </div>
 
-                {/* Policy Links */}
+                {/* ============================================================
+                   Required for SenangPay approval - Policy links must be
+                   displayed on checkout page near payment button
+                   ============================================================ */}
                 <div style={{
                   padding: '15px',
                   background: '#f8f9fa',
@@ -599,7 +605,10 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                {/* Policy Agreement Checkbox */}
+                {/* ============================================================
+                   Required for SenangPay approval - Mandatory consent checkbox
+                   Payment button is disabled until user agrees to policies
+                   ============================================================ */}
                 <div style={{
                   padding: '15px',
                   border: policyAgreed ? '2px solid #4CAF50' : '2px solid #e0e0e0',
