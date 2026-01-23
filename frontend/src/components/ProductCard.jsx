@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 const getImageUrl = (url) => {
@@ -12,19 +11,12 @@ const getImageUrl = (url) => {
 };
 
 const ProductCard = ({ product }) => {
-  const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
-  const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
 
     const result = await addToCart(product.id, 1);
     if (result.success) {
