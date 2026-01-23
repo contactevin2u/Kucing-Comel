@@ -56,6 +56,12 @@ const Navbar = () => {
               </>
             ) : (
               <>
+                <Link to="/cart" className="nav-icon" title="Cart" style={{ marginRight: '10px' }}>
+                  🛒
+                  {cart.item_count > 0 && (
+                    <span className="cart-badge">{cart.item_count}</span>
+                  )}
+                </Link>
                 <Link to="/login">Login</Link>
                 <Link to="/register" className="btn btn-primary btn-sm">
                   Sign Up
