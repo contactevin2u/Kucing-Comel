@@ -9,21 +9,6 @@ const Cart = () => {
   const { cart, loading } = useCart();
   const navigate = useNavigate();
 
-  if (!isAuthenticated) {
-    return (
-      <div className="cart-page">
-        <div className="container">
-          <div className="cart-empty">
-            <h2>Please login to view your cart</h2>
-            <Link to="/login" className="btn btn-primary" style={{ marginTop: '20px' }}>
-              Login
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="loading" style={{ minHeight: '60vh' }}>
@@ -54,6 +39,25 @@ const Cart = () => {
     <div className="cart-page">
       <div className="container">
         <h1 style={{ marginBottom: '30px' }}>Shopping Cart</h1>
+
+        {/* Guest Notice */}
+        {!isAuthenticated && (
+          <div style={{
+            background: '#e3f2fd',
+            border: '1px solid #2196F3',
+            borderRadius: '8px',
+            padding: '12px 20px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <span style={{ fontSize: '1.2rem' }}>&#128100;</span>
+            <span style={{ fontSize: '0.9rem', color: '#1565C0' }}>
+              You can checkout as guest. <Link to="/login" style={{ color: '#1565C0', fontWeight: '600' }}>Login</Link> to track your orders.
+            </span>
+          </div>
+        )}
 
         <div className="cart-grid">
           <div className="cart-items">
