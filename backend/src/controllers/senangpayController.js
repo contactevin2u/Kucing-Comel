@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const db = require('../config/database');
+const { sendOrderConfirmation, getOrderDetailsForEmail } = require('../services/emailService');
 
 // ============================================================
 // SENANGPAY CONFIGURATION
@@ -219,6 +220,13 @@ const handleMockPayment = async (req, res, next) => {
 
       console.log(`[MOCK MODE] Order ${originalOrderId} marked as paid`);
 
+      // Send order confirmation email
+      const orderDetails = await getOrderDetailsForEmail(db, originalOrderId);
+      if (orderDetails) {
+        orderDetails.transactionId = mockTransactionId;
+        await sendOrderConfirmation(orderDetails);
+      }
+
       // Redirect URL depends on whether it's a guest order
       const redirectUrl = isGuestOrder
         ? `${FRONTEND_URL}/order-success?order_id=${originalOrderId}`
@@ -293,6 +301,13 @@ const handleReturn = async (req, res, next) => {
         [transaction_id, originalOrderId]
       );
 
+      // Send order confirmation email
+      const orderDetails = await getOrderDetailsForEmail(db, originalOrderId);
+      if (orderDetails) {
+        orderDetails.transactionId = transaction_id;
+        await sendOrderConfirmation(orderDetails);
+      }
+
       // Redirect to appropriate success page
       if (isGuestOrder) {
         return res.redirect(`${FRONTEND_URL}/order-success?order_id=${originalOrderId}`);
@@ -335,7 +350,10 @@ const handleCallback = async (req, res, next) => {
     const originalOrderId = order_id.split('-')[1];
 
     if (status_id === '1') {
-      // Payment successful
+      // Payment successful - check if already paid to avoid duplicate emails
+      const existingOrder = await db.query('SELECT payment_status FROM orders WHERE id = $1', [originalOrderId]);
+      const alreadyPaid = existingOrder.rows.length > 0 && existingOrder.rows[0].payment_status === 'paid';
+
       await db.query(
         `UPDATE orders SET
           payment_status = 'paid',
@@ -345,6 +363,15 @@ const handleCallback = async (req, res, next) => {
         [transaction_id, originalOrderId]
       );
       console.log(`Order ${originalOrderId} marked as paid via callback`);
+
+      // Send email only if not already paid (avoid duplicate emails)
+      if (!alreadyPaid) {
+        const orderDetails = await getOrderDetailsForEmail(db, originalOrderId);
+        if (orderDetails) {
+          orderDetails.transactionId = transaction_id;
+          await sendOrderConfirmation(orderDetails);
+        }
+      }
     } else {
       // Payment failed
       await db.query(
