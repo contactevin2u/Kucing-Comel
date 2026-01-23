@@ -157,5 +157,37 @@ export const api = {
       headers: getHeaders()
     });
     return handleResponse(res);
+  },
+
+  // SenangPay
+  getSenangPayConfig: async () => {
+    const res = await fetch(`${API_URL}/api/senangpay/config`);
+    return handleResponse(res);
+  },
+
+  initiateSenangPayPayment: async (orderId) => {
+    const res = await fetch(`${API_URL}/api/senangpay/initiate`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ order_id: orderId })
+    });
+    return handleResponse(res);
+  },
+
+  getSenangPayStatus: async (orderId) => {
+    const res = await fetch(`${API_URL}/api/senangpay/status/${orderId}`, {
+      headers: getHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  // Mock payment processing (for development when SenangPay not approved)
+  processMockPayment: async (orderId, action) => {
+    const res = await fetch(`${API_URL}/api/senangpay/mock-process`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ order_id: orderId, action })
+    });
+    return handleResponse(res);
   }
 };

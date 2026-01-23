@@ -39,6 +39,16 @@ async function initializeDatabase() {
           );
         `);
 
+        // Add SenangPay columns to orders table if they don't exist
+        try {
+          await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_reference VARCHAR(255)`);
+          await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50) DEFAULT 'stripe'`);
+          await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(255)`);
+          console.log('SenangPay columns added to orders table');
+        } catch (e) {
+          console.log('SenangPay columns may already exist');
+        }
+
         if (!variantsTableCheck.rows[0].exists) {
           console.log('Creating product_variants table...');
           await db.query(`
@@ -93,6 +103,17 @@ async function initializeDatabase() {
         db.db.exec(seed);
         console.log('Seed data inserted');
       } else {
+        // Add SenangPay columns to orders table for SQLite
+        try {
+          db.db.exec(`ALTER TABLE orders ADD COLUMN payment_reference TEXT`);
+        } catch (e) { /* column exists */ }
+        try {
+          db.db.exec(`ALTER TABLE orders ADD COLUMN payment_method TEXT DEFAULT 'stripe'`);
+        } catch (e) { /* column exists */ }
+        try {
+          db.db.exec(`ALTER TABLE orders ADD COLUMN transaction_id TEXT`);
+        } catch (e) { /* column exists */ }
+
         // Check if product_variants table exists
         const variantsCheck = db.query(`
           SELECT name FROM sqlite_master

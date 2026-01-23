@@ -1,0 +1,413 @@
+const crypto = require('crypto');
+const db = require('../config/database');
+
+// ============================================================
+// SENANGPAY CONFIGURATION
+// ============================================================
+// PAYMENT_MODE controls whether to use mock or real SenangPay:
+//   - "mock"      : Simulated payments for development
+//   - "senangpay" : Real SenangPay API (use after approval)
+// ============================================================
+
+const PAYMENT_MODE = process.env.PAYMENT_MODE || 'mock';
+const SENANGPAY_MERCHANT_ID = process.env.SENANGPAY_MERCHANT_ID;
+const SENANGPAY_SECRET_KEY = process.env.SENANGPAY_SECRET_KEY;
+const SENANGPAY_BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://app.senangpay.my'
+  : 'https://sandbox.senangpay.my';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+// Check if we're in mock mode
+const isMockMode = () => {
+  return PAYMENT_MODE === 'mock' ||
+         SENANGPAY_MERCHANT_ID === 'PENDING_APPROVAL' ||
+         !SENANGPAY_MERCHANT_ID;
+};
+
+/**
+ * Generate MD5 hash for SenangPay requests
+ * Format: secret_key + detail + amount + order_id
+ */
+const generateRequestHash = (detail, amount, orderId) => {
+  const hashString = SENANGPAY_SECRET_KEY + detail + amount + orderId;
+  return crypto.createHash('md5').update(hashString).digest('hex');
+};
+
+/**
+ * Verify response hash from SenangPay
+ * Format: secret_key + status_id + order_id + transaction_id + msg
+ */
+const verifyResponseHash = (statusId, orderId, transactionId, msg, receivedHash) => {
+  // In mock mode, always return true
+  if (isMockMode()) return true;
+
+  const hashString = SENANGPAY_SECRET_KEY + statusId + orderId + transactionId + msg;
+  const expectedHash = crypto.createHash('md5').update(hashString).digest('hex');
+  return expectedHash === receivedHash;
+};
+
+/**
+ * Generate hash for order status query
+ * Format: merchant_id + secret_key + order_id
+ */
+const generateQueryHash = (orderId) => {
+  const hashString = SENANGPAY_MERCHANT_ID + SENANGPAY_SECRET_KEY + orderId;
+  return crypto.createHash('md5').update(hashString).digest('hex');
+};
+
+/**
+ * Initiate SenangPay payment
+ * Returns payment URL and parameters for redirect
+ */
+const initiatePayment = async (req, res, next) => {
+  try {
+    const { order_id } = req.body;
+
+    if (!order_id) {
+      return res.status(400).json({ error: 'Order ID is required.' });
+    }
+
+    // Verify order belongs to user and is unpaid
+    const orderResult = await db.query(
+      `SELECT o.*, u.name as user_name, u.email as user_email
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       WHERE o.id = $1 AND o.user_id = $2`,
+      [order_id, req.user.id]
+    );
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found.' });
+    }
+
+    const order = orderResult.rows[0];
+
+    if (order.payment_status === 'paid') {
+      return res.status(400).json({ error: 'Order is already paid.' });
+    }
+
+    // Get order items for description
+    const itemsResult = await db.query(
+      'SELECT product_name, quantity FROM order_items WHERE order_id = $1',
+      [order_id]
+    );
+
+    const orderDetails = itemsResult.rows
+      .map(item => `${item.product_name} x${item.quantity}`)
+      .join(', ')
+      .substring(0, 95); // SenangPay detail max ~100 chars
+
+    // Amount in sen (RM 10.50 = 1050)
+    const amountInSen = Math.round(parseFloat(order.total_amount) * 100);
+
+    // Generate unique order reference for SenangPay
+    const senangpayOrderId = `KC-${order.id}-${Date.now()}`;
+
+    // Store SenangPay order reference
+    await db.query(
+      'UPDATE orders SET payment_reference = $1, payment_method = $2 WHERE id = $3',
+      [senangpayOrderId, 'senangpay', order.id]
+    );
+
+    // ============================================================
+    // MOCK MODE: Return mock payment URL
+    // ============================================================
+    if (isMockMode()) {
+      console.log('[MOCK MODE] Initiating mock payment for order:', order.id);
+
+      return res.json({
+        success: true,
+        mode: 'mock',
+        // In mock mode, redirect to our own mock payment page
+        payment_url: `${FRONTEND_URL}/mock-payment`,
+        params: {
+          detail: orderDetails,
+          amount: amountInSen,
+          order_id: senangpayOrderId,
+          name: order.shipping_name || order.user_name,
+          email: order.user_email,
+          phone: order.shipping_phone || '',
+          // Mock hash for testing
+          hash: 'mock_hash_' + senangpayOrderId
+        },
+        order_id: order.id,
+        message: 'Mock mode - SenangPay integration pending approval'
+      });
+    }
+
+    // ============================================================
+    // REAL MODE: Use actual SenangPay API
+    // ============================================================
+    const hash = generateRequestHash(orderDetails, amountInSen, senangpayOrderId);
+
+    res.json({
+      success: true,
+      mode: 'senangpay',
+      payment_url: `${SENANGPAY_BASE_URL}/payment/${SENANGPAY_MERCHANT_ID}`,
+      params: {
+        detail: orderDetails,
+        amount: amountInSen,
+        order_id: senangpayOrderId,
+        name: order.shipping_name || order.user_name,
+        email: order.user_email,
+        phone: order.shipping_phone || '',
+        hash: hash
+      },
+      order_id: order.id
+    });
+  } catch (error) {
+    console.error('SenangPay initiate error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Handle mock payment simulation
+ * This endpoint simulates what SenangPay would do
+ */
+const handleMockPayment = async (req, res, next) => {
+  try {
+    const { order_id, action } = req.body; // action: 'success' or 'fail'
+
+    if (!order_id) {
+      return res.status(400).json({ error: 'Order ID is required.' });
+    }
+
+    // Extract original order ID from SenangPay order reference (KC-{id}-{timestamp})
+    const originalOrderId = order_id.split('-')[1];
+
+    // Generate mock transaction ID
+    const mockTransactionId = `MOCK-TXN-${Date.now()}`;
+
+    if (action === 'success') {
+      // Simulate successful payment
+      await db.query(
+        `UPDATE orders SET
+          payment_status = 'paid',
+          status = 'confirmed',
+          transaction_id = $1
+         WHERE id = $2`,
+        [mockTransactionId, originalOrderId]
+      );
+
+      console.log(`[MOCK MODE] Order ${originalOrderId} marked as paid`);
+
+      return res.json({
+        success: true,
+        status_id: '1',
+        order_id: order_id,
+        transaction_id: mockTransactionId,
+        msg: 'Payment successful (MOCK)',
+        redirect_url: `${FRONTEND_URL}/orders?payment=success`
+      });
+    } else {
+      // Simulate failed payment
+      await db.query(
+        `UPDATE orders SET payment_status = 'failed' WHERE id = $1`,
+        [originalOrderId]
+      );
+
+      console.log(`[MOCK MODE] Order ${originalOrderId} marked as failed`);
+
+      return res.json({
+        success: false,
+        status_id: '0',
+        order_id: order_id,
+        transaction_id: null,
+        msg: 'Payment failed (MOCK)',
+        redirect_url: `${FRONTEND_URL}/checkout?payment=failed&msg=Mock+payment+declined`
+      });
+    }
+  } catch (error) {
+    console.error('Mock payment error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Handle SenangPay return URL (browser redirect after payment)
+ * This is where user lands after payment
+ */
+const handleReturn = async (req, res, next) => {
+  try {
+    const { status_id, order_id, transaction_id, msg, hash } = req.query;
+
+    console.log('SenangPay return:', { status_id, order_id, transaction_id, msg });
+
+    // Verify hash (skipped in mock mode)
+    if (!isMockMode() && !verifyResponseHash(status_id, order_id, transaction_id, msg, hash)) {
+      console.error('SenangPay return: Invalid hash');
+      return res.redirect(`${FRONTEND_URL}/checkout?error=invalid_hash`);
+    }
+
+    // Extract original order ID from SenangPay order reference (KC-{id}-{timestamp})
+    const originalOrderId = order_id.split('-')[1];
+
+    // Update order status based on payment result
+    if (status_id === '1') {
+      // Payment successful
+      await db.query(
+        `UPDATE orders SET
+          payment_status = 'paid',
+          status = 'confirmed',
+          transaction_id = $1
+         WHERE id = $2`,
+        [transaction_id, originalOrderId]
+      );
+
+      // Redirect to success page
+      return res.redirect(`${FRONTEND_URL}/orders?payment=success`);
+    } else {
+      // Payment failed
+      await db.query(
+        `UPDATE orders SET payment_status = 'failed' WHERE id = $1`,
+        [originalOrderId]
+      );
+
+      return res.redirect(`${FRONTEND_URL}/checkout?payment=failed&msg=${encodeURIComponent(msg)}`);
+    }
+  } catch (error) {
+    console.error('SenangPay return error:', error);
+    return res.redirect(`${FRONTEND_URL}/checkout?error=server_error`);
+  }
+};
+
+/**
+ * Handle SenangPay callback (server-to-server notification)
+ * This is the webhook that ensures payment is recorded even if user closes browser
+ */
+const handleCallback = async (req, res, next) => {
+  try {
+    // SenangPay sends callback as POST with form data or query params
+    const data = req.method === 'POST' ? req.body : req.query;
+    const { status_id, order_id, transaction_id, msg, hash } = data;
+
+    console.log('SenangPay callback:', { status_id, order_id, transaction_id, msg });
+
+    // Verify hash (skipped in mock mode)
+    if (!isMockMode() && !verifyResponseHash(status_id, order_id, transaction_id, msg, hash)) {
+      console.error('SenangPay callback: Invalid hash');
+      return res.status(400).send('Invalid hash');
+    }
+
+    // Extract original order ID from SenangPay order reference
+    const originalOrderId = order_id.split('-')[1];
+
+    if (status_id === '1') {
+      // Payment successful
+      await db.query(
+        `UPDATE orders SET
+          payment_status = 'paid',
+          status = 'confirmed',
+          transaction_id = $1
+         WHERE id = $2 AND payment_status != 'paid'`,
+        [transaction_id, originalOrderId]
+      );
+      console.log(`Order ${originalOrderId} marked as paid via callback`);
+    } else {
+      // Payment failed
+      await db.query(
+        `UPDATE orders SET payment_status = 'failed' WHERE id = $1 AND payment_status = 'pending'`,
+        [originalOrderId]
+      );
+      console.log(`Order ${originalOrderId} marked as failed via callback`);
+    }
+
+    // SenangPay requires plain "OK" response to confirm receipt
+    res.set('Content-Type', 'text/plain');
+    res.send('OK');
+  } catch (error) {
+    console.error('SenangPay callback error:', error);
+    res.status(500).send('Error');
+  }
+};
+
+/**
+ * Query order status from SenangPay
+ */
+const queryOrderStatus = async (req, res, next) => {
+  try {
+    const { order_id } = req.params;
+
+    // Get order from database
+    const orderResult = await db.query(
+      'SELECT * FROM orders WHERE id = $1 AND user_id = $2',
+      [order_id, req.user.id]
+    );
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found.' });
+    }
+
+    const order = orderResult.rows[0];
+
+    // ============================================================
+    // MOCK MODE: Return local database status only
+    // ============================================================
+    if (isMockMode()) {
+      return res.json({
+        order_id: order.id,
+        payment_status: order.payment_status,
+        payment_method: order.payment_method || 'senangpay',
+        mode: 'mock',
+        message: 'Mock mode - status from local database'
+      });
+    }
+
+    // ============================================================
+    // REAL MODE: Query SenangPay API
+    // ============================================================
+    if (order.payment_reference && order.payment_method === 'senangpay') {
+      const hash = generateQueryHash(order.payment_reference);
+
+      const response = await fetch(
+        `${SENANGPAY_BASE_URL}/apiv1/query_order_status?merchant_id=${SENANGPAY_MERCHANT_ID}&order_id=${order.payment_reference}&hash=${hash}`
+      );
+
+      const senangpayData = await response.json();
+
+      return res.json({
+        order_id: order.id,
+        payment_status: order.payment_status,
+        payment_method: 'senangpay',
+        mode: 'senangpay',
+        senangpay_status: senangpayData
+      });
+    }
+
+    res.json({
+      order_id: order.id,
+      payment_status: order.payment_status,
+      payment_method: order.payment_method
+    });
+  } catch (error) {
+    console.error('Query status error:', error);
+    next(error);
+  }
+};
+
+/**
+ * Get SenangPay configuration for frontend
+ */
+const getConfig = (req, res) => {
+  res.json({
+    merchant_id: isMockMode() ? 'MOCK_MERCHANT' : SENANGPAY_MERCHANT_ID,
+    payment_url: isMockMode()
+      ? `${FRONTEND_URL}/mock-payment`
+      : `${SENANGPAY_BASE_URL}/payment/${SENANGPAY_MERCHANT_ID}`,
+    mode: isMockMode() ? 'mock' : 'senangpay',
+    is_sandbox: process.env.NODE_ENV !== 'production',
+    message: isMockMode()
+      ? 'Running in MOCK mode - SenangPay integration pending approval'
+      : 'Running in LIVE mode - Connected to SenangPay'
+  });
+};
+
+module.exports = {
+  initiatePayment,
+  handleMockPayment,
+  handleReturn,
+  handleCallback,
+  queryOrderStatus,
+  getConfig
+};
