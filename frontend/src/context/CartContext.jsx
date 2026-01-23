@@ -97,7 +97,20 @@ export const CartProvider = ({ children }) => {
       // Guest - use localStorage
       try {
         // Fetch product details
-        const product = await api.getProduct(productId);
+        const data = await api.getProduct(productId);
+        const product = data.product;
+
+        // Get variant info if applicable
+        let itemName = product.name;
+        let itemPrice = product.price;
+
+        if (variantId && product.variants) {
+          const variant = product.variants.find(v => v.id === variantId);
+          if (variant) {
+            itemName = `${product.name} - ${variant.variant_name}`;
+            itemPrice = variant.price;
+          }
+        }
 
         const localCart = getLocalCart();
         const existingIndex = localCart.items.findIndex(
@@ -111,8 +124,8 @@ export const CartProvider = ({ children }) => {
             id: `local-${Date.now()}`,
             product_id: productId,
             variant_id: variantId,
-            name: product.name,
-            price: product.price,
+            name: itemName,
+            price: itemPrice,
             image_url: product.image_url,
             quantity
           });
