@@ -95,7 +95,27 @@ app.get('/api/reseed', async (req, res) => {
       ['Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats!', 42.00, 37.80, '/products/creamy-treats.jpg', 'Food', 300]);
 
     const product4 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      ['CARE FIP GS-441524 For Cats FIP Kucing', 'Cat Wellness & Support Solution. Specialised cat care product intended to support overall wellness and quality of life during recovery periods. Widely used by experienced caregivers as part of a guided care plan for cats requiring additional support. Designed for careful, responsible use. Supports treatment for Wet, Dry, Neuro & Ocular FIP. High recovery success rate when used consistently. Helps improve appetite, energy & overall condition. Trusted by veterinarians & experienced caregivers.', 123.50, 111.15, '/products/care-fip.jpg', 'Supplements & Medications', 100]);
+      ['CARE FIP GS-441524 For Cats FIP Kucing', `CARE FIP GS-441524 is an antiviral treatment specially formulated to support cats diagnosed with Feline Infectious Peritonitis (FIP). It is widely used in FIP treatment protocols for wet (effusive), dry (non-effusive), ocular, and neurological FIP, under proper guidance.
+
+Designed with different concentrations and forms, CARE FIP GS-441524 allows flexible dosing based on your cat's weight and condition.
+
+⭐ Key Benefits
+• Supports treatment of Wet, Dry, Ocular & Neuro FIP
+• Available in injectable and oral tablet options
+• Multiple concentrations to suit different cat sizes
+• Commonly used in 12-week FIP treatment protocols
+• Trusted and widely used by experienced caregivers
+
+🧪 Product Options
+
+🔹 Injectable GS-441524 (8.5ml per vial)
+• 20mg/ml - Suitable for small cats (below 2kg), approx. 1 week of usage
+• 30mg/ml - Suitable for medium cats (2kg – 3.5kg), approx. 1 week of usage
+
+✔️ Treatment coverage: Wet FIP, Dry FIP, Ocular FIP, Neuro FIP
+
+🔹 Oral GS-441524 Tablets
+• 60mg tablets - Convenient oral option for cats who tolerate tablets`, 123.50, 111.15, '/products/care-fip.jpg', 'Supplements & Medications', 100]);
 
     // Insert variants for each product
     const p1Id = product1.rows[0].id;
