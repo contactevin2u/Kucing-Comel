@@ -1442,6 +1442,7 @@ img {
   margin-bottom: 30px;
   line-height: 1.8;
   font-size: 1.05rem;
+  white-space: pre-line; /* Preserve line breaks from description */
 }
 
 .stock-info {

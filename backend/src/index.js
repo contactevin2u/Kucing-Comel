@@ -95,27 +95,26 @@ app.get('/api/reseed', async (req, res) => {
       ['Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats!', 42.00, 37.80, '/products/creamy-treats.jpg', 'Food', 300]);
 
     const product4 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      ['CARE FIP GS-441524 For Cats FIP Kucing', `CARE FIP GS-441524 is an antiviral treatment specially formulated to support cats diagnosed with Feline Infectious Peritonitis (FIP). It is widely used in FIP treatment protocols for wet (effusive), dry (non-effusive), ocular, and neurological FIP, under proper guidance.
+      ['CARE FIP GS-441524 For Cats FIP Kucing', `CARE FIP GS-441524 – FIP Treatment for Cats
 
-Designed with different concentrations and forms, CARE FIP GS-441524 allows flexible dosing based on your cat's weight and condition.
+CARE FIP GS-441524 is an antiviral treatment formulated to support cats diagnosed with Feline Infectious Peritonitis (FIP), including wet (effusive), dry (non-effusive), ocular, and neurological forms. It is commonly used as part of a structured FIP treatment protocol under proper guidance.
 
-⭐ Key Benefits
-• Supports treatment of Wet, Dry, Ocular & Neuro FIP
-• Available in injectable and oral tablet options
-• Multiple concentrations to suit different cat sizes
-• Commonly used in 12-week FIP treatment protocols
-• Trusted and widely used by experienced caregivers
+Injectable
+20mg/ml
 
-🧪 Product Options
+This concentration is suitable for small cats below 2kg.
 
-🔹 Injectable GS-441524 (8.5ml per vial)
-• 20mg/ml - Suitable for small cats (below 2kg), approx. 1 week of usage
-• 30mg/ml - Suitable for medium cats (2kg – 3.5kg), approx. 1 week of usage
+30mg/ml
 
-✔️ Treatment coverage: Wet FIP, Dry FIP, Ocular FIP, Neuro FIP
+This concentration is recommended for medium-sized cats weighing between 2kg and 3.5kg.
 
-🔹 Oral GS-441524 Tablets
-• 60mg tablets - Convenient oral option for cats who tolerate tablets`, 123.50, 111.15, '/products/care-fip.jpg', 'Supplements & Medications', 100]);
+Oral Tablets
+
+Each tablet contains 60mg of GS-441524 and comes in a pack of 10 tablets. Tablets can be divided into quarters for flexible and accurate dosing.
+
+Treatment Coverage
+
+CARE FIP GS-441524 is used to support cats with Wet FIP, Dry FIP, Ocular FIP, and Neurological FIP.`, 123.50, 111.15, '/products/care-fip.jpg', 'Supplements & Medications', 100]);
 
     // Insert variants for each product
     const p1Id = product1.rows[0].id;
