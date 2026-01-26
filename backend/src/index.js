@@ -85,15 +85,15 @@ app.get('/api/reseed', async (req, res) => {
     await db.query(`DELETE FROM product_variants`);
     await db.query(`DELETE FROM products`);
 
-    // Insert products
+    // Insert products with correct image paths matching actual folder structure
     const product1 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      ['Lilien Premium Super Clumping Cat Litter 6L', 'Premium quality super clumping cat litter.', 7.60, 6.84, '/products/litter-6l.jpg', 'Litter', 200]);
+      ['Lilien Premium Super Clumping Cat Litter 6L', 'Premium quality super clumping cat litter.', 7.60, 6.84, '/Lilien Premium Super Clumping Cat Litter 6L/my-11134207-7rasc-m2hheoffe04fdf.jfif', 'Litter', 200]);
 
     const product2 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      ['[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L', 'Bulk pack of 6 bags.', 159.00, 143.10, '/products/litter-carton.jpg', 'Litter', 50]);
+      ['[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L', 'Bulk pack of 6 bags.', 159.00, 143.10, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/my-11134207-7rasi-m34b5v6ij8ch51.jfif', 'Litter', 50]);
 
     const product3 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      ['Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats!', 42.00, 37.80, '/products/creamy-treats.jpg', 'Food', 300]);
+      ['Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats!', 42.00, 37.80, '/Lilien Creamy Cat Treats 3 Irresistible Flavour In a Box/my-11134207-7r98s-lsumaj6h2ign1f.jfif', 'Food', 300]);
 
     const product4 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
       ['CARE FIP GS-441524 – FIP Treatment for Cats', `CARE FIP GS-441524 is an antiviral treatment formulated to support cats diagnosed with Feline Infectious Peritonitis (FIP), including wet (effusive), dry (non-effusive), ocular, and neurological forms. It is commonly used as part of a structured FIP treatment protocol under proper guidance.
@@ -109,7 +109,7 @@ Each tablet contains 60mg of GS-441524 and comes in a pack of 10 tablets. Tablet
 CARE FIP GS-441524 is used to support cats with Wet FIP, Dry FIP, Ocular FIP, and Neurological FIP.
 
 <b>Important Information</b>
-Dosage and treatment duration depend on the cat's weight, FIP type, and response to treatment. This product is intended for animal use only and should be administered according to a proper treatment plan with guidance from an experienced FIP advisor or veterinarian.`, 123.50, 111.15, '/products/care-fip.jpg', 'Supplements & Medications', 100]);
+Dosage and treatment duration depend on the cat's weight, FIP type, and response to treatment. This product is intended for animal use only and should be administered according to a proper treatment plan with guidance from an experienced FIP advisor or veterinarian.`, 123.50, 111.15, '/Care fip/main/Rafina 1.0.jpg', 'Supplements & Medications', 100]);
 
     // Insert variants for each product
     const p1Id = product1.rows[0].id;

@@ -12,8 +12,8 @@ const getImageUrl = (url) => {
   if (url.startsWith('/api/')) {
     return `${api.getApiUrl()}${url}`;
   }
-  const frontendUrl = process.env.REACT_APP_FRONTEND_URL || '';
-  return `${frontendUrl}${url}`;
+  // Backend serves product images from /api/product-images
+  return `${api.getApiUrl()}/api/product-images${url}`;
 };
 
 // Map product names to their slugs for variant images

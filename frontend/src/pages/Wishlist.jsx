@@ -45,9 +45,8 @@ const Wishlist = () => {
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return 'https://via.placeholder.com/300x200?text=No+Image';
     if (imageUrl.startsWith('http')) return imageUrl;
-    // image_url is like "/products/litter-6l.jpg", backend serves from /api/product-images/
-    const cleanPath = imageUrl.replace('/products/', '');
-    return `${api.getApiUrl()}/api/product-images/${cleanPath}`;
+    // image_url is like "/Folder Name/image.jpg", backend serves from /api/product-images
+    return `${api.getApiUrl()}/api/product-images${imageUrl}`;
   };
 
   if (!isAuthenticated) return null;
