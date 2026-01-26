@@ -323,10 +323,17 @@ const Checkout = () => {
                 <div className="form-section">
                   <h3>Contact & Shipping Information</h3>
 
-                  {/* Email field for guests */}
-                  {!isAuthenticated && (
-                    <div className="form-group">
-                      <label>Email Address *</label>
+                  {/* Email field */}
+                  <div className="form-group">
+                    <label>Email Address *</label>
+                    {isAuthenticated ? (
+                      <input
+                        type="email"
+                        value={user?.email || ''}
+                        readOnly
+                        style={{ background: '#f5f5f5', cursor: 'not-allowed' }}
+                      />
+                    ) : (
                       <input
                         type="email"
                         value={guestEmail}
@@ -334,11 +341,11 @@ const Checkout = () => {
                         placeholder="Enter your email"
                         required
                       />
-                      <small style={{ color: '#666', fontSize: '0.8rem' }}>
-                        Order confirmation will be sent to this email
-                      </small>
-                    </div>
-                  )}
+                    )}
+                    <small style={{ color: '#666', fontSize: '0.8rem' }}>
+                      Order confirmation will be sent to this email
+                    </small>
+                  </div>
 
                   <div className="form-group">
                     <label>Full Name *</label>
