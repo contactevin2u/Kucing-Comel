@@ -568,6 +568,37 @@ img {
   gap: 10px;
 }
 
+/* Product Type Filters */
+.product-filters {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  background: transparent;
+  border: none;
+  color: var(--gray);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  color: var(--teal);
+  background: rgba(0, 191, 179, 0.1);
+}
+
+.filter-btn.active {
+  color: var(--teal);
+  background: rgba(0, 191, 179, 0.15);
+  font-weight: 600;
+}
+
 .products-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
