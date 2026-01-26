@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import HeroCarousel from '../components/HeroCarousel';
@@ -23,6 +23,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('');
   const productsRef = useRef(null);
+  const navigate = useNavigate();
 
   const currentCategory = searchParams.get('category') || '';
 
@@ -119,27 +120,18 @@ const Home = () => {
       <section className="promo-section" id="promo">
         <div className="container">
           <div className="promo-grid promo-grid-2">
+            {/* Member Benefits Card */}
             <div className="promo-card coral">
-              <div className="promo-discount">30%<sup>OFF</sup></div>
-              <h3>Cat Food</h3>
-              <button onClick={() => handleFilterClick('Food')} className="btn btn-white btn-sm">SHOP NOW</button>
-              <img
-                src="https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?w=300"
-                alt="Cat food"
-                className="promo-image"
-              />
+              <h3>Login to enjoy 10% OFF member price on all products</h3>
+              <p className="promo-subtext">Exclusive member pricing available after login</p>
+              <button onClick={() => navigate('/login')} className="btn btn-white btn-sm">LOGIN NOW</button>
             </div>
 
-            {/* Promo Card - Cat Litter */}
+            {/* Free Shipping Card */}
             <div className="promo-card teal">
-              <div className="promo-discount">NEW</div>
-              <h3>Cat Litter</h3>
-              <button onClick={() => handleFilterClick('Litter')} className="btn btn-white btn-sm">SHOP NOW</button>
-              <img
-                src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=300"
-                alt="Cat litter"
-                className="promo-image"
-              />
+              <h3>Enjoy FREE shipping when you spend RM100 & above</h3>
+              <p className="promo-subtext">Buy more, save more with free shipping</p>
+              <button onClick={() => productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="btn btn-white btn-sm">BUY NOW</button>
             </div>
           </div>
         </div>

@@ -472,35 +472,21 @@ img {
   color: white;
 }
 
-.promo-discount {
-  font-size: 3.5rem;
-  font-weight: 700;
-  line-height: 1;
-  margin-bottom: 5px;
-}
-
-.promo-discount sup {
-  font-size: 1.5rem;
-  vertical-align: super;
-}
-
 .promo-card h3 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 600;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.promo-subtext {
+  font-size: 0.95rem;
+  opacity: 0.9;
   margin-bottom: 20px;
 }
 
 .promo-card .btn {
   align-self: flex-start;
-}
-
-.promo-image {
-  position: absolute;
-  right: -10px;
-  bottom: -10px;
-  width: 180px;
-  height: 180px;
-  object-fit: contain;
 }
 
 /* ==================== PRODUCTS SECTION ==================== */
@@ -1597,17 +1583,12 @@ img {
   }
 
   .promo-card {
-    min-height: 220px;
+    min-height: 200px;
     padding: 25px;
   }
 
-  .promo-discount {
-    font-size: 2.5rem;
-  }
-
-  .promo-image {
-    width: 130px;
-    height: 130px;
+  .promo-card h3 {
+    font-size: 1.2rem;
   }
 
   .products-section {
