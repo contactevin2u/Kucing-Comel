@@ -8,9 +8,9 @@ import ImageGallery from '../components/ImageGallery';
 const getImageUrl = (url) => {
   if (!url) return 'https://via.placeholder.com/500x400?text=No+Image';
   if (url.startsWith('http')) return url;
-  // Handle API-served images
+  // Handle API-served images (already encoded by backend)
   if (url.startsWith('/api/')) {
-    return `${api.getApiUrl()}${encodeURI(url)}`;
+    return `${api.getApiUrl()}${url}`;
   }
   // Backend serves product images from /api/product-images
   return `${api.getApiUrl()}/api/product-images${encodeURI(url)}`;
