@@ -35,8 +35,33 @@ const OrderDetail = () => {
     setPaymentProcessing(true);
     try {
       const response = await api.initiateSenangPayPayment(order.id);
-      if (response.redirect_url) {
-        window.location.href = response.redirect_url;
+
+      if (response.success) {
+        // Mock mode: Navigate to local mock payment page
+        if (response.mode === 'mock') {
+          sessionStorage.setItem('mockPaymentData', JSON.stringify(response.params));
+          navigate('/mock-payment');
+          return;
+        }
+
+        // Real mode: Submit form to SenangPay
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = response.payment_url;
+
+        Object.entries(response.params).forEach(([key, value]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = value;
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+      } else {
+        setError('Failed to initiate payment. Please try again.');
+        setPaymentProcessing(false);
       }
     } catch (err) {
       console.error('Payment initiation failed:', err);
