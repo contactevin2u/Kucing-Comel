@@ -95,19 +95,13 @@ app.get('/api/reseed', async (req, res) => {
       ['Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats!', 42.00, 37.80, '/products/creamy-treats.jpg', 'Food', 300]);
 
     const product4 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      ['CARE FIP GS-441524 FIP Treatment for Cats', `CARE FIP GS-441524 is an antiviral treatment formulated to support cats diagnosed with Feline Infectious Peritonitis (FIP), including wet (effusive), dry (non-effusive), ocular, and neurological forms. It is commonly used as part of a structured FIP treatment protocol under proper guidance.
+      ['CARE FIP GS-441524 – FIP Treatment for Cats', `CARE FIP GS-441524 is an antiviral treatment formulated to support cats diagnosed with Feline Infectious Peritonitis (FIP), including wet (effusive), dry (non-effusive), ocular, and neurological forms. It is commonly used as part of a structured FIP treatment protocol under proper guidance.
 
-Injectable
-20mg/ml
+<b>Injectable</b>
+20mg/ml - This concentration is suitable for small cats below 2kg.
+30mg/ml - This concentration is recommended for medium-sized cats weighing between 2kg and 3.5kg.
 
-This concentration is suitable for small cats below 2kg.
-
-30mg/ml
-
-This concentration is recommended for medium-sized cats weighing between 2kg and 3.5kg.
-
-Oral Tablets
-
+<b>Oral Tablets</b>
 Each tablet contains 60mg of GS-441524 and comes in a pack of 10 tablets. Tablets can be divided into quarters for flexible and accurate dosing.
 
 Treatment Coverage

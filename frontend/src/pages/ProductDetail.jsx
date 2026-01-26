@@ -312,9 +312,10 @@ const ProductDetail = () => {
 
             <p className={`stock-info ${stockStatus.class}`}>{stockStatus.text}</p>
 
-            <p className="product-detail-description">
-              {product.description || 'No description available.'}
-            </p>
+            <div
+              className="product-detail-description"
+              dangerouslySetInnerHTML={{ __html: (product.description || 'No description available.').replace(/\n/g, '<br>') }}
+            />
 
             {(currentStock > 0 || !isVariationSelected()) && (
               <>
