@@ -2,22 +2,23 @@ const db = require('../config/database');
 
 const getOrders = async (req, res, next) => {
   try {
-    const ordersResult = db.query(
+    const ordersResult = await db.query(
       `SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC`,
       [req.user.id]
     );
 
     // Get items for each order
-    const orders = ordersResult.rows.map(order => {
-      const itemsResult = db.query(
+    const orders = [];
+    for (const order of ordersResult.rows) {
+      const itemsResult = await db.query(
         'SELECT * FROM order_items WHERE order_id = $1',
         [order.id]
       );
-      return {
+      orders.push({
         ...order,
         items: itemsResult.rows
-      };
-    });
+      });
+    }
 
     res.json({ orders });
   } catch (error) {
@@ -29,7 +30,7 @@ const getOrderById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const orderResult = db.query(
+    const orderResult = await db.query(
       'SELECT * FROM orders WHERE id = $1 AND user_id = $2',
       [id, req.user.id]
     );
@@ -38,7 +39,7 @@ const getOrderById = async (req, res, next) => {
       return res.status(404).json({ error: 'Order not found.' });
     }
 
-    const itemsResult = db.query(
+    const itemsResult = await db.query(
       'SELECT * FROM order_items WHERE order_id = $1',
       [id]
     );
@@ -64,7 +65,7 @@ const getGuestOrderById = async (req, res, next) => {
       return res.status(400).json({ error: 'Email is required to view guest order.' });
     }
 
-    const orderResult = db.query(
+    const orderResult = await db.query(
       'SELECT * FROM orders WHERE id = $1 AND guest_email = $2',
       [id, email.toLowerCase()]
     );
@@ -73,7 +74,7 @@ const getGuestOrderById = async (req, res, next) => {
       return res.status(404).json({ error: 'Order not found.' });
     }
 
-    const itemsResult = db.query(
+    const itemsResult = await db.query(
       'SELECT * FROM order_items WHERE order_id = $1',
       [id]
     );
@@ -97,7 +98,7 @@ const createOrder = async (req, res, next) => {
       return res.status(400).json({ error: 'Shipping details are required.' });
     }
 
-    const cartResult = db.query('SELECT id FROM carts WHERE user_id = $1', [req.user.id]);
+    const cartResult = await db.query('SELECT id FROM carts WHERE user_id = $1', [req.user.id]);
 
     if (cartResult.rows.length === 0) {
       return res.status(400).json({ error: 'Cart not found.' });
@@ -105,7 +106,7 @@ const createOrder = async (req, res, next) => {
 
     const cartId = cartResult.rows[0].id;
 
-    const itemsResult = db.query(
+    const itemsResult = await db.query(
       `SELECT ci.id, ci.quantity, p.id as product_id, p.name, p.price, p.stock
        FROM cart_items ci
        JOIN products p ON ci.product_id = p.id
@@ -131,45 +132,35 @@ const createOrder = async (req, res, next) => {
       0
     );
 
-    // Use SQLite transaction
-    const transaction = db.db.transaction(() => {
-      // Create order
-      const orderStmt = db.db.prepare(
-        `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone)
-         VALUES (?, ?, ?, ?, ?)`
-      );
-      const orderInfo = orderStmt.run(req.user.id, totalAmount, shipping_name, shipping_address, shipping_phone);
-      const orderId = orderInfo.lastInsertRowid;
+    // Create order
+    const orderResult = await db.query(
+      `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone)
+       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+      [req.user.id, totalAmount, shipping_name, shipping_address, shipping_phone]
+    );
+    const orderId = orderResult.rows[0].id;
 
-      // Create order items and update stock
-      const insertItemStmt = db.db.prepare(
+    // Create order items and update stock
+    for (const item of itemsResult.rows) {
+      await db.query(
         `INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity)
-         VALUES (?, ?, ?, ?, ?)`
+         VALUES ($1, $2, $3, $4, $5)`,
+        [orderId, item.product_id, item.name, item.price, item.quantity]
       );
-      const updateStockStmt = db.db.prepare('UPDATE products SET stock = stock - ? WHERE id = ?');
+      await db.query('UPDATE products SET stock = stock - $1 WHERE id = $2', [item.quantity, item.product_id]);
+    }
 
-      for (const item of itemsResult.rows) {
-        insertItemStmt.run(orderId, item.product_id, item.name, item.price, item.quantity);
-        updateStockStmt.run(item.quantity, item.product_id);
-      }
-
-      // Clear cart
-      const clearCartStmt = db.db.prepare('DELETE FROM cart_items WHERE cart_id = ?');
-      clearCartStmt.run(cartId);
-
-      return orderId;
-    });
-
-    const orderId = transaction();
+    // Clear cart
+    await db.query('DELETE FROM cart_items WHERE cart_id = $1', [cartId]);
 
     // Get the created order
-    const orderResult = db.query('SELECT * FROM orders WHERE id = $1', [orderId]);
-    const finalItemsResult = db.query('SELECT * FROM order_items WHERE order_id = $1', [orderId]);
+    const finalOrderResult = await db.query('SELECT * FROM orders WHERE id = $1', [orderId]);
+    const finalItemsResult = await db.query('SELECT * FROM order_items WHERE order_id = $1', [orderId]);
 
     res.status(201).json({
       message: 'Order created successfully.',
       order: {
-        ...orderResult.rows[0],
+        ...finalOrderResult.rows[0],
         items: finalItemsResult.rows
       }
     });
@@ -215,7 +206,7 @@ const createGuestOrder = async (req, res, next) => {
     const productIds = items.map(item => item.product_id);
     const placeholders = productIds.map((_, i) => `$${i + 1}`).join(',');
 
-    const productsResult = db.query(
+    const productsResult = await db.query(
       `SELECT id, name, price, stock, is_active FROM products WHERE id IN (${placeholders})`,
       productIds
     );
@@ -257,41 +248,32 @@ const createGuestOrder = async (req, res, next) => {
       0
     );
 
-    // Use SQLite transaction
-    const transaction = db.db.transaction(() => {
-      // Create order (user_id is NULL for guest)
-      const orderStmt = db.db.prepare(
-        `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone, guest_email)
-         VALUES (?, ?, ?, ?, ?, ?)`
-      );
-      const orderInfo = orderStmt.run(null, totalAmount, shipping_name, shipping_address, shipping_phone, guest_email.toLowerCase());
-      const orderId = orderInfo.lastInsertRowid;
+    // Create order (user_id is NULL for guest)
+    const orderResult = await db.query(
+      `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone, guest_email)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [null, totalAmount, shipping_name, shipping_address, shipping_phone, guest_email.toLowerCase()]
+    );
+    const orderId = orderResult.rows[0].id;
 
-      // Create order items and update stock
-      const insertItemStmt = db.db.prepare(
+    // Create order items and update stock
+    for (const item of orderItems) {
+      await db.query(
         `INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity)
-         VALUES (?, ?, ?, ?, ?)`
+         VALUES ($1, $2, $3, $4, $5)`,
+        [orderId, item.product_id, item.name, item.price, item.quantity]
       );
-      const updateStockStmt = db.db.prepare('UPDATE products SET stock = stock - ? WHERE id = ?');
-
-      for (const item of orderItems) {
-        insertItemStmt.run(orderId, item.product_id, item.name, item.price, item.quantity);
-        updateStockStmt.run(item.quantity, item.product_id);
-      }
-
-      return orderId;
-    });
-
-    const orderId = transaction();
+      await db.query('UPDATE products SET stock = stock - $1 WHERE id = $2', [item.quantity, item.product_id]);
+    }
 
     // Get the created order
-    const orderResult = db.query('SELECT * FROM orders WHERE id = $1', [orderId]);
-    const finalItemsResult = db.query('SELECT * FROM order_items WHERE order_id = $1', [orderId]);
+    const finalOrderResult = await db.query('SELECT * FROM orders WHERE id = $1', [orderId]);
+    const finalItemsResult = await db.query('SELECT * FROM order_items WHERE order_id = $1', [orderId]);
 
     res.status(201).json({
       message: 'Order created successfully.',
       order: {
-        ...orderResult.rows[0],
+        ...finalOrderResult.rows[0],
         items: finalItemsResult.rows
       }
     });
@@ -311,9 +293,9 @@ const updateOrderStatus = async (req, res, next) => {
       return res.status(400).json({ error: 'Invalid status.' });
     }
 
-    db.query('UPDATE orders SET status = $1 WHERE id = $2', [status, id]);
+    await db.query('UPDATE orders SET status = $1 WHERE id = $2', [status, id]);
 
-    const result = db.query('SELECT * FROM orders WHERE id = $1', [id]);
+    const result = await db.query('SELECT * FROM orders WHERE id = $1', [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Order not found.' });
