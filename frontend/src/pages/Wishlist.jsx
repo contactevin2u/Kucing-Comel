@@ -2,17 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
 
 const Wishlist = () => {
   const { isAuthenticated } = useAuth();
-  const { addToCart } = useCart();
   const navigate = useNavigate();
 
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState(null);
-  const [addingToCart, setAddingToCart] = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -42,23 +39,6 @@ const Wishlist = () => {
       console.error('Failed to remove from wishlist:', error);
     } finally {
       setRemoving(null);
-    }
-  };
-
-  const handleAddToCart = async (item) => {
-    setAddingToCart(item.product_id);
-    try {
-      const result = await addToCart(item.product_id, 1);
-      if (result.success) {
-        alert('Added to cart!');
-      } else {
-        alert(result.error || 'Failed to add to cart');
-      }
-    } catch (error) {
-      console.error('Failed to add to cart:', error);
-      alert('Failed to add to cart');
-    } finally {
-      setAddingToCart(null);
     }
   };
 
@@ -113,13 +93,6 @@ const Wishlist = () => {
                   <p className="wishlist-category">{item.category}</p>
                   <p className="wishlist-price">RM {parseFloat(item.price).toFixed(2)}</p>
                   <div className="wishlist-actions">
-                    <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => handleAddToCart(item)}
-                      disabled={addingToCart === item.product_id}
-                    >
-                      {addingToCart === item.product_id ? 'Adding...' : 'Add to Cart'}
-                    </button>
                     <button
                       className="btn btn-outline btn-sm"
                       onClick={() => handleRemove(item.product_id)}
