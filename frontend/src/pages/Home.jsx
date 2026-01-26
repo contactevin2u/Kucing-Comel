@@ -186,34 +186,6 @@ const Home = () => {
           )}
         </div>
       </section>
-
-      {/* Banner Section */}
-      <section className="banner-section">
-        <div className="container">
-          <div className="banner-grid">
-            <div className="banner-card yellow">
-              <span className="banner-label">Premium quality</span>
-              <h3>Cat Litter</h3>
-              <div className="banner-discount">NEW</div>
-              <img
-                src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=250"
-                alt="Cat litter"
-                className="banner-image"
-              />
-            </div>
-            <div className="banner-card pink">
-              <span className="banner-label">Best sellers</span>
-              <h3>Delicious treats</h3>
-              <div className="banner-discount">50%</div>
-              <img
-                src="https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=250"
-                alt="Cat treats"
-                className="banner-image"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };
