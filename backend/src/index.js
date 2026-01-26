@@ -116,7 +116,7 @@ app.get('/api/reseed', async (req, res) => {
     await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p4Id, '30mg | 8.5ml', 136.50, 122.85, 100]);
     await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p4Id, '30mg | 30ml', 429.00, 386.10, 100]);
     await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p4Id, '30mg | 50ml', 650.00, 585.00, 100]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p4Id, '75mg | 10 Tabs', 195.00, 175.50, 100]);
+    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p4Id, '60mg | 10 Tabs', 195.00, 175.50, 100]);
 
     res.json({ success: true, message: 'Products reseeded with 4 products and all variants!' });
   } catch (error) {
