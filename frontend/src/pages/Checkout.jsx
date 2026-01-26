@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -11,89 +9,6 @@ import { useCart } from '../context/CartContext';
  * CHECKOUT PAGE - Supports both logged-in users and guests
  * ============================================================
  */
-
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY || 'pk_test_placeholder');
-
-const StripeCheckoutForm = ({ order, onSuccess, policyAgreed }) => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [processing, setProcessing] = useState(false);
-  const [error, setError] = useState(null);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!stripe || !elements) return;
-
-    setProcessing(true);
-    setError(null);
-
-    try {
-      const { clientSecret } = await api.createPaymentIntent(order.id);
-
-      const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
-        clientSecret,
-        {
-          payment_method: {
-            card: elements.getElement(CardElement),
-          },
-        }
-      );
-
-      if (stripeError) {
-        setError(stripeError.message);
-      } else if (paymentIntent.status === 'succeeded') {
-        onSuccess();
-      }
-    } catch (err) {
-      setError(err.message || 'Payment failed');
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <div className="form-group">
-        <label>Card Details</label>
-        <div style={{
-          padding: '15px',
-          border: '2px solid #F7F9FC',
-          borderRadius: '8px',
-          background: '#fff'
-        }}>
-          <CardElement
-            options={{
-              style: {
-                base: {
-                  fontSize: '16px',
-                  color: '#2C3E50',
-                  '::placeholder': { color: '#95A5A6' },
-                },
-              },
-            }}
-          />
-        </div>
-      </div>
-
-      {error && <div className="alert alert-error">{error}</div>}
-
-      {/* Required for SenangPay approval - Button disabled until policy consent */}
-      <button
-        type="submit"
-        className="btn btn-primary btn-lg"
-        style={{
-          width: '100%',
-          background: policyAgreed ? '' : '#ccc',
-          cursor: policyAgreed && !processing ? 'pointer' : 'not-allowed'
-        }}
-        disabled={!stripe || processing || !policyAgreed}
-      >
-        {processing ? 'Processing...' : `Pay RM ${order.total_amount}`}
-      </button>
-    </form>
-  );
-};
 
 const SenangPayCheckoutForm = ({ order, guestEmail, onProcessing, policyAgreed }) => {
   const navigate = useNavigate();
@@ -202,7 +117,6 @@ const Checkout = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState('senangpay');
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [paymentMode, setPaymentMode] = useState(null);
   const [guestEmail, setGuestEmail] = useState('');
@@ -475,81 +389,35 @@ const Checkout = () => {
 
             {step === 2 && order && (
               <div className="form-section">
-                <h3>Payment Method</h3>
+                <h3>Payment</h3>
 
-                {/* Payment Method Selector */}
-                <div style={{ marginBottom: '25px' }}>
-                  <div
-                    onClick={() => !isRedirecting && setPaymentMethod('senangpay')}
-                    style={{
-                      padding: '15px 20px',
-                      border: paymentMethod === 'senangpay' ? '2px solid #4CAF50' : '2px solid #e0e0e0',
-                      borderRadius: '8px',
-                      marginBottom: '10px',
-                      cursor: isRedirecting ? 'not-allowed' : 'pointer',
-                      background: paymentMethod === 'senangpay' ? '#f0fff0' : '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '15px',
-                      opacity: isRedirecting ? 0.6 : 1
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === 'senangpay'}
-                      onChange={() => setPaymentMethod('senangpay')}
-                      disabled={isRedirecting}
-                    />
-                    <div>
-                      <strong>SenangPay</strong>
-                      {paymentMode === 'mock' && (
-                        <span style={{
-                          marginLeft: '8px',
-                          fontSize: '0.75rem',
-                          background: '#ffc107',
-                          color: '#333',
-                          padding: '2px 6px',
-                          borderRadius: '4px'
-                        }}>MOCK</span>
-                      )}
-                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>
-                        FPX, Credit/Debit Card (Visa, Mastercard)
-                      </p>
-                    </div>
+                {/* SenangPay Info */}
+                <div style={{
+                  padding: '15px 20px',
+                  border: '2px solid #4CAF50',
+                  borderRadius: '8px',
+                  marginBottom: '25px',
+                  background: '#f0fff0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '15px'
+                }}>
+                  <div>
+                    <strong>SenangPay</strong>
+                    {paymentMode === 'mock' && (
+                      <span style={{
+                        marginLeft: '8px',
+                        fontSize: '0.75rem',
+                        background: '#ffc107',
+                        color: '#333',
+                        padding: '2px 6px',
+                        borderRadius: '4px'
+                      }}>MOCK</span>
+                    )}
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>
+                      FPX, Credit/Debit Card (Visa, Mastercard)
+                    </p>
                   </div>
-
-                  {/* Only show Stripe for authenticated users */}
-                  {isAuthenticated && (
-                    <div
-                      onClick={() => !isRedirecting && setPaymentMethod('stripe')}
-                      style={{
-                        padding: '15px 20px',
-                        border: paymentMethod === 'stripe' ? '2px solid #635BFF' : '2px solid #e0e0e0',
-                        borderRadius: '8px',
-                        cursor: isRedirecting ? 'not-allowed' : 'pointer',
-                        background: paymentMethod === 'stripe' ? '#f0f0ff' : '#fff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '15px',
-                        opacity: isRedirecting ? 0.6 : 1
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        name="payment"
-                        checked={paymentMethod === 'stripe'}
-                        onChange={() => setPaymentMethod('stripe')}
-                        disabled={isRedirecting}
-                      />
-                      <div>
-                        <strong>Stripe</strong>
-                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>
-                          Credit/Debit Card (International)
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* ============================================================
@@ -679,19 +547,13 @@ const Checkout = () => {
                   </label>
                 </div>
 
-                {/* Payment Form based on selected method */}
-                {paymentMethod === 'stripe' && isAuthenticated ? (
-                  <Elements stripe={stripePromise}>
-                    <StripeCheckoutForm order={order} onSuccess={handlePaymentSuccess} policyAgreed={policyAgreed} />
-                  </Elements>
-                ) : (
-                  <SenangPayCheckoutForm
-                    order={order}
-                    guestEmail={!isAuthenticated ? guestEmail : null}
-                    onProcessing={setIsRedirecting}
-                    policyAgreed={policyAgreed}
-                  />
-                )}
+                {/* Payment Form */}
+                <SenangPayCheckoutForm
+                  order={order}
+                  guestEmail={!isAuthenticated ? guestEmail : null}
+                  onProcessing={setIsRedirecting}
+                  policyAgreed={policyAgreed}
+                />
 
                 {error && <div className="alert alert-error" style={{ marginTop: '15px' }}>{error}</div>}
 
