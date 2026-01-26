@@ -104,9 +104,11 @@ app.get('/api/reseed', async (req, res) => {
 <b>Oral Tablets</b>
 Each tablet contains 60mg of GS-441524 and comes in a pack of 10 tablets. Tablets can be divided into quarters for flexible and accurate dosing.
 
-Treatment Coverage
+<b>Treatment Coverage</b>
+CARE FIP GS-441524 is used to support cats with Wet FIP, Dry FIP, Ocular FIP, and Neurological FIP.
 
-CARE FIP GS-441524 is used to support cats with Wet FIP, Dry FIP, Ocular FIP, and Neurological FIP.`, 123.50, 111.15, '/products/care-fip.jpg', 'Supplements & Medications', 100]);
+<b>Important Information</b>
+Dosage and treatment duration depend on the cat's weight, FIP type, and response to treatment. This product is intended for animal use only and should be administered according to a proper treatment plan with guidance from an experienced FIP advisor or veterinarian.`, 123.50, 111.15, '/products/care-fip.jpg', 'Supplements & Medications', 100]);
 
     // Insert variants for each product
     const p1Id = product1.rows[0].id;
