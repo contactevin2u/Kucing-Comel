@@ -163,7 +163,14 @@ async function initializeDatabase() {
             (3, 'Chicken', 14.00, 12.60, 100),
             (3, 'Tuna', 14.00, 12.60, 100),
             (3, 'Salmon', 14.00, 12.60, 100),
-            (3, 'Mixed (3 Flavours Box)', 42.00, 37.80, 50);
+            (3, 'Mixed (3 Flavours Box)', 42.00, 37.80, 50),
+            (4, '20mg | 8.5ml', 123.50, 111.15, 100),
+            (4, '20mg | 30ml', 390.00, 351.00, 100),
+            (4, '20mg | 50ml', 624.00, 561.60, 100),
+            (4, '30mg | 8.5ml', 136.50, 122.85, 100),
+            (4, '30mg | 30ml', 429.00, 386.10, 100),
+            (4, '30mg | 50ml', 650.00, 585.00, 100),
+            (4, '75mg | 10 Tabs', 195.00, 175.50, 100);
           `);
           console.log('Product variants seeded');
         }
@@ -199,6 +206,15 @@ async function seedVariants() {
         await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Tuna', 14.00, 12.60, 100) ON CONFLICT DO NOTHING`, [product.id]);
         await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Salmon', 14.00, 12.60, 100) ON CONFLICT DO NOTHING`, [product.id]);
         await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Mixed (3 Flavours Box)', 42.00, 37.80, 50) ON CONFLICT DO NOTHING`, [product.id]);
+      } else if (product.name.includes('CARE FIP') || product.name.includes('GS-441524')) {
+        // CARE FIP GS-441524 variants
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, '20mg | 8.5ml', 123.50, 111.15, 100) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, '20mg | 30ml', 390.00, 351.00, 100) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, '20mg | 50ml', 624.00, 561.60, 100) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, '30mg | 8.5ml', 136.50, 122.85, 100) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, '30mg | 30ml', 429.00, 386.10, 100) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, '30mg | 50ml', 650.00, 585.00, 100) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, '75mg | 10 Tabs', 195.00, 175.50, 100) ON CONFLICT DO NOTHING`, [product.id]);
       }
     }
     console.log('Product variants seeded');
