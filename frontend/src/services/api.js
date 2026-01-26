@@ -208,5 +208,19 @@ export const api = {
       body: JSON.stringify({ order_id: orderId, action })
     });
     return handleResponse(res);
-  }
+  },
+
+  // Variant Images
+  getVariantImages: async (productSlug, variantName) => {
+    const res = await fetch(`${API_URL}/api/variant-images/${productSlug}/variant/${encodeURIComponent(variantName)}`);
+    return handleResponse(res);
+  },
+
+  getMainImages: async (productSlug) => {
+    const res = await fetch(`${API_URL}/api/variant-images/${productSlug}/main`);
+    return handleResponse(res);
+  },
+
+  // Get the API URL for building image URLs
+  getApiUrl: () => API_URL
 };

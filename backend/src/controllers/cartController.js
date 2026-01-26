@@ -79,6 +79,18 @@ const addToCart = async (req, res, next) => {
       return res.status(404).json({ error: 'Product not found.' });
     }
 
+    // Check if product has variants - if so, variant_id is required
+    const variantsCheck = await db.query(
+      'SELECT COUNT(*) as count FROM product_variants WHERE product_id = $1 AND is_active = true',
+      [product_id]
+    );
+
+    const hasVariants = parseInt(variantsCheck.rows[0].count) > 0;
+
+    if (hasVariants && !variant_id) {
+      return res.status(400).json({ error: 'Please select a product variation' });
+    }
+
     // Determine stock to check (variant stock or product stock)
     let availableStock = productResult.rows[0].stock;
 

@@ -5,12 +5,14 @@ const errorHandler = require('./middleware/errorHandler');
 const { handleWebhook } = require('./controllers/paymentController');
 const initializeDatabase = require('./db/init');
 
+const path = require('path');
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const cartRoutes = require('./routes/cart');
 const orderRoutes = require('./routes/orders');
 const paymentRoutes = require('./routes/payments');
 const senangpayRoutes = require('./routes/senangpay');
+const variantImagesRoutes = require('./routes/variantImages');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,6 +48,10 @@ app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), han
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static product images from Products folder
+const productsPath = path.join(__dirname, '..', '..', 'Products');
+app.use('/api/product-images', express.static(productsPath));
+
 // Root welcome route
 app.get('/', (req, res) => {
   res.json({
@@ -67,8 +73,12 @@ app.get('/api/health', (req, res) => {
 const db = require('./config/database');
 app.get('/api/reseed', async (req, res) => {
   try {
-    // Add member_price column if it doesn't exist
-    await db.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS member_price DECIMAL(10, 2)`);
+    // Add member_price column if it doesn't exist (SQLite compatible)
+    try {
+      await db.query(`ALTER TABLE products ADD COLUMN member_price DECIMAL(10, 2)`);
+    } catch (e) {
+      // Column already exists, ignore error
+    }
 
     // Delete existing products and variants
     await db.query(`DELETE FROM product_variants`);
@@ -130,6 +140,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/senangpay', senangpayRoutes);
+app.use('/api/variant-images', variantImagesRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' });

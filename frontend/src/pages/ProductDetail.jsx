@@ -3,12 +3,25 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import ImageGallery from '../components/ImageGallery';
 
 const getImageUrl = (url) => {
   if (!url) return 'https://via.placeholder.com/500x400?text=No+Image';
   if (url.startsWith('http')) return url;
+  // Handle API-served images
+  if (url.startsWith('/api/')) {
+    return `${api.getApiUrl()}${url}`;
+  }
   const frontendUrl = process.env.REACT_APP_FRONTEND_URL || '';
   return `${frontendUrl}${url}`;
+};
+
+// Map product names to their slugs for variant images
+const getProductSlug = (productName) => {
+  if (productName && productName.toLowerCase().includes('care fip')) {
+    return 'care-fip';
+  }
+  return null;
 };
 
 const ProductDetail = () => {
@@ -22,20 +35,62 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(null);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [imagesLoading, setImagesLoading] = useState(false);
+  const [variationError, setVariationError] = useState('');
 
   useEffect(() => {
     fetchProduct();
   }, [id]);
+
+  // Fetch images when variant changes
+  useEffect(() => {
+    const fetchVariantImages = async () => {
+      if (!product) return;
+
+      const productSlug = getProductSlug(product.name);
+      if (!productSlug) {
+        setGalleryImages([]);
+        return;
+      }
+
+      setImagesLoading(true);
+
+      try {
+        let response;
+        // Only load variant images if a variant is selected (not "Select Variation")
+        if (selectedVariant && selectedVariant.variant_name) {
+          response = await api.getVariantImages(productSlug, selectedVariant.variant_name);
+        } else {
+          // Load main/default images when no variant selected
+          response = await api.getMainImages(productSlug);
+        }
+
+        if (response.images && response.images.length > 0) {
+          // Convert API paths to full URLs
+          const fullUrls = response.images.map(img => getImageUrl(img));
+          setGalleryImages(fullUrls);
+        } else {
+          setGalleryImages([]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch variant images:', error);
+        setGalleryImages([]);
+      } finally {
+        setImagesLoading(false);
+      }
+    };
+
+    fetchVariantImages();
+  }, [product, selectedVariant]);
 
   const fetchProduct = async () => {
     setLoading(true);
     try {
       const data = await api.getProduct(id);
       setProduct(data.product);
-      // Auto-select first variant if product has variants
-      if (data.product.hasVariants && data.product.variants?.length > 0) {
-        setSelectedVariant(data.product.variants[0]);
-      }
+      // DO NOT auto-select first variant - keep it as "Select Variation"
+      setSelectedVariant(null);
     } catch (error) {
       console.error('Failed to fetch product:', error);
     } finally {
@@ -44,10 +99,28 @@ const ProductDetail = () => {
   };
 
   const handleVariantChange = (e) => {
-    const variantId = parseInt(e.target.value);
-    const variant = product.variants.find(v => v.id === variantId);
+    const variantId = e.target.value;
+
+    // Clear error when user interacts with dropdown
+    setVariationError('');
+
+    if (variantId === '' || variantId === 'select') {
+      setSelectedVariant(null);
+      return;
+    }
+
+    const variant = product.variants.find(v => v.id === parseInt(variantId));
     setSelectedVariant(variant);
     setQuantity(1); // Reset quantity when variant changes
+  };
+
+  // Check if variation is required but not selected
+  const isVariationRequired = () => {
+    return product?.hasVariants && product?.variants?.length > 0;
+  };
+
+  const isVariationSelected = () => {
+    return selectedVariant !== null;
   };
 
   // Get current price based on selected variant or product
@@ -55,6 +128,7 @@ const ProductDetail = () => {
     if (selectedVariant) {
       return parseFloat(selectedVariant.price);
     }
+    // Show base price when no variant selected
     return parseFloat(product.price);
   };
 
@@ -85,28 +159,45 @@ const ProductDetail = () => {
     }
   };
 
-  const handleAddToCart = async () => {
-    setAdding(true);
-    const result = await addToCart(product.id, quantity, selectedVariant?.id);
-    setAdding(false);
-
-    if (result.success) {
-      alert('Added to cart!');
-    } else {
-      alert(result.error || 'Failed to add to cart');
+  const validateAndProceed = (callback) => {
+    // Check if variation is required but not selected
+    if (isVariationRequired() && !isVariationSelected()) {
+      setVariationError('Please select a product variation');
+      // Scroll to variant selector
+      document.getElementById('variant-select')?.focus();
+      return false;
     }
+    setVariationError('');
+    callback();
+    return true;
+  };
+
+  const handleAddToCart = async () => {
+    if (!validateAndProceed(async () => {
+      setAdding(true);
+      const result = await addToCart(product.id, quantity, selectedVariant?.id);
+      setAdding(false);
+
+      if (result.success) {
+        alert('Added to cart!');
+      } else {
+        alert(result.error || 'Failed to add to cart');
+      }
+    })) return;
   };
 
   const handleBuyNow = async () => {
-    setAdding(true);
-    const result = await addToCart(product.id, quantity, selectedVariant?.id);
-    setAdding(false);
+    if (!validateAndProceed(async () => {
+      setAdding(true);
+      const result = await addToCart(product.id, quantity, selectedVariant?.id);
+      setAdding(false);
 
-    if (result.success) {
-      navigate('/cart');
-    } else {
-      alert(result.error || 'Failed to add to cart');
-    }
+      if (result.success) {
+        navigate('/cart');
+      } else {
+        alert(result.error || 'Failed to add to cart');
+      }
+    })) return;
   };
 
   if (loading) {
@@ -131,8 +222,12 @@ const ProductDetail = () => {
   const currentStock = getCurrentStock();
   const currentPrice = getCurrentPrice();
   const originalPrice = getOriginalPrice();
+  const canAddToCart = !isVariationRequired() || isVariationSelected();
 
   const getStockStatus = () => {
+    if (!isVariationSelected() && isVariationRequired()) {
+      return { text: 'Select a variation to see stock', class: '' };
+    }
     if (currentStock === 0) return { text: 'Out of Stock', class: 'out' };
     if (currentStock < 10) return { text: `Only ${currentStock} left!`, class: 'low' };
     return { text: 'In Stock', class: '' };
@@ -152,10 +247,11 @@ const ProductDetail = () => {
         </button>
 
         <div className="product-detail-grid">
-          <div className="product-detail-image">
-            <img
-              src={getImageUrl(product.image_url)}
-              alt={product.name}
+          <div className="product-detail-gallery">
+            <ImageGallery
+              images={galleryImages}
+              fallbackImage={getImageUrl(product.image_url)}
+              isLoading={imagesLoading}
             />
           </div>
 
@@ -165,14 +261,15 @@ const ProductDetail = () => {
 
             {/* Variant Selector */}
             {product.hasVariants && product.variants?.length > 0 && (
-              <div className="variant-selector">
-                <label htmlFor="variant-select">Select Option:</label>
+              <div className={`variant-selector ${variationError ? 'has-error' : ''}`}>
+                <label htmlFor="variant-select">Select Option: <span className="required">*</span></label>
                 <select
                   id="variant-select"
                   value={selectedVariant?.id || ''}
                   onChange={handleVariantChange}
-                  className="variant-dropdown"
+                  className={`variant-dropdown ${variationError ? 'error' : ''}`}
                 >
+                  <option value="">-- Select Variation --</option>
                   {product.variants.map((variant) => (
                     <option key={variant.id} value={variant.id}>
                       {variant.variant_name} - RM {parseFloat(variant.price).toFixed(2)}
@@ -181,17 +278,28 @@ const ProductDetail = () => {
                     </option>
                   ))}
                 </select>
+                {variationError && (
+                  <p className="variation-error">{variationError}</p>
+                )}
               </div>
             )}
 
             {/* Price Display */}
             <div className="product-detail-price-wrapper">
-              <p className="product-detail-price">RM {currentPrice.toFixed(2)}</p>
-              {product.isMember && originalPrice && originalPrice > currentPrice && (
+              {isVariationSelected() || !isVariationRequired() ? (
                 <>
-                  <span className="product-detail-price-old">RM {originalPrice.toFixed(2)}</span>
-                  <span className="member-badge">MEMBER PRICE</span>
+                  <p className="product-detail-price">RM {currentPrice.toFixed(2)}</p>
+                  {product.isMember && originalPrice && originalPrice > currentPrice && (
+                    <>
+                      <span className="product-detail-price-old">RM {originalPrice.toFixed(2)}</span>
+                      <span className="member-badge">MEMBER PRICE</span>
+                    </>
+                  )}
                 </>
+              ) : (
+                <p className="product-detail-price price-range">
+                  From RM {parseFloat(product.price).toFixed(2)}
+                </p>
               )}
             </div>
 
@@ -208,14 +316,14 @@ const ProductDetail = () => {
               {product.description || 'No description available.'}
             </p>
 
-            {currentStock > 0 && (
+            {(currentStock > 0 || !isVariationSelected()) && (
               <>
                 <div className="quantity-selector">
                   <span>Quantity:</span>
                   <button
                     className="quantity-btn"
                     onClick={() => handleQuantityChange(-1)}
-                    disabled={quantity <= 1}
+                    disabled={quantity <= 1 || !canAddToCart}
                   >
                     -
                   </button>
@@ -223,24 +331,24 @@ const ProductDetail = () => {
                   <button
                     className="quantity-btn"
                     onClick={() => handleQuantityChange(1)}
-                    disabled={quantity >= currentStock}
+                    disabled={quantity >= currentStock || !canAddToCart}
                   >
                     +
                   </button>
                 </div>
 
-                <div style={{ display: 'flex', gap: '15px' }}>
+                <div className="product-actions">
                   <button
                     onClick={handleAddToCart}
-                    className="btn btn-outline btn-lg"
-                    disabled={adding}
+                    className={`btn btn-outline btn-lg ${!canAddToCart ? 'btn-disabled' : ''}`}
+                    disabled={adding || (isVariationSelected() && currentStock === 0)}
                   >
                     {adding ? 'Adding...' : 'Add to Cart'}
                   </button>
                   <button
                     onClick={handleBuyNow}
-                    className="btn btn-primary btn-lg"
-                    disabled={adding}
+                    className={`btn btn-primary btn-lg ${!canAddToCart ? 'btn-disabled' : ''}`}
+                    disabled={adding || (isVariationSelected() && currentStock === 0)}
                   >
                     Buy Now
                   </button>
