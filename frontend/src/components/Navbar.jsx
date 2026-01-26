@@ -18,15 +18,7 @@ const Navbar = () => {
       {/* Main Navbar */}
       <nav className="navbar">
         <div className="container">
-          {/* Left Navigation */}
-          <div className="nav-left">
-            <Link to="/">Home</Link>
-            <Link to="/?category=Food">Food</Link>
-            <Link to="/?category=Toys">Toys</Link>
-            <Link to="/?category=Accessories">Accessories</Link>
-          </div>
-
-          {/* Center Logo */}
+          {/* Logo */}
           <Link to="/" className="logo">
             <span>🐱</span> Kucing Comel
           </Link>
