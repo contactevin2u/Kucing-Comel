@@ -22,11 +22,6 @@ const Footer = () => {
             <p>📧 hello@kucingcomel.com</p>
             <p>📞 +60 12-345-6789</p>
             <p>📍 Kuala Lumpur, Malaysia</p>
-            <div style={{ marginTop: '15px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
-              <span style={{ fontSize: '1.5rem', cursor: 'pointer' }}>📘</span>
-              <span style={{ fontSize: '1.5rem', cursor: 'pointer' }}>📸</span>
-              <span style={{ fontSize: '1.5rem', cursor: 'pointer' }}>🐦</span>
-            </div>
           </div>
 
           {/* ============================================================
