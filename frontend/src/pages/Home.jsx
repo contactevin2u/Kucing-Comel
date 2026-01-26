@@ -7,6 +7,7 @@ import HeroCarousel from '../components/HeroCarousel';
 const categories = [
   { name: 'Food', image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=200', label: 'FOOD' },
   { name: 'Litter', image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=200', label: 'LITTER' },
+  { name: 'Supplements & Medications', image: 'https://images.unsplash.com/photo-1615302611930-7a5e24e0b0ac?w=200', label: 'SUPPLEMENTS' },
 ];
 
 const Home = () => {
