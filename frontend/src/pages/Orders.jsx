@@ -90,7 +90,11 @@ const Orders = () => {
           </div>
         ) : (
           orders.map((order) => (
-            <div key={order.id} className="order-card">
+            <div
+              key={order.id}
+              className="order-card order-card-clickable"
+              onClick={() => navigate(`/orders/${order.id}`)}
+            >
               <div className="order-header">
                 <div>
                   <span className="order-id">Order #{order.id}</span>
@@ -98,18 +102,19 @@ const Orders = () => {
                     {formatDate(order.created_at)}
                   </span>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <span className={`order-status ${getStatusClass(order.status)}`}>
                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                   </span>
                   <span className={`order-status ${order.payment_status === 'paid' ? 'paid' : 'pending'}`}>
                     {order.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
                   </span>
+                  <span className="order-arrow">→</span>
                 </div>
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                {order.items?.map((item) => (
+                {order.items?.slice(0, 3).map((item) => (
                   <div key={item.id} style={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -124,6 +129,11 @@ const Orders = () => {
                     </span>
                   </div>
                 ))}
+                {order.items?.length > 3 && (
+                  <div style={{ padding: '8px 0', color: '#95A5A6', fontSize: '0.9rem' }}>
+                    +{order.items.length - 3} more item(s)
+                  </div>
+                )}
               </div>
 
               <div style={{
@@ -134,8 +144,7 @@ const Orders = () => {
                 borderTop: '2px solid #F7F9FC'
               }}>
                 <div style={{ color: '#95A5A6', fontSize: '0.9rem' }}>
-                  <strong>Ship to:</strong> {order.shipping_name}<br />
-                  {order.shipping_address}
+                  <strong>Ship to:</strong> {order.shipping_name}
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <span style={{ color: '#95A5A6' }}>Total</span>
