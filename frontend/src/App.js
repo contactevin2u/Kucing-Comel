@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
+import Wishlist from './pages/Wishlist';
 import OrderSuccess from './pages/OrderSuccess';
 import MockPayment from './pages/MockPayment';
 
@@ -45,6 +46,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/orders/:id" element={<OrderDetail />} />
+        <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/order-success" element={<OrderSuccess />} />
       </Routes>
     </MainLayout>

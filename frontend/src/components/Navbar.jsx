@@ -1,16 +1,104 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { api } from '../services/api';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const { cart } = useCart();
   const navigate = useNavigate();
 
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const searchRef = useRef(null);
+  const inputRef = useRef(null);
+
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleWishlistClick = () => {
+    if (isAuthenticated) {
+      navigate('/wishlist');
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleSearchClick = () => {
+    setSearchOpen(true);
+  };
+
+  // Focus input when search opens
+  useEffect(() => {
+    if (searchOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [searchOpen]);
+
+  // Close search when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setSearchOpen(false);
+        setSearchQuery('');
+        setSearchResults([]);
+      }
+    };
+
+    if (searchOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [searchOpen]);
+
+  // Search products with debounce
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const debounce = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const data = await api.getProducts({ search: searchQuery });
+        setSearchResults(data.products.slice(0, 5));
+      } catch (error) {
+        console.error('Search failed:', error);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(debounce);
+  }, [searchQuery]);
+
+  const handleSearchSelect = (productId) => {
+    navigate(`/product/${productId}`);
+    setSearchOpen(false);
+    setSearchQuery('');
+    setSearchResults([]);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchResults.length > 0) {
+      handleSearchSelect(searchResults[0].id);
+    }
+  };
+
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return '/placeholder.jpg';
+    if (imageUrl.startsWith('http')) return imageUrl;
+    return `${api.getApiUrl()}/api/product-images${imageUrl.replace('/products', '')}`;
   };
 
   return (
@@ -29,8 +117,12 @@ const Navbar = () => {
               <>
                 <Link to="/orders">My Orders</Link>
                 <div className="nav-icons">
-                  <button className="nav-icon" title="Search">🔍</button>
-                  <button className="nav-icon" title="Wishlist">♡</button>
+                  <button className="nav-icon" title="Search" onClick={handleSearchClick}>
+                    🔍
+                  </button>
+                  <button className="nav-icon nav-icon-heart" title="Wishlist" onClick={handleWishlistClick}>
+                    ♡
+                  </button>
                   <Link to="/cart" className="nav-icon" title="Cart">
                     🛒
                     {cart.item_count > 0 && (
@@ -48,12 +140,20 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <Link to="/cart" className="nav-icon" title="Cart" style={{ marginRight: '10px' }}>
-                  🛒
-                  {cart.item_count > 0 && (
-                    <span className="cart-badge">{cart.item_count}</span>
-                  )}
-                </Link>
+                <div className="nav-icons">
+                  <button className="nav-icon" title="Search" onClick={handleSearchClick}>
+                    🔍
+                  </button>
+                  <button className="nav-icon nav-icon-heart" title="Wishlist" onClick={handleWishlistClick}>
+                    ♡
+                  </button>
+                  <Link to="/cart" className="nav-icon" title="Cart">
+                    🛒
+                    {cart.item_count > 0 && (
+                      <span className="cart-badge">{cart.item_count}</span>
+                    )}
+                  </Link>
+                </div>
                 <Link to="/login">Login</Link>
                 <Link to="/register" className="btn btn-primary btn-sm">
                   Sign Up
@@ -63,6 +163,68 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
+
+      {/* Search Modal Overlay */}
+      {searchOpen && (
+        <div className="search-overlay">
+          <div className="search-modal" ref={searchRef}>
+            <form onSubmit={handleSearchSubmit}>
+              <div className="search-input-wrapper">
+                <span className="search-input-icon">🔍</span>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="search-input"
+                />
+                <button
+                  type="button"
+                  className="search-close"
+                  onClick={() => {
+                    setSearchOpen(false);
+                    setSearchQuery('');
+                    setSearchResults([]);
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            </form>
+
+            {/* Search Results */}
+            {searchQuery && (
+              <div className="search-results">
+                {searching ? (
+                  <div className="search-loading">Searching...</div>
+                ) : searchResults.length > 0 ? (
+                  searchResults.map((product) => (
+                    <div
+                      key={product.id}
+                      className="search-result-item"
+                      onClick={() => handleSearchSelect(product.id)}
+                    >
+                      <img
+                        src={getImageUrl(product.image_url)}
+                        alt={product.name}
+                        className="search-result-image"
+                        onError={(e) => { e.target.src = '/placeholder.jpg'; }}
+                      />
+                      <div className="search-result-info">
+                        <div className="search-result-name">{product.name}</div>
+                        <div className="search-result-price">RM {parseFloat(product.price).toFixed(2)}</div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="search-no-results">No products found</div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 };

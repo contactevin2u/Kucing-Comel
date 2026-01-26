@@ -221,6 +221,46 @@ export const api = {
     return handleResponse(res);
   },
 
+  // Wishlist
+  getWishlist: async () => {
+    const res = await fetch(`${API_URL}/api/wishlist`, {
+      headers: getHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  addToWishlist: async (productId) => {
+    const res = await fetch(`${API_URL}/api/wishlist/add`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ product_id: productId })
+    });
+    return handleResponse(res);
+  },
+
+  removeFromWishlist: async (productId) => {
+    const res = await fetch(`${API_URL}/api/wishlist/remove/${productId}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  checkWishlist: async (productId) => {
+    const res = await fetch(`${API_URL}/api/wishlist/check/${productId}`, {
+      headers: getHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  // Search products
+  searchProducts: async (query) => {
+    const res = await fetch(`${API_URL}/api/products?search=${encodeURIComponent(query)}`, {
+      headers: getHeaders()
+    });
+    return handleResponse(res);
+  },
+
   // Get the API URL for building image URLs
   getApiUrl: () => API_URL
 };

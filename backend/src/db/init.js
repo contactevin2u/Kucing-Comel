@@ -58,6 +58,23 @@ async function initializeDatabase() {
           console.log('Guest checkout column may already exist');
         }
 
+        // Create wishlist table if not exists
+        try {
+          await db.query(`
+            CREATE TABLE IF NOT EXISTS wishlist (
+              id SERIAL PRIMARY KEY,
+              user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              UNIQUE(user_id, product_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_wishlist_user ON wishlist(user_id);
+          `);
+          console.log('Wishlist table ensured');
+        } catch (e) {
+          console.log('Wishlist table may already exist');
+        }
+
         if (!variantsTableCheck.rows[0].exists) {
           console.log('Creating product_variants table...');
           await db.query(`
@@ -127,6 +144,21 @@ async function initializeDatabase() {
         try {
           db.db.exec(`ALTER TABLE orders ADD COLUMN guest_email TEXT`);
         } catch (e) { /* column exists */ }
+
+        // Create wishlist table for SQLite
+        try {
+          db.db.exec(`
+            CREATE TABLE IF NOT EXISTS wishlist (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+              UNIQUE(user_id, product_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_wishlist_user ON wishlist(user_id);
+          `);
+          console.log('Wishlist table ensured');
+        } catch (e) { /* table exists */ }
 
         // Check if product_variants table exists
         const variantsCheck = db.query(`
