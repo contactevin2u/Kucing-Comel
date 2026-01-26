@@ -1616,10 +1616,44 @@ img {
   object-fit: contain;
 }
 
+.product-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+}
+
 .product-detail-info h1 {
   font-size: 2.2rem;
   margin-bottom: 15px;
   color: var(--dark);
+  flex: 1;
+}
+
+.wishlist-btn-detail {
+  background: none;
+  border: 2px solid var(--gray-light);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  font-size: 1.8rem;
+  color: #B2BEC3;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wishlist-btn-detail:hover {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+
+.wishlist-btn-detail:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .product-detail-price-wrapper {

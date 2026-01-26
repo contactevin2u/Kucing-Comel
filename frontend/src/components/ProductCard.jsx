@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 
 const getImageUrl = (url) => {
   if (!url) return 'https://via.placeholder.com/300x200?text=No+Image';
@@ -12,7 +14,26 @@ const getImageUrl = (url) => {
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
+  // Check if product is in wishlist on mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkWishlistStatus();
+    }
+  }, [isAuthenticated, product.id]);
+
+  const checkWishlistStatus = async () => {
+    try {
+      const data = await api.checkWishlist(product.id);
+      setIsWishlisted(data.inWishlist);
+    } catch (error) {
+      // Silently fail - not critical
+    }
+  };
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
@@ -26,10 +47,31 @@ const ProductCard = ({ product }) => {
     }
   };
 
-  const handleWishlist = (e) => {
+  const handleWishlist = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
+
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    if (wishlistLoading) return;
+
+    setWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        await api.removeFromWishlist(product.id);
+        setIsWishlisted(false);
+      } else {
+        await api.addToWishlist(product.id);
+        setIsWishlisted(true);
+      }
+    } catch (error) {
+      console.error('Wishlist error:', error);
+    } finally {
+      setWishlistLoading(false);
+    }
   };
 
   const isNew = product.id <= 5;
@@ -45,6 +87,7 @@ const ProductCard = ({ product }) => {
       <button
         className="product-wishlist"
         onClick={handleWishlist}
+        disabled={wishlistLoading}
         style={{ color: isWishlisted ? '#FF7B54' : '#B2BEC3' }}
       >
         {isWishlisted ? '♥' : '♡'}

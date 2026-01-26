@@ -38,10 +38,52 @@ const ProductDetail = () => {
   const [galleryImages, setGalleryImages] = useState([]);
   const [imagesLoading, setImagesLoading] = useState(false);
   const [variationError, setVariationError] = useState('');
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
   useEffect(() => {
     fetchProduct();
   }, [id]);
+
+  // Check wishlist status
+  useEffect(() => {
+    if (isAuthenticated && id) {
+      checkWishlistStatus();
+    }
+  }, [isAuthenticated, id]);
+
+  const checkWishlistStatus = async () => {
+    try {
+      const data = await api.checkWishlist(id);
+      setIsWishlisted(data.inWishlist);
+    } catch (error) {
+      // Silently fail
+    }
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    if (wishlistLoading) return;
+
+    setWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        await api.removeFromWishlist(id);
+        setIsWishlisted(false);
+      } else {
+        await api.addToWishlist(id);
+        setIsWishlisted(true);
+      }
+    } catch (error) {
+      console.error('Wishlist error:', error);
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   // Fetch images when variant changes
   useEffect(() => {
@@ -257,7 +299,17 @@ const ProductDetail = () => {
 
           <div className="product-detail-info">
             <span className="product-category">{product.category}</span>
-            <h1>{product.name}</h1>
+            <div className="product-title-row">
+              <h1>{product.name}</h1>
+              <button
+                className="wishlist-btn-detail"
+                onClick={handleWishlistToggle}
+                disabled={wishlistLoading}
+                title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+              >
+                {isWishlisted ? '♥' : '♡'}
+              </button>
+            </div>
 
             {/* Variant Selector */}
             {product.hasVariants && product.variants?.length > 0 && (
