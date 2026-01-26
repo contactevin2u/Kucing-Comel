@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { api } from '../services/api';
+import { Search, Heart, ShoppingCart, User, X } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -118,13 +119,13 @@ const Navbar = () => {
                 <Link to="/orders">My Orders</Link>
                 <div className="nav-icons">
                   <button className="nav-icon" title="Search" onClick={handleSearchClick}>
-                    🔍
+                    <Search size={22} strokeWidth={1.5} />
                   </button>
-                  <button className="nav-icon nav-icon-heart" title="Wishlist" onClick={handleWishlistClick}>
-                    ♡
+                  <button className="nav-icon" title="Wishlist" onClick={handleWishlistClick}>
+                    <Heart size={22} strokeWidth={1.5} />
                   </button>
                   <Link to="/cart" className="nav-icon" title="Cart">
-                    🛒
+                    <ShoppingCart size={22} strokeWidth={1.5} />
                     {cart.item_count > 0 && (
                       <span className="cart-badge">{cart.item_count}</span>
                     )}
@@ -134,7 +135,7 @@ const Navbar = () => {
                     onClick={handleLogout}
                     title={`Logout (${user?.name?.split(' ')[0]})`}
                   >
-                    👤
+                    <User size={22} strokeWidth={1.5} />
                   </button>
                 </div>
               </>
@@ -142,13 +143,13 @@ const Navbar = () => {
               <>
                 <div className="nav-icons">
                   <button className="nav-icon" title="Search" onClick={handleSearchClick}>
-                    🔍
+                    <Search size={22} strokeWidth={1.5} />
                   </button>
-                  <button className="nav-icon nav-icon-heart" title="Wishlist" onClick={handleWishlistClick}>
-                    ♡
+                  <button className="nav-icon" title="Wishlist" onClick={handleWishlistClick}>
+                    <Heart size={22} strokeWidth={1.5} />
                   </button>
                   <Link to="/cart" className="nav-icon" title="Cart">
-                    🛒
+                    <ShoppingCart size={22} strokeWidth={1.5} />
                     {cart.item_count > 0 && (
                       <span className="cart-badge">{cart.item_count}</span>
                     )}
@@ -170,7 +171,9 @@ const Navbar = () => {
           <div className="search-modal" ref={searchRef}>
             <form onSubmit={handleSearchSubmit}>
               <div className="search-input-wrapper">
-                <span className="search-input-icon">🔍</span>
+                <span className="search-input-icon">
+                  <Search size={20} strokeWidth={1.5} />
+                </span>
                 <input
                   ref={inputRef}
                   type="text"
@@ -188,7 +191,7 @@ const Navbar = () => {
                     setSearchResults([]);
                   }}
                 >
-                  ✕
+                  <X size={20} strokeWidth={1.5} />
                 </button>
               </div>
             </form>
@@ -209,7 +212,7 @@ const Navbar = () => {
                         src={getImageUrl(product.image_url)}
                         alt={product.name}
                         className="search-result-image"
-                        onError={(e) => { e.target.src = '/placeholder.jpg'; }}
+                        onError={(e) => { e.target.src = 'https://via.placeholder.com/300x200?text=No+Image'; }}
                       />
                       <div className="search-result-info">
                         <div className="search-result-name">{product.name}</div>
