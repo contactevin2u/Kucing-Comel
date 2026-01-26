@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { api } from '../services/api';
-import { Search, Heart, ShoppingCart, User, X } from 'lucide-react';
+import { Search, Heart, ShoppingCart, User, LogOut, X } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -130,12 +130,19 @@ const Navbar = () => {
                       <span className="cart-badge">{cart.item_count}</span>
                     )}
                   </Link>
+                  <Link
+                    to="/profile"
+                    className="nav-icon"
+                    title={`Profile (${user?.name?.split(' ')[0]})`}
+                  >
+                    <User size={22} strokeWidth={1.5} />
+                  </Link>
                   <button
                     className="nav-icon"
                     onClick={handleLogout}
-                    title={`Logout (${user?.name?.split(' ')[0]})`}
+                    title="Logout"
                   >
-                    <User size={22} strokeWidth={1.5} />
+                    <LogOut size={22} strokeWidth={1.5} />
                   </button>
                 </div>
               </>

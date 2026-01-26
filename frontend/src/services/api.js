@@ -52,6 +52,66 @@ export const api = {
     return handleResponse(res);
   },
 
+  updateProfile: async (profileData) => {
+    const res = await fetch(`${API_URL}/api/auth/profile`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(profileData)
+    });
+    return handleResponse(res);
+  },
+
+  changePassword: async (currentPassword, newPassword) => {
+    const res = await fetch(`${API_URL}/api/auth/password`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    return handleResponse(res);
+  },
+
+  // Addresses
+  getAddresses: async () => {
+    const res = await fetch(`${API_URL}/api/addresses`, {
+      headers: getHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  addAddress: async (addressData) => {
+    const res = await fetch(`${API_URL}/api/addresses`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(addressData)
+    });
+    return handleResponse(res);
+  },
+
+  updateAddress: async (id, addressData) => {
+    const res = await fetch(`${API_URL}/api/addresses/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(addressData)
+    });
+    return handleResponse(res);
+  },
+
+  deleteAddress: async (id) => {
+    const res = await fetch(`${API_URL}/api/addresses/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    return handleResponse(res);
+  },
+
+  setDefaultAddress: async (id) => {
+    const res = await fetch(`${API_URL}/api/addresses/${id}/default`, {
+      method: 'PUT',
+      headers: getHeaders()
+    });
+    return handleResponse(res);
+  },
+
   // Products - pass auth header to get member pricing if logged in
   getProducts: async (params = {}) => {
     const query = new URLSearchParams(params).toString();

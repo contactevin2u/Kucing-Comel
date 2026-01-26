@@ -57,12 +57,17 @@ export const AuthProvider = ({ children }) => {
     window.dispatchEvent(new Event('authChange'));
   };
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+  };
+
   const value = {
     user,
     loading,
     login,
     register,
     logout,
+    updateUser,
     isAuthenticated: !!user
   };
 

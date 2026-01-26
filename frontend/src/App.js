@@ -12,6 +12,7 @@ import Register from './pages/Register';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
 import Wishlist from './pages/Wishlist';
+import Profile from './pages/Profile';
 import OrderSuccess from './pages/OrderSuccess';
 import MockPayment from './pages/MockPayment';
 
@@ -47,6 +48,7 @@ function App() {
         <Route path="/orders" element={<Orders />} />
         <Route path="/orders/:id" element={<OrderDetail />} />
         <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/order-success" element={<OrderSuccess />} />
       </Routes>
     </MainLayout>

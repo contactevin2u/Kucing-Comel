@@ -75,6 +75,31 @@ async function initializeDatabase() {
           console.log('Wishlist table may already exist');
         }
 
+        // Create addresses table if not exists
+        try {
+          await db.query(`
+            CREATE TABLE IF NOT EXISTS addresses (
+              id SERIAL PRIMARY KEY,
+              user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              label VARCHAR(50) DEFAULT 'Home',
+              recipient_name VARCHAR(255) NOT NULL,
+              phone VARCHAR(20) NOT NULL,
+              address_line1 VARCHAR(255) NOT NULL,
+              address_line2 VARCHAR(255),
+              city VARCHAR(100) NOT NULL,
+              state VARCHAR(100) NOT NULL,
+              postal_code VARCHAR(20) NOT NULL,
+              country VARCHAR(100) DEFAULT 'Malaysia',
+              is_default BOOLEAN DEFAULT false,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_addresses_user ON addresses(user_id);
+          `);
+          console.log('Addresses table ensured');
+        } catch (e) {
+          console.log('Addresses table may already exist');
+        }
+
         if (!variantsTableCheck.rows[0].exists) {
           console.log('Creating product_variants table...');
           await db.query(`
@@ -158,6 +183,29 @@ async function initializeDatabase() {
             CREATE INDEX IF NOT EXISTS idx_wishlist_user ON wishlist(user_id);
           `);
           console.log('Wishlist table ensured');
+        } catch (e) { /* table exists */ }
+
+        // Create addresses table for SQLite
+        try {
+          db.db.exec(`
+            CREATE TABLE IF NOT EXISTS addresses (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              label TEXT DEFAULT 'Home',
+              recipient_name TEXT NOT NULL,
+              phone TEXT NOT NULL,
+              address_line1 TEXT NOT NULL,
+              address_line2 TEXT,
+              city TEXT NOT NULL,
+              state TEXT NOT NULL,
+              postal_code TEXT NOT NULL,
+              country TEXT DEFAULT 'Malaysia',
+              is_default INTEGER DEFAULT 0,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_addresses_user ON addresses(user_id);
+          `);
+          console.log('Addresses table ensured');
         } catch (e) { /* table exists */ }
 
         // Check if product_variants table exists
