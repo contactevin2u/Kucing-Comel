@@ -85,7 +85,7 @@ app.get('/api/reseed', async (req, res) => {
       ['Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats!', 42.00, 37.80, '/products/creamy-treats.jpg', 'Food', 300]);
 
     const product4 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      ['CARE FIP GS-441524 For Cats FIP Kucing', 'Cat Wellness & Support Solution. Specialised cat care product intended to support overall wellness and quality of life during recovery periods. Widely used by experienced caregivers as part of a guided care plan for cats requiring additional support. Designed for careful, responsible use. Supports treatment for Wet, Dry, Neuro & Ocular FIP. High recovery success rate when used consistently. Helps improve appetite, energy & overall condition. Trusted by veterinarians & experienced caregivers.', 123.50, 111.15, '/products/Care fip/care fip product image.jpg', 'Supplements & Medications', 100]);
+      ['CARE FIP GS-441524 For Cats FIP Kucing', 'Cat Wellness & Support Solution. Specialised cat care product intended to support overall wellness and quality of life during recovery periods. Widely used by experienced caregivers as part of a guided care plan for cats requiring additional support. Designed for careful, responsible use. Supports treatment for Wet, Dry, Neuro & Ocular FIP. High recovery success rate when used consistently. Helps improve appetite, energy & overall condition. Trusted by veterinarians & experienced caregivers.', 123.50, 111.15, '/products/care-fip.jpg', 'Supplements & Medications', 100]);
 
     // Insert variants for each product
     const p1Id = product1.rows[0].id;
