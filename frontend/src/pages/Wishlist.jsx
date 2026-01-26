@@ -46,7 +46,7 @@ const Wishlist = () => {
     if (!imageUrl) return 'https://via.placeholder.com/300x200?text=No+Image';
     if (imageUrl.startsWith('http')) return imageUrl;
     // image_url is like "/Folder Name/image.jpg", backend serves from /api/product-images
-    return `${api.getApiUrl()}/api/product-images${imageUrl}`;
+    return `${api.getApiUrl()}/api/product-images${encodeURI(imageUrl)}`;
   };
 
   if (!isAuthenticated) return null;

@@ -7,8 +7,8 @@ import { api } from '../services/api';
 const getImageUrl = (url) => {
   if (!url) return 'https://via.placeholder.com/300x200?text=No+Image';
   if (url.startsWith('http')) return url;
-  // Backend serves images from /api/product-images
-  return `${api.getApiUrl()}/api/product-images${url}`;
+  // Backend serves images from /api/product-images - encode URL for spaces/special chars
+  return `${api.getApiUrl()}/api/product-images${encodeURI(url)}`;
 };
 
 const ProductCard = ({ product }) => {

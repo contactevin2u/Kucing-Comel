@@ -96,9 +96,9 @@ const Navbar = () => {
   };
 
   const getImageUrl = (imageUrl) => {
-    if (!imageUrl) return '/placeholder.jpg';
+    if (!imageUrl) return 'https://via.placeholder.com/300x200?text=No+Image';
     if (imageUrl.startsWith('http')) return imageUrl;
-    return `${api.getApiUrl()}/api/product-images${imageUrl.replace('/products', '')}`;
+    return `${api.getApiUrl()}/api/product-images${encodeURI(imageUrl)}`;
   };
 
   return (

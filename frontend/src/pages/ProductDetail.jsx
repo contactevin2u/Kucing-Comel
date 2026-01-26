@@ -10,10 +10,10 @@ const getImageUrl = (url) => {
   if (url.startsWith('http')) return url;
   // Handle API-served images
   if (url.startsWith('/api/')) {
-    return `${api.getApiUrl()}${url}`;
+    return `${api.getApiUrl()}${encodeURI(url)}`;
   }
   // Backend serves product images from /api/product-images
-  return `${api.getApiUrl()}/api/product-images${url}`;
+  return `${api.getApiUrl()}/api/product-images${encodeURI(url)}`;
 };
 
 // Map product names to their slugs for variant images
