@@ -12,6 +12,7 @@ const Wishlist = () => {
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState(null);
+  const [addingToCart, setAddingToCart] = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -45,17 +46,28 @@ const Wishlist = () => {
   };
 
   const handleAddToCart = async (item) => {
+    setAddingToCart(item.product_id);
     try {
-      await addToCart(item.product_id, 1);
+      const result = await addToCart(item.product_id, 1);
+      if (result.success) {
+        alert('Added to cart!');
+      } else {
+        alert(result.error || 'Failed to add to cart');
+      }
     } catch (error) {
       console.error('Failed to add to cart:', error);
+      alert('Failed to add to cart');
+    } finally {
+      setAddingToCart(null);
     }
   };
 
   const getImageUrl = (imageUrl) => {
-    if (!imageUrl) return '/placeholder.jpg';
+    if (!imageUrl) return 'https://via.placeholder.com/300x200?text=No+Image';
     if (imageUrl.startsWith('http')) return imageUrl;
-    return `${api.getApiUrl()}/api/product-images${imageUrl.replace('/products', '')}`;
+    // image_url is like "/products/litter-6l.jpg", backend serves from /api/product-images/
+    const cleanPath = imageUrl.replace('/products/', '');
+    return `${api.getApiUrl()}/api/product-images/${cleanPath}`;
   };
 
   if (!isAuthenticated) return null;
@@ -91,7 +103,7 @@ const Wishlist = () => {
                   <img
                     src={getImageUrl(item.image_url)}
                     alt={item.name}
-                    onError={(e) => { e.target.src = '/placeholder.jpg'; }}
+                    onError={(e) => { e.target.src = 'https://via.placeholder.com/300x200?text=No+Image'; }}
                   />
                 </Link>
                 <div className="wishlist-info">
@@ -104,8 +116,9 @@ const Wishlist = () => {
                     <button
                       className="btn btn-primary btn-sm"
                       onClick={() => handleAddToCart(item)}
+                      disabled={addingToCart === item.product_id}
                     >
-                      Add to Cart
+                      {addingToCart === item.product_id ? 'Adding...' : 'Add to Cart'}
                     </button>
                     <button
                       className="btn btn-outline btn-sm"
