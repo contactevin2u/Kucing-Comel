@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const OrderDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated } = useAuth();
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -19,6 +21,29 @@ const OrderDetail = () => {
     }
     fetchOrderDetails();
   }, [id, isAuthenticated, navigate]);
+
+  // Auto-trigger payment if ?pay=true is in URL
+  useEffect(() => {
+    if (searchParams.get('pay') === 'true' && order && order.payment_status !== 'paid' && !paymentProcessing) {
+      handlePayNow();
+    }
+  }, [order, searchParams]);
+
+  const handlePayNow = async () => {
+    if (paymentProcessing) return;
+
+    setPaymentProcessing(true);
+    try {
+      const response = await api.initiateSenangPayPayment(order.id);
+      if (response.redirect_url) {
+        window.location.href = response.redirect_url;
+      }
+    } catch (err) {
+      console.error('Payment initiation failed:', err);
+      setError('Failed to initiate payment. Please try again.');
+      setPaymentProcessing(false);
+    }
+  };
 
   const fetchOrderDetails = async () => {
     try {
@@ -192,6 +217,17 @@ const OrderDetail = () => {
             <span>Total</span>
             <span>RM {parseFloat(order.total_amount).toFixed(2)}</span>
           </div>
+
+          {order.payment_status !== 'paid' && (
+            <button
+              className="btn btn-primary"
+              onClick={handlePayNow}
+              disabled={paymentProcessing}
+              style={{ width: '100%', marginTop: '20px', padding: '15px' }}
+            >
+              {paymentProcessing ? 'Processing...' : 'Pay Now'}
+            </button>
+          )}
         </div>
       </div>
     </div>

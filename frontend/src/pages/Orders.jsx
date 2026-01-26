@@ -146,10 +146,23 @@ const Orders = () => {
                 <div style={{ color: '#95A5A6', fontSize: '0.9rem' }}>
                   <strong>Ship to:</strong> {order.shipping_name}
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <span style={{ color: '#95A5A6' }}>Total</span>
-                  <div style={{ fontSize: '1.3rem', fontWeight: '700', color: '#FF6B6B' }}>
-                    RM {parseFloat(order.total_amount).toFixed(2)}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  {order.payment_status !== 'paid' && (
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/orders/${order.id}?pay=true`);
+                      }}
+                    >
+                      Pay Now
+                    </button>
+                  )}
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ color: '#95A5A6' }}>Total</span>
+                    <div style={{ fontSize: '1.3rem', fontWeight: '700', color: '#FF6B6B' }}>
+                      RM {parseFloat(order.total_amount).toFixed(2)}
+                    </div>
                   </div>
                 </div>
               </div>
