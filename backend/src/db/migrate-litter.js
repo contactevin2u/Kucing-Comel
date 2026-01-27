@@ -21,20 +21,12 @@ async function migrateLitterProduct() {
       console.log('Found litter product with ID:', productId);
 
       // Update product image and description
-      const newDescription = `Lilien Premium Cat Litter is a plant-based, eco-friendly litter designed to provide effective absorption, fast clumping, and reliable odor control for daily use. Made from natural, non-toxic ingredients, it supports a cleaner litter environment while remaining gentle on cats' paws. Each pack contains 1.6kg of litter, suitable for convenient handling and storage.
+      const newDescription = "Lilien Premium Cat Litter is a plant-based, eco-friendly litter designed to provide effective absorption, fast clumping, and reliable odor control for daily use. Made from natural, non-toxic ingredients, it supports a cleaner litter environment while remaining gentle on cats' paws. Each pack contains 1.6kg of litter, suitable for convenient handling and storage.\n\nKey Features\nLilien Premium Cat Litter offers high absorption performance, helping to quickly soak up moisture and keep the litter box dry for longer periods. The fast-clumping formula forms firm clumps that are easy to scoop, supporting efficient daily cleaning. Odor control is enhanced to help trap and neutralize unpleasant smells, contributing to a fresher indoor environment. The low-dust formulation minimizes tracking and airborne particles, helping to maintain cleaner surroundings.\n\nFlushable & Eco-Friendly\nProduced using biodegradable, plant-based materials, this litter is non-toxic and safe for daily use. Clumps may be disposed of by flushin";
 
-Key Features
-Lilien Premium Cat Litter offers high absorption performance, helping to quickly soak up moisture and keep the litter box dry for longer periods. The fast-clumping formula forms firm clumps that are easy to scoop, supporting efficient daily cleaning. Odor control is enhanced to help trap and neutralize unpleasant smells, contributing to a fresher indoor environment. The low-dust formulation minimizes tracking and airborne particles, helping to maintain cleaner surroundings.
-
-Flushable & Eco-Friendly
-Produced using biodegradable, plant-based materials, this litter is non-toxic and safe for daily use. Clumps may be disposed of by flushin`;
-
-      await db.query(`
-        UPDATE products
-        SET image_url = '/Lilien Premium Super Clumping Cat Litter 6L/Main/1.jfif',
-            description = $2
-        WHERE id = $1
-      `, [productId, newDescription]);
+      await db.query(
+        'UPDATE products SET image_url = $2, description = $3 WHERE id = $1',
+        [productId, '/Lilien Premium Super Clumping Cat Litter 6L/Main/1.jfif', newDescription]
+      );
       console.log('Updated product image URL and description');
 
       // Delete old variants
@@ -64,20 +56,9 @@ Produced using biodegradable, plant-based materials, this litter is non-toxic an
       const productId = result.rows[0].id;
       console.log('Found litter product with ID:', productId);
 
-      const newDescription = `Lilien Premium Cat Litter is a plant-based, eco-friendly litter designed to provide effective absorption, fast clumping, and reliable odor control for daily use. Made from natural, non-toxic ingredients, it supports a cleaner litter environment while remaining gentle on cats' paws. Each pack contains 1.6kg of litter, suitable for convenient handling and storage.
+      const newDescription = "Lilien Premium Cat Litter is a plant-based, eco-friendly litter designed to provide effective absorption, fast clumping, and reliable odor control for daily use. Made from natural, non-toxic ingredients, it supports a cleaner litter environment while remaining gentle on cats'' paws. Each pack contains 1.6kg of litter, suitable for convenient handling and storage.\n\nKey Features\nLilien Premium Cat Litter offers high absorption performance, helping to quickly soak up moisture and keep the litter box dry for longer periods. The fast-clumping formula forms firm clumps that are easy to scoop, supporting efficient daily cleaning. Odor control is enhanced to help trap and neutralize unpleasant smells, contributing to a fresher indoor environment. The low-dust formulation minimizes tracking and airborne particles, helping to maintain cleaner surroundings.\n\nFlushable & Eco-Friendly\nProduced using biodegradable, plant-based materials, this litter is non-toxic and safe for daily use. Clumps may be disposed of by flushin";
 
-Key Features
-Lilien Premium Cat Litter offers high absorption performance, helping to quickly soak up moisture and keep the litter box dry for longer periods. The fast-clumping formula forms firm clumps that are easy to scoop, supporting efficient daily cleaning. Odor control is enhanced to help trap and neutralize unpleasant smells, contributing to a fresher indoor environment. The low-dust formulation minimizes tracking and airborne particles, helping to maintain cleaner surroundings.
-
-Flushable & Eco-Friendly
-Produced using biodegradable, plant-based materials, this litter is non-toxic and safe for daily use. Clumps may be disposed of by flushin`;
-
-      db.db.exec(`
-        UPDATE products
-        SET image_url = '/Lilien Premium Super Clumping Cat Litter 6L/Main/1.jfif',
-            description = '${newDescription.replace(/'/g, "''")}'
-        WHERE name = 'Lilien Premium Super Clumping Cat Litter 6L'
-      `);
+      db.db.exec(`UPDATE products SET image_url = '/Lilien Premium Super Clumping Cat Litter 6L/Main/1.jfif', description = '${newDescription}' WHERE name = 'Lilien Premium Super Clumping Cat Litter 6L'`);
       console.log('Updated product image URL and description');
 
       db.db.exec(`DELETE FROM product_variants WHERE product_id = ${productId}`);
