@@ -2671,6 +2671,161 @@ img {
   max-width: 400px;
 }
 
+/* Email Display Row */
+.email-display-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.email-display-row input {
+  flex: 1;
+}
+
+.btn-change-email {
+  background: none;
+  border: 1px solid var(--teal);
+  color: var(--teal);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-change-email:hover {
+  background: var(--teal);
+  color: white;
+}
+
+.btn-change-email-inline {
+  background: none;
+  border: none;
+  color: var(--teal);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 15px;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.btn-change-email-inline:hover {
+  color: var(--teal-dark);
+}
+
+/* Email Change Modal */
+.email-change-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.email-change-modal {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 450px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.email-change-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 25px;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.email-change-header svg {
+  color: var(--teal);
+}
+
+.email-change-header h3 {
+  margin: 0;
+  flex: 1;
+  font-size: 1.2rem;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  color: var(--gray);
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  background: var(--light);
+  color: var(--dark);
+}
+
+.email-change-form {
+  padding: 25px;
+}
+
+.email-change-form .form-group {
+  margin-bottom: 20px;
+}
+
+.email-change-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--dark);
+}
+
+.email-change-form input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid var(--gray-light);
+  border-radius: var(--radius);
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.email-change-form input:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+
+.email-change-form small {
+  display: block;
+  margin-top: 6px;
+  color: var(--gray);
+  font-size: 0.85rem;
+}
+
+.email-change-form .form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.email-change-modal .profile-message {
+  margin: 0 25px;
+  margin-top: -10px;
+  margin-bottom: 0;
+}
+
 /* Profile Page Responsive */
 @media (max-width: 768px) {
   .profile-page {
@@ -2734,5 +2889,30 @@ img {
 
   .info-label {
     width: auto;
+  }
+
+  .email-display-row {
+    flex-direction: column;
+  }
+
+  .email-display-row input {
+    width: 100%;
+  }
+
+  .btn-change-email {
+    width: 100%;
+  }
+
+  .email-change-modal {
+    max-width: 100%;
+    margin: 10px;
+  }
+
+  .email-change-form .form-actions {
+    flex-direction: column;
+  }
+
+  .email-change-form .form-actions button {
+    width: 100%;
   }
 }

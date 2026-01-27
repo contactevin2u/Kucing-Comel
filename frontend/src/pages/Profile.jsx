@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
-import { User, MapPin, Lock, Plus, Trash2, Check, Edit2, X } from 'lucide-react';
+import { User, MapPin, Lock, Plus, Trash2, Check, Edit2, X, Mail } from 'lucide-react';
 
 const Profile = () => {
   const { user, isAuthenticated, updateUser } = useAuth();
@@ -46,6 +46,15 @@ const Profile = () => {
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
+
+  // Email Change State
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [emailForm, setEmailForm] = useState({
+    newEmail: '',
+    password: ''
+  });
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailMessage, setEmailMessage] = useState({ type: '', text: '' });
 
   // Malaysian states for dropdown
   const malaysianStates = [
@@ -215,6 +224,33 @@ const Profile = () => {
     }
   };
 
+  // Email Change Handlers
+  const handleEmailSubmit = async (e) => {
+    e.preventDefault();
+    setEmailMessage({ type: '', text: '' });
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailForm.newEmail)) {
+      setEmailMessage({ type: 'error', text: 'Please enter a valid email address.' });
+      return;
+    }
+
+    setEmailLoading(true);
+
+    try {
+      const data = await api.changeEmail(emailForm.password, emailForm.newEmail);
+      updateUser(data.user);
+      setPersonalInfo({ ...personalInfo, email: data.user.email });
+      setEmailMessage({ type: 'success', text: 'Email changed successfully!' });
+      setEmailForm({ newEmail: '', password: '' });
+      setShowEmailForm(false);
+    } catch (error) {
+      setEmailMessage({ type: 'error', text: error.message });
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   if (!isAuthenticated) return null;
 
   return (
@@ -265,13 +301,25 @@ const Profile = () => {
               </div>
               <div className="form-group">
                 <label>Email Address</label>
-                <input
-                  type="email"
-                  value={personalInfo.email}
-                  disabled
-                  className="input-disabled"
-                />
-                <small>Email cannot be changed</small>
+                <div className="email-display-row">
+                  <input
+                    type="email"
+                    value={personalInfo.email}
+                    disabled
+                    className="input-disabled"
+                  />
+                  <button
+                    type="button"
+                    className="btn-change-email"
+                    onClick={() => {
+                      setShowEmailForm(true);
+                      setEmailForm({ newEmail: '', password: '' });
+                      setEmailMessage({ type: '', text: '' });
+                    }}
+                  >
+                    Change
+                  </button>
+                </div>
               </div>
               <div className="form-group">
                 <label>Phone Number</label>
@@ -307,10 +355,97 @@ const Profile = () => {
               <div className="info-row">
                 <span className="info-label">Email:</span>
                 <span className="info-value">{user?.email || '-'}</span>
+                <button
+                  className="btn-change-email-inline"
+                  onClick={() => {
+                    setShowEmailForm(true);
+                    setEmailForm({ newEmail: '', password: '' });
+                    setEmailMessage({ type: '', text: '' });
+                  }}
+                >
+                  Change
+                </button>
               </div>
               <div className="info-row">
                 <span className="info-label">Phone:</span>
                 <span className="info-value">{user?.phone || '-'}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Email Change Modal/Form */}
+          {showEmailForm && (
+            <div className="email-change-overlay">
+              <div className="email-change-modal">
+                <div className="email-change-header">
+                  <Mail size={20} />
+                  <h3>Change Email Address</h3>
+                  <button
+                    className="btn-close"
+                    onClick={() => {
+                      setShowEmailForm(false);
+                      setEmailForm({ newEmail: '', password: '' });
+                      setEmailMessage({ type: '', text: '' });
+                    }}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                {emailMessage.text && (
+                  <div className={`profile-message ${emailMessage.type}`}>
+                    {emailMessage.text}
+                  </div>
+                )}
+
+                <form onSubmit={handleEmailSubmit} className="email-change-form">
+                  <div className="form-group">
+                    <label>Current Email</label>
+                    <input
+                      type="email"
+                      value={user?.email || ''}
+                      disabled
+                      className="input-disabled"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>New Email Address</label>
+                    <input
+                      type="email"
+                      value={emailForm.newEmail}
+                      onChange={(e) => setEmailForm({ ...emailForm, newEmail: e.target.value })}
+                      placeholder="Enter new email address"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Confirm with Password</label>
+                    <input
+                      type="password"
+                      value={emailForm.password}
+                      onChange={(e) => setEmailForm({ ...emailForm, password: e.target.value })}
+                      placeholder="Enter your current password"
+                      required
+                    />
+                    <small>For security, please enter your password to confirm this change</small>
+                  </div>
+                  <div className="form-actions">
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      onClick={() => {
+                        setShowEmailForm(false);
+                        setEmailForm({ newEmail: '', password: '' });
+                        setEmailMessage({ type: '', text: '' });
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-primary" disabled={emailLoading}>
+                      {emailLoading ? 'Updating...' : 'Update Email'}
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           )}

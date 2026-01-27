@@ -182,4 +182,66 @@ const changePassword = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, getMe, updateProfile, changePassword };
+const changeEmail = async (req, res, next) => {
+  try {
+    const { currentPassword, newEmail } = req.body;
+
+    if (!currentPassword || !newEmail) {
+      return res.status(400).json({ error: 'Current password and new email are required.' });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      return res.status(400).json({ error: 'Invalid email format.' });
+    }
+
+    // Get current user with password
+    const userResult = await db.query(
+      'SELECT id, email, password_hash FROM users WHERE id = $1',
+      [req.user.id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Check if new email is the same as current
+    if (user.email.toLowerCase() === newEmail.toLowerCase()) {
+      return res.status(400).json({ error: 'New email is the same as your current email.' });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Password is incorrect.' });
+    }
+
+    // Check if new email is already taken
+    const existingUser = await db.query(
+      'SELECT id FROM users WHERE email = $1 AND id != $2',
+      [newEmail.toLowerCase(), req.user.id]
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({ error: 'This email is already registered to another account.' });
+    }
+
+    // Update email
+    const result = await db.query(
+      'UPDATE users SET email = $1 WHERE id = $2 RETURNING id, email, name, phone, address, role',
+      [newEmail.toLowerCase(), req.user.id]
+    );
+
+    res.json({
+      message: 'Email updated successfully.',
+      user: result.rows[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { register, login, getMe, updateProfile, changePassword, changeEmail };

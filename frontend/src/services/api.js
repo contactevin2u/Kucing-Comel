@@ -70,6 +70,15 @@ export const api = {
     return handleResponse(res);
   },
 
+  changeEmail: async (currentPassword, newEmail) => {
+    const res = await fetch(`${API_URL}/api/auth/email`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ currentPassword, newEmail })
+    });
+    return handleResponse(res);
+  },
+
   // Addresses
   getAddresses: async () => {
     const res = await fetch(`${API_URL}/api/addresses`, {
