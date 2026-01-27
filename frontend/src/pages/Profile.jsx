@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
-import { User, MapPin, Lock, Plus, Trash2, Check, Edit2, X, Mail } from 'lucide-react';
+import { User, MapPin, Lock, Plus, Trash2, Check, Edit2, X, Mail, Eye, EyeOff } from 'lucide-react';
 
 const Profile = () => {
   const { user, isAuthenticated, updateUser } = useAuth();
@@ -55,6 +55,14 @@ const Profile = () => {
   });
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailMessage, setEmailMessage] = useState({ type: '', text: '' });
+
+  // Password Visibility State
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+    emailConfirm: false
+  });
 
   // Malaysian states for dropdown
   const malaysianStates = [
@@ -425,13 +433,23 @@ const Profile = () => {
                   </div>
                   <div className="form-group">
                     <label>Confirm with Password</label>
-                    <input
-                      type="password"
-                      value={emailForm.password}
-                      onChange={(e) => setEmailForm({ ...emailForm, password: e.target.value })}
-                      placeholder="Enter your current password"
-                      required
-                    />
+                    <div className="password-input-wrapper">
+                      <input
+                        type={showPasswords.emailConfirm ? 'text' : 'password'}
+                        value={emailForm.password}
+                        onChange={(e) => setEmailForm({ ...emailForm, password: e.target.value })}
+                        placeholder="Enter your current password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle"
+                        onClick={() => setShowPasswords({ ...showPasswords, emailConfirm: !showPasswords.emailConfirm })}
+                        tabIndex={-1}
+                      >
+                        {showPasswords.emailConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                     <small>For security, please enter your password to confirm this change</small>
                   </div>
                   <div className="form-actions">
@@ -673,32 +691,62 @@ const Profile = () => {
           <form onSubmit={handlePasswordSubmit} className="profile-form password-form">
             <div className="form-group">
               <label>Current Password</label>
-              <input
-                type="password"
-                value={passwordForm.currentPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                required
-              />
+              <div className="password-input-wrapper">
+                <input
+                  type={showPasswords.current ? 'text' : 'password'}
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
+                  tabIndex={-1}
+                >
+                  {showPasswords.current ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
             <div className="form-group">
               <label>New Password</label>
-              <input
-                type="password"
-                value={passwordForm.newPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                required
-                minLength={6}
-              />
+              <div className="password-input-wrapper">
+                <input
+                  type={showPasswords.new ? 'text' : 'password'}
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                  tabIndex={-1}
+                >
+                  {showPasswords.new ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               <small>Minimum 6 characters</small>
             </div>
             <div className="form-group">
               <label>Confirm New Password</label>
-              <input
-                type="password"
-                value={passwordForm.confirmPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                required
-              />
+              <div className="password-input-wrapper">
+                <input
+                  type={showPasswords.confirm ? 'text' : 'password'}
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                  tabIndex={-1}
+                >
+                  {showPasswords.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" disabled={passwordLoading}>
