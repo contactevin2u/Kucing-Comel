@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const db = require('../config/database');
+const migrateLitter = require('./migrate-litter');
 
 async function initializeDatabase() {
   try {
@@ -234,9 +235,9 @@ async function initializeDatabase() {
           // Seed variants for SQLite
           db.db.exec(`
             INSERT OR IGNORE INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES
-            (1, 'Original', 7.60, 6.84, 80),
-            (1, 'Lavender', 8.00, 7.20, 60),
-            (1, 'Green Tea', 8.00, 7.20, 60),
+            (1, 'Charcoal', 7.60, 6.84, 80),
+            (1, 'Fresh Milk', 7.60, 6.84, 60),
+            (1, 'Lavender', 7.60, 6.84, 60),
             (2, 'Original', 159.00, 143.10, 20),
             (2, 'Lavender', 168.00, 151.20, 15),
             (2, 'Green Tea', 168.00, 151.20, 15),
@@ -258,6 +259,9 @@ async function initializeDatabase() {
       }
     }
 
+    // Run litter product migration
+    await migrateLitter();
+
     console.log('Database initialization complete!');
   } catch (error) {
     console.error('Database initialization error:', error.message);
@@ -272,9 +276,9 @@ async function seedVariants() {
     for (const product of products.rows) {
       if (product.name.includes('Litter 6L') && !product.name.includes('CARTON')) {
         // Single bag variants
-        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Original', 7.60, 6.84, 80) ON CONFLICT DO NOTHING`, [product.id]);
-        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Lavender', 8.00, 7.20, 60) ON CONFLICT DO NOTHING`, [product.id]);
-        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Green Tea', 8.00, 7.20, 60) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Charcoal', 7.60, 6.84, 80) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Fresh Milk', 7.60, 6.84, 60) ON CONFLICT DO NOTHING`, [product.id]);
+        await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Lavender', 7.60, 6.84, 60) ON CONFLICT DO NOTHING`, [product.id]);
       } else if (product.name.includes('CARTON')) {
         // Carton variants
         await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, 'Original', 159.00, 143.10, 20) ON CONFLICT DO NOTHING`, [product.id]);
