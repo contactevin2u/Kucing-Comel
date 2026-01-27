@@ -61,11 +61,11 @@ export const api = {
     return handleResponse(res);
   },
 
-  changePassword: async (currentPassword, newPassword) => {
+  changePassword: async (newPassword) => {
     const res = await fetch(`${API_URL}/api/auth/password`, {
       method: 'PUT',
       headers: getHeaders(),
-      body: JSON.stringify({ currentPassword, newPassword })
+      body: JSON.stringify({ newPassword })
     });
     return handleResponse(res);
   },

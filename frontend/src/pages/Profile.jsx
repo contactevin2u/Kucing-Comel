@@ -222,7 +222,7 @@ const Profile = () => {
     setPasswordLoading(true);
 
     try {
-      await api.changePassword(null, passwordForm.newPassword);
+      await api.changePassword(passwordForm.newPassword);
       setPasswordMessage({ type: 'success', text: 'Password changed successfully!' });
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
