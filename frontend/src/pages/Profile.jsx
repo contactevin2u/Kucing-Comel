@@ -222,7 +222,7 @@ const Profile = () => {
     setPasswordLoading(true);
 
     try {
-      await api.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      await api.changePassword(null, passwordForm.newPassword);
       setPasswordMessage({ type: 'success', text: 'Password changed successfully!' });
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
@@ -684,25 +684,6 @@ const Profile = () => {
           )}
 
           <form onSubmit={handlePasswordSubmit} className="profile-form password-form">
-            <div className="form-group">
-              <label>Current Password</label>
-              <div className="password-input-wrapper">
-                <input
-                  type={showPasswords.current ? 'text' : 'password'}
-                  value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                  required
-                />
-                <button
-                  type="button"
-                  className="password-toggle"
-                  onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
-                  tabIndex={-1}
-                >
-                  {showPasswords.current ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
             <div className="form-group">
               <label>New Password</label>
               <div className="password-input-wrapper">
