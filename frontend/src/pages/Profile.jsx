@@ -370,6 +370,11 @@ const Profile = () => {
                 <span className="info-label">Phone:</span>
                 <span className="info-value">{user?.phone || '-'}</span>
               </div>
+              <div className="info-row">
+                <span className="info-label">Password:</span>
+                <span className="info-value password-masked">••••••••</span>
+                <a href="#password-section" className="btn-change-email-inline">Change</a>
+              </div>
             </div>
           )}
 
@@ -653,7 +658,7 @@ const Profile = () => {
         </div>
 
         {/* Change Password Section */}
-        <div className="profile-section">
+        <div id="password-section" className="profile-section">
           <div className="profile-section-header">
             <Lock size={20} />
             <h2>Change Password</h2>

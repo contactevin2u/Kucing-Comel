@@ -2431,6 +2431,11 @@ img {
   font-weight: 500;
 }
 
+.info-value.password-masked {
+  letter-spacing: 2px;
+  color: var(--gray);
+}
+
 /* Profile Form */
 .profile-form {
   max-width: 500px;
