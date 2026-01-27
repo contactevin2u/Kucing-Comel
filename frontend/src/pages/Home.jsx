@@ -7,7 +7,7 @@ import HeroCarousel from '../components/HeroCarousel';
 // Main animal categories
 const animalCategories = [
   { name: 'Cats', image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200', label: 'CATS' },
-  { name: 'Dogs', image: 'https://as1.ftcdn.net/v2/jpg/00/88/34/58/1000_F_88345863_tdpJPVC3pY1L5US7skyHJVcLuRb7LNT5.jpg', label: 'DOGS' },
+  { name: 'Dogs', image: 'https://as1.ftcdn.net/v2/jpg/00/88/34/58/1000_F_88345863_tdpJPVC3pY1L5US7skyHJVcLuRb7LNT5.jpg', label: 'DOGS', imageStyle: { transform: 'scale(1.4)', objectPosition: 'center 30%' } },
 ];
 
 // Product type filters
@@ -106,7 +106,7 @@ const Home = () => {
                   onClick={() => handleAnimalCategoryClick(cat.name)}
                 >
                   <div className="category-icon">
-                    <img src={cat.image} alt={cat.name} />
+                    <img src={cat.image} alt={cat.name} style={cat.imageStyle || {}} />
                   </div>
                   <span>{cat.label}</span>
                 </div>
