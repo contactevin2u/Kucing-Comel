@@ -378,11 +378,6 @@ const Profile = () => {
                 <span className="info-label">Phone:</span>
                 <span className="info-value">{user?.phone || '-'}</span>
               </div>
-              <div className="info-row">
-                <span className="info-label">Password:</span>
-                <span className="info-value password-masked">••••••••</span>
-                <a href="#password-section" className="btn-change-email-inline">Change</a>
-              </div>
             </div>
           )}
 
