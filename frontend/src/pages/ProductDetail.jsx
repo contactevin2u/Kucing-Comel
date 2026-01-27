@@ -18,8 +18,14 @@ const getImageUrl = (url) => {
 
 // Map product names to their slugs for variant images
 const getProductSlug = (productName) => {
-  if (productName && productName.toLowerCase().includes('care fip')) {
+  if (!productName) return null;
+  const lowerName = productName.toLowerCase();
+
+  if (lowerName.includes('care fip')) {
     return 'care-fip';
+  }
+  if (lowerName.includes('lilien premium super clumping cat litter 6l') && !lowerName.includes('carton')) {
+    return 'lilien-premium-super-clumping-cat-litter-6l';
   }
   return null;
 };
