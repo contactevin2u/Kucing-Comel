@@ -613,6 +613,15 @@ img {
   object-fit: cover;
 }
 
+.category-icon img.custom-position {
+  width: 140%;
+  height: 140%;
+  max-width: none;
+  object-position: 65% top;
+  margin-left: -20%;
+  margin-top: -10%;
+}
+
 .category-item:hover .category-icon {
   border-color: var(--teal);
   box-shadow: 0 8px 25px rgba(0, 191, 179, 0.3);
