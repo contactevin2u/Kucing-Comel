@@ -7,7 +7,7 @@ import HeroCarousel from '../components/HeroCarousel';
 // Main animal categories
 const animalCategories = [
   { name: 'Cats', image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200', label: 'CATS' },
-  { name: 'Dogs', image: 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=200', label: 'DOGS' },
+  { name: 'Dogs', image: 'https://images.unsplash.com/photo-1568572933382-74d440642117?w=200', label: 'DOGS' },
 ];
 
 // Product type filters
