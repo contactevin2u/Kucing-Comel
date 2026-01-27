@@ -3,7 +3,8 @@ const path = require('path');
 
 // Map product slugs to their folder paths
 const productFolderMap = {
-  'care-fip': 'Care fip'
+  'care-fip': 'Care fip',
+  'lilien-premium-super-clumping-cat-litter-6l': 'Lilien Premium Super Clumping Cat Litter 6L'
 };
 
 // Map variation types to folder names (simplified mapping)
@@ -23,6 +24,20 @@ const getVariationFolder = (variantName) => {
     };
     return folderMap[mgValue] || null;
   }
+
+  // Handle litter scent variants
+  const scentVariants = ['charcoal', 'fresh milk', 'lavender'];
+  const lowerVariant = variantName.toLowerCase();
+  if (scentVariants.includes(lowerVariant)) {
+    // Return the folder name with proper casing
+    const scentFolderMap = {
+      'charcoal': 'Charcoal',
+      'fresh milk': 'Fresh Milk',
+      'lavender': 'Lavender'
+    };
+    return scentFolderMap[lowerVariant] || null;
+  }
+
   return null;
 };
 
