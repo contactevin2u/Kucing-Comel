@@ -54,7 +54,7 @@ const getImagesFromFolder = (folderPath) => {
     }
 
     const files = fs.readdirSync(folderPath);
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.jfif'];
 
     return files
       .filter(file => {
@@ -124,9 +124,15 @@ const getMainImages = async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    // First try the main folder
-    const mainFolderPath = path.join(getProductsBasePath(), productFolder, 'main');
+    // First try the Main folder (capital M for litter products)
+    let mainFolderPath = path.join(getProductsBasePath(), productFolder, 'Main');
     let images = getImagesFromFolder(mainFolderPath);
+
+    // If Main folder is empty, try lowercase 'main' (for other products)
+    if (images.length === 0) {
+      mainFolderPath = path.join(getProductsBasePath(), productFolder, 'main');
+      images = getImagesFromFolder(mainFolderPath);
+    }
 
     // If main folder is empty or doesn't exist, try root folder
     if (images.length === 0) {
@@ -134,9 +140,16 @@ const getMainImages = async (req, res) => {
       images = getImagesFromFolder(productPath);
     }
 
-    // Build URLs for the images
+    // Build URLs for the images - detect which folder was used
     let imageUrls;
-    if (fs.existsSync(mainFolderPath) && getImagesFromFolder(mainFolderPath).length > 0) {
+    const mainCapitalPath = path.join(getProductsBasePath(), productFolder, 'Main');
+    const mainLowerPath = path.join(getProductsBasePath(), productFolder, 'main');
+
+    if (fs.existsSync(mainCapitalPath) && getImagesFromFolder(mainCapitalPath).length > 0) {
+      imageUrls = images.map(img =>
+        `/api/product-images/${encodeURIComponent(productFolder)}/Main/${encodeURIComponent(img)}`
+      );
+    } else if (fs.existsSync(mainLowerPath) && getImagesFromFolder(mainLowerPath).length > 0) {
       imageUrls = images.map(img =>
         `/api/product-images/${encodeURIComponent(productFolder)}/main/${encodeURIComponent(img)}`
       );
