@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const db = require('../config/database');
 const migrateLitter = require('./migrate-litter');
+const migrateLitterDescription = require('./migrate-litter-description');
 
 async function initializeDatabase() {
   try {
@@ -261,6 +262,9 @@ async function initializeDatabase() {
 
     // Run litter product migration
     await migrateLitter();
+
+    // Run litter description update
+    await migrateLitterDescription();
 
     console.log('Database initialization complete!');
   } catch (error) {
