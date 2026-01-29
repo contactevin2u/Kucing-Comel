@@ -2,28 +2,10 @@ const fs = require('fs');
 const path = require('path');
 
 // Map product slugs to their folder paths
-const productFolderMap = {
-  'lilien-premium-super-clumping-cat-litter-6l': 'Lilien Premium Super Clumping Cat Litter 6L'
-};
+const productFolderMap = {};
 
-// Map variation types to folder names (simplified mapping)
-// Variants like "20mg | 8.5ml", "20mg | 30ml" all map to "20mg Variation" folder
+// Map variation types to folder names
 const getVariationFolder = (variantName) => {
-  if (!variantName) return null;
-
-  // Handle litter scent variants
-  const scentVariants = ['charcoal', 'fresh milk', 'lavender'];
-  const lowerVariant = variantName.toLowerCase();
-  if (scentVariants.includes(lowerVariant)) {
-    // Return the folder name with proper casing
-    const scentFolderMap = {
-      'charcoal': 'Charcoal',
-      'fresh milk': 'Fresh Milk',
-      'lavender': 'Lavender'
-    };
-    return scentFolderMap[lowerVariant] || null;
-  }
-
   return null;
 };
 

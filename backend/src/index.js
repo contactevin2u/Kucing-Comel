@@ -86,38 +86,34 @@ app.get('/api/reseed', async (req, res) => {
     await db.query(`DELETE FROM product_variants`);
     await db.query(`DELETE FROM products`);
 
-    // Insert products with correct image paths matching actual folder structure
-    const product1 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      ['Lilien Premium Super Clumping Cat Litter 6L', 'Premium quality super clumping cat litter.', 7.60, 6.84, '/Lilien Premium Super Clumping Cat Litter 6L/my-11134207-7rasc-m2hheoffe04fdf.jfif', 'Litter', 200]);
+    // Insert 6L litter products (one per scent)
+    await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      ['Lilien Premium Super Clumping Cat Litter 6L - Charcoal', 'Premium quality super clumping cat litter.', 7.60, 6.84, '/Lilien Premium Super Clumping Cat Litter 6L/Charcoal/my-11134207-7rasg-m2hheofffem50d.jfif', 'Litter', 80]);
+    await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      ['Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Premium quality super clumping cat litter.', 7.60, 6.84, '/Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/my-11134207-7rasc-m2hheoffe04fdf.jfif', 'Litter', 60]);
+    await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      ['Lilien Premium Super Clumping Cat Litter 6L - Lavender', 'Premium quality super clumping cat litter.', 7.60, 6.84, '/Lilien Premium Super Clumping Cat Litter 6L/Lavender/my-11134207-7ras8-m2hheoffe01pb7.jfif', 'Litter', 60]);
 
-    const product2 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      ['[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L', 'Bulk pack of 6 bags.', 159.00, 143.10, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/my-11134207-7rasi-m34b5v6ij8ch51.jfif', 'Litter', 50]);
+    // Insert carton litter products (one per scent)
+    await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      ['[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Charcoal', 'Bulk pack of 6 bags.', 159.00, 143.10, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Charcoal/my-11134207-7rasg-m2hheofffem50d.jfif', 'Litter', 20]);
+    await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      ['[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Bulk pack of 6 bags.', 159.00, 143.10, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/my-11134207-7rasc-m2hheoffe04fdf.jfif', 'Litter', 15]);
+    await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      ['[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Lavender', 'Bulk pack of 6 bags.', 159.00, 143.10, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Lavender/my-11134207-7ras8-m2hheoffe01pb7.jfif', 'Litter', 15]);
 
-    const product3 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+    // Insert treats product
+    const product7 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
       ['Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats!', 42.00, 37.80, '/Lilien Creamy Cat Treats 3 Irresistible Flavour In a Box/my-11134207-7r98s-lsumaj6h2ign1f.jfif', 'Food', 300]);
 
-    // Insert variants for each product
-    const p1Id = product1.rows[0].id;
-    const p2Id = product2.rows[0].id;
-    const p3Id = product3.rows[0].id;
+    // Treats variants only
+    const p7Id = product7.rows[0].id;
+    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p7Id, 'Chicken', 14.00, 12.60, 100]);
+    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p7Id, 'Tuna', 14.00, 12.60, 100]);
+    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p7Id, 'Salmon', 14.00, 12.60, 100]);
+    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p7Id, 'Mixed (3 Flavours Box)', 42.00, 37.80, 50]);
 
-    // Litter 6L variants
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p1Id, 'Original', 7.60, 6.84, 80]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p1Id, 'Lavender', 8.00, 7.20, 60]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p1Id, 'Green Tea', 8.00, 7.20, 60]);
-
-    // Carton variants
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p2Id, 'Original', 159.00, 143.10, 20]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p2Id, 'Lavender', 168.00, 151.20, 15]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p2Id, 'Green Tea', 168.00, 151.20, 15]);
-
-    // Treats variants
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p3Id, 'Chicken', 14.00, 12.60, 100]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p3Id, 'Tuna', 14.00, 12.60, 100]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p3Id, 'Salmon', 14.00, 12.60, 100]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p3Id, 'Mixed (3 Flavours Box)', 42.00, 37.80, 50]);
-
-    res.json({ success: true, message: 'Products reseeded with 3 products and all variants!' });
+    res.json({ success: true, message: 'Products reseeded with 7 products (6 litter + 1 treats)!' });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
