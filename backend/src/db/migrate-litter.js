@@ -73,17 +73,6 @@ async function migrateLitterProduct() {
       console.log('Inserted new variants');
     }
 
-    // Update Care FIP product image
-    console.log('Updating Care FIP product image...');
-    if (isProduction) {
-      await db.query(
-        "UPDATE products SET image_url = '/Care fip/main/Rafina 1.0.jpg' WHERE name LIKE '%CARE FIP%'"
-      );
-    } else {
-      db.db.exec("UPDATE products SET image_url = '/Care fip/main/Rafina 1.0.jpg' WHERE name LIKE '%CARE FIP%'");
-    }
-    console.log('Updated Care FIP image');
-
     console.log('Migration complete!');
   } catch (error) {
     console.error('Migration error:', error.message);

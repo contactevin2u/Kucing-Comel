@@ -96,27 +96,10 @@ app.get('/api/reseed', async (req, res) => {
     const product3 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
       ['Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats!', 42.00, 37.80, '/Lilien Creamy Cat Treats 3 Irresistible Flavour In a Box/my-11134207-7r98s-lsumaj6h2ign1f.jfif', 'Food', 300]);
 
-    const product4 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      ['CARE FIP GS-441524 – FIP Treatment for Cats', `CARE FIP GS-441524 is an antiviral treatment formulated to support cats diagnosed with Feline Infectious Peritonitis (FIP), including wet (effusive), dry (non-effusive), ocular, and neurological forms. It is commonly used as part of a structured FIP treatment protocol under proper guidance.
-
-<b>Injectable</b>
-20mg/ml - This concentration is suitable for small cats below 2kg.
-30mg/ml - This concentration is recommended for medium-sized cats weighing between 2kg and 3.5kg.
-
-<b>Oral Tablets</b>
-Each tablet contains 60mg of GS-441524 and comes in a pack of 10 tablets. Tablets can be divided into quarters for flexible and accurate dosing.
-
-<b>Treatment Coverage</b>
-CARE FIP GS-441524 is used to support cats with Wet FIP, Dry FIP, Ocular FIP, and Neurological FIP.
-
-<b>Important Information</b>
-Dosage and treatment duration depend on the cat's weight, FIP type, and response to treatment. This product is intended for animal use only and should be administered according to a proper treatment plan with guidance from an experienced FIP advisor or veterinarian.`, 123.50, 111.15, '/Care fip/main/Rafina 1.0.jpg', 'Supplements & Medications', 100]);
-
     // Insert variants for each product
     const p1Id = product1.rows[0].id;
     const p2Id = product2.rows[0].id;
     const p3Id = product3.rows[0].id;
-    const p4Id = product4.rows[0].id;
 
     // Litter 6L variants
     await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p1Id, 'Original', 7.60, 6.84, 80]);
@@ -134,16 +117,7 @@ Dosage and treatment duration depend on the cat's weight, FIP type, and response
     await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p3Id, 'Salmon', 14.00, 12.60, 100]);
     await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p3Id, 'Mixed (3 Flavours Box)', 42.00, 37.80, 50]);
 
-    // CARE FIP variants
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p4Id, '20mg | 8.5ml', 123.50, 111.15, 100]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p4Id, '20mg | 30ml', 390.00, 351.00, 100]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p4Id, '20mg | 50ml', 624.00, 561.60, 100]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p4Id, '30mg | 8.5ml', 136.50, 122.85, 100]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p4Id, '30mg | 30ml', 429.00, 386.10, 100]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p4Id, '30mg | 50ml', 650.00, 585.00, 100]);
-    await db.query(`INSERT INTO product_variants (product_id, variant_name, price, member_price, stock) VALUES ($1, $2, $3, $4, $5)`, [p4Id, '60mg | 10 Tabs', 195.00, 175.50, 100]);
-
-    res.json({ success: true, message: 'Products reseeded with 4 products and all variants!' });
+    res.json({ success: true, message: 'Products reseeded with 3 products and all variants!' });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

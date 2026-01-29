@@ -21,9 +21,6 @@ const getProductSlug = (productName) => {
   if (!productName) return null;
   const lowerName = productName.toLowerCase();
 
-  if (lowerName.includes('care fip')) {
-    return 'care-fip';
-  }
   if (lowerName.includes('lilien premium super clumping cat litter 6l') && !lowerName.includes('carton')) {
     return 'lilien-premium-super-clumping-cat-litter-6l';
   }
