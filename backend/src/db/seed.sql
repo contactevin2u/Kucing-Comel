@@ -64,7 +64,7 @@ Plant-based, biodegradable, and non-toxic. Safe for daily use and can be flushed
 - Antibacterial
 - Non-toxic & pet-safe
 - Easy-to-store packaging
-- Net weight: 1.6kg
+- Net weight: 1.6kg x 10 packs
 
 <strong>How to Use</strong>
 1. Add at least 2 inches of litter to the tray.
