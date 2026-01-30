@@ -88,19 +88,19 @@ app.get('/api/reseed', async (req, res) => {
 
     // Insert 6L litter products (one per scent)
     await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      ['Lilien Premium Super Clumping Cat Litter 6L - Charcoal', 'Premium quality super clumping cat litter.', 7.60, 6.84, '/Lilien Premium Super Clumping Cat Litter 6L/Charcoal/my-11134207-7rasg-m2hheofffem50d.jfif', 'Litter', 80]);
+      ['Lilien Premium Super Clumping Cat Litter 6L - Charcoal', 'Premium quality super clumping cat litter.', 7.60, 6.84, '/Lilien Premium Super Clumping Cat Litter 6L/Charcoal/1.jfif', 'Litter', 80]);
     await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      ['Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Premium quality super clumping cat litter.', 7.60, 6.84, '/Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/my-11134207-7rasc-m2hheoffe04fdf.jfif', 'Litter', 60]);
+      ['Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Premium quality super clumping cat litter.', 7.60, 6.84, '/Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/1.jfif', 'Litter', 60]);
     await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      ['Lilien Premium Super Clumping Cat Litter 6L - Lavender', 'Premium quality super clumping cat litter.', 7.60, 6.84, '/Lilien Premium Super Clumping Cat Litter 6L/Lavender/my-11134207-7ras8-m2hheoffe01pb7.jfif', 'Litter', 60]);
+      ['Lilien Premium Super Clumping Cat Litter 6L - Lavender', 'Premium quality super clumping cat litter.', 7.60, 6.84, '/Lilien Premium Super Clumping Cat Litter 6L/Lavender/1.jfif', 'Litter', 60]);
 
     // Insert carton litter products (one per scent)
     await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      ['[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Charcoal', 'Bulk pack of 6 bags.', 159.00, 143.10, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Charcoal/my-11134207-7rasg-m2hheofffem50d.jfif', 'Litter', 20]);
+      ['[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Charcoal', 'Bulk pack of 6 bags.', 159.00, 143.10, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Charcoal/1.jfif', 'Litter', 20]);
     await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      ['[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Bulk pack of 6 bags.', 159.00, 143.10, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/my-11134207-7rasc-m2hheoffe04fdf.jfif', 'Litter', 15]);
+      ['[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Bulk pack of 6 bags.', 159.00, 143.10, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/1.jfif', 'Litter', 15]);
     await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      ['[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Lavender', 'Bulk pack of 6 bags.', 159.00, 143.10, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Lavender/my-11134207-7ras8-m2hheoffe01pb7.jfif', 'Litter', 15]);
+      ['[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Lavender', 'Bulk pack of 6 bags.', 159.00, 143.10, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Lavender/1.jfif', 'Litter', 15]);
 
     // Insert treats product
     const product7 = await db.query(`INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
