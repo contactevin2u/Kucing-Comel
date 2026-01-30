@@ -2,13 +2,31 @@
 
 -- 6L Litter - one product per scent
 INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES
-('Lilien Premium Super Clumping Cat Litter 6L - Charcoal', 'Lilien Premium Cat Litter is a plant-based, eco-friendly litter designed to provide effective absorption, fast clumping, and reliable odor control for daily use. Made from natural, non-toxic ingredients, it supports a cleaner litter environment while remaining gentle on cats'' paws. Each pack contains 1.6kg of litter, suitable for convenient handling and storage.
+('Lilien Premium Super Clumping Cat Litter 6L - Charcoal', 'Lilien Premium Tofu Cat Litter – Charcoal is ideal for strong odor control. Infused with charcoal properties, it helps absorb moisture and neutralize unpleasant smells, making it suitable for multi-cat households or enclosed spaces.
 
-Key Features
-Lilien Premium Cat Litter offers high absorption performance, helping to quickly soak up moisture and keep the litter box dry for longer periods. The fast-clumping formula forms firm clumps that are easy to scoop, supporting efficient daily cleaning. Odor control is enhanced to help trap and neutralize unpleasant smells, contributing to a fresher indoor environment. The low-dust formulation minimizes tracking and airborne particles, helping to maintain cleaner surroundings.
+<strong>Why Choose Lilien Tofu Cat Litter?</strong>
+Top-Notch Absorption — Absorbs moisture quickly to maintain a dry litter box.
+Easy & Fast Clumping — Creates firm clumps for easy removal.
+Enhanced Odor Control — Charcoal helps trap and reduce strong odors effectively.
+Low Dust, Less Mess — Reduces tracking and airborne dust.
 
-Flushable & Eco-Friendly
-Produced using biodegradable, plant-based materials, this litter is non-toxic and safe for daily use. Clumps may be disposed of by flushin', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Charcoal/1.jfif', 'Litter', 80),
+<strong>Flushable & Eco-Friendly</strong>
+Made from natural, biodegradable materials. Non-toxic and safe for cats. Flushable in small amounts.
+
+<strong>Product Highlights</strong>
+- Antibacterial
+- Non-toxic & pet-safe
+- Easy-to-store packaging
+- Net weight: 1.6kg
+
+<strong>How to Use</strong>
+1. Add at least 2 inches of litter to the tray.
+2. Scoop waste daily.
+3. Flush small amounts or dispose properly.
+
+<strong>Important Notes</strong>
+- Store in a cool, dry place.
+- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Charcoal/1.jfif', 'Litter', 80),
 ('Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Give your cat a cleaner and fresher litter experience with Lilien Premium Tofu Cat Litter – Fresh Milk. This plant-based, eco-friendly litter is designed for strong absorption, fast clumping, and effective odor control, helping to keep your home fresh every day. The Fresh Milk scent offers a light and comforting fragrance suitable for sensitive cats.
 
 <strong>Why Choose Lilien Tofu Cat Litter?</strong>
@@ -59,7 +77,31 @@ Plant-based, biodegradable, and non-toxic. Safe for daily use and can be flushed
 <strong>Important Notes</strong>
 - Store in a cool, dry place.
 - Vacuum packaging may cause minor air leakage, which does not affect product quality.', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Lavender/1.jfif', 'Litter', 60),
-('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Charcoal', 'Bulk pack of 6 bags - Save more! Premium quality super clumping cat litter with superior odor control. Low dust formula, easy to scoop.', 75.00, 67.50, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Charcoal/1.jfif', 'Litter', 20),
+('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Charcoal', 'Lilien Premium Tofu Cat Litter – Charcoal is ideal for strong odor control. Infused with charcoal properties, it helps absorb moisture and neutralize unpleasant smells, making it suitable for multi-cat households or enclosed spaces.
+
+<strong>Why Choose Lilien Tofu Cat Litter?</strong>
+Top-Notch Absorption — Absorbs moisture quickly to maintain a dry litter box.
+Easy & Fast Clumping — Creates firm clumps for easy removal.
+Enhanced Odor Control — Charcoal helps trap and reduce strong odors effectively.
+Low Dust, Less Mess — Reduces tracking and airborne dust.
+
+<strong>Flushable & Eco-Friendly</strong>
+Made from natural, biodegradable materials. Non-toxic and safe for cats. Flushable in small amounts.
+
+<strong>Product Highlights</strong>
+- Antibacterial
+- Non-toxic & pet-safe
+- Easy-to-store packaging
+- Net weight: 1.6kg x 10 packs
+
+<strong>How to Use</strong>
+1. Add at least 2 inches of litter to the tray.
+2. Scoop waste daily.
+3. Flush small amounts or dispose properly.
+
+<strong>Important Notes</strong>
+- Store in a cool, dry place.
+- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 75.00, 67.50, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Charcoal/1.jfif', 'Litter', 20),
 ('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Give your cat a cleaner and fresher litter experience with Lilien Premium Tofu Cat Litter – Fresh Milk. This plant-based, eco-friendly litter is designed for strong absorption, fast clumping, and effective odor control, helping to keep your home fresh every day. The Fresh Milk scent offers a light and comforting fragrance suitable for sensitive cats.
 
 <strong>Why Choose Lilien Tofu Cat Litter?</strong>
