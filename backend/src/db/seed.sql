@@ -22,13 +22,9 @@ Produced using biodegradable, plant-based materials, this litter is non-toxic an
 ('Lilien Premium Super Clumping Cat Litter 6L - Lavender', 'Lilien Premium Tofu Cat Litter – Lavender is formulated to provide excellent absorption, fast clumping, and reliable odor control. The gentle Lavender scent helps maintain a calm and pleasant litter area while remaining soft and comfortable on your cat''s paws.
 
 Why Choose Lilien Tofu Cat Litter?
-
 Top-Notch Absorption — Keeps the litter box dry and fresh for longer periods.
-
 Easy & Fast Clumping — Firm clumps make daily cleaning quick and easy.
-
 Advanced Odor Control — Neutralizes odors while leaving a soft lavender fragrance.
-
 Low Dust, Less Mess — Helps minimize dust and tracking around the home.
 
 Flushable & Eco-Friendly
@@ -43,7 +39,11 @@ Product Highlights
 How to Use
 1. Add at least 2 inches of litter to the tray.
 2. Scoop waste daily.
-3. Flush small amounts or dispose properly.', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Lavender/1.jfif', 'Litter', 60);
+3. Flush small amounts or dispose properly.
+
+Important Notes
+- Store in a cool, dry place.
+- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Lavender/1.jfif', 'Litter', 60);
 
 -- Carton Litter - one product per scent
 INSERT OR IGNORE INTO products (name, description, price, member_price, image_url, category, stock) VALUES
@@ -52,13 +52,9 @@ INSERT OR IGNORE INTO products (name, description, price, member_price, image_ur
 ('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Lavender', 'Lilien Premium Tofu Cat Litter – Lavender is formulated to provide excellent absorption, fast clumping, and reliable odor control. The gentle Lavender scent helps maintain a calm and pleasant litter area while remaining soft and comfortable on your cat''s paws.
 
 Why Choose Lilien Tofu Cat Litter?
-
 Top-Notch Absorption — Keeps the litter box dry and fresh for longer periods.
-
 Easy & Fast Clumping — Firm clumps make daily cleaning quick and easy.
-
 Advanced Odor Control — Neutralizes odors while leaving a soft lavender fragrance.
-
 Low Dust, Less Mess — Helps minimize dust and tracking around the home.
 
 Flushable & Eco-Friendly
@@ -73,7 +69,11 @@ Product Highlights
 How to Use
 1. Add at least 2 inches of litter to the tray.
 2. Scoop waste daily.
-3. Flush small amounts or dispose properly.', 75.00, 67.50, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Lavender/1.jfif', 'Litter', 15);
+3. Flush small amounts or dispose properly.
+
+Important Notes
+- Store in a cool, dry place.
+- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 75.00, 67.50, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Lavender/1.jfif', 'Litter', 15);
 
 -- Treats product
 INSERT OR IGNORE INTO products (name, description, price, member_price, image_url, category, stock) VALUES
