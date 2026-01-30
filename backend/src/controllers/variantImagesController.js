@@ -1,8 +1,15 @@
 const fs = require('fs');
 const path = require('path');
 
-// Map product slugs to their folder paths
-const productFolderMap = {};
+// Map product slugs to their folder paths (parent/scent for standalone litter products)
+const productFolderMap = {
+  'litter-6l-charcoal': 'Lilien Premium Super Clumping Cat Litter 6L/Charcoal',
+  'litter-6l-fresh-milk': 'Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk',
+  'litter-6l-lavender': 'Lilien Premium Super Clumping Cat Litter 6L/Lavender',
+  'carton-litter-6l-charcoal': '[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Charcoal',
+  'carton-litter-6l-fresh-milk': '[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk',
+  'carton-litter-6l-lavender': '[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Lavender',
+};
 
 // Map variation types to folder names
 const getVariationFolder = (variantName) => {
@@ -12,6 +19,11 @@ const getVariationFolder = (variantName) => {
 // Get the base Products folder path
 const getProductsBasePath = () => {
   return path.join(__dirname, '..', '..', '..', 'Products');
+};
+
+// Encode a folder path preserving slashes
+const encodeFolderPath = (folderPath) => {
+  return folderPath.split('/').map(s => encodeURIComponent(s)).join('/');
 };
 
 // Get images from a folder dynamically (no hardcoded filenames)
@@ -71,7 +83,7 @@ const getVariantImages = async (req, res) => {
 
     // Build URLs for the images
     const imageUrls = images.map(img =>
-      `/api/product-images/${encodeURIComponent(productFolder)}/${encodeURIComponent(variantFolder)}/${encodeURIComponent(img)}`
+      `/api/product-images/${encodeFolderPath(productFolder)}/${encodeURIComponent(variantFolder)}/${encodeURIComponent(img)}`
     );
 
     res.json({ images: imageUrls });
@@ -115,15 +127,15 @@ const getMainImages = async (req, res) => {
 
     if (fs.existsSync(mainCapitalPath) && getImagesFromFolder(mainCapitalPath).length > 0) {
       imageUrls = images.map(img =>
-        `/api/product-images/${encodeURIComponent(productFolder)}/Main/${encodeURIComponent(img)}`
+        `/api/product-images/${encodeFolderPath(productFolder)}/Main/${encodeURIComponent(img)}`
       );
     } else if (fs.existsSync(mainLowerPath) && getImagesFromFolder(mainLowerPath).length > 0) {
       imageUrls = images.map(img =>
-        `/api/product-images/${encodeURIComponent(productFolder)}/main/${encodeURIComponent(img)}`
+        `/api/product-images/${encodeFolderPath(productFolder)}/main/${encodeURIComponent(img)}`
       );
     } else {
       imageUrls = images.map(img =>
-        `/api/product-images/${encodeURIComponent(productFolder)}/${encodeURIComponent(img)}`
+        `/api/product-images/${encodeFolderPath(productFolder)}/${encodeURIComponent(img)}`
       );
     }
 
