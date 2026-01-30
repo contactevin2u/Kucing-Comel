@@ -16,8 +16,16 @@ const getImageUrl = (url) => {
   return `${api.getApiUrl()}/api/product-images${encodeURI(url)}`;
 };
 
-// Map product names to their slugs for variant images
+// Map product names to their slugs for gallery images
 const getProductSlug = (productName) => {
+  if (!productName) return null;
+  const lower = productName.toLowerCase();
+  const isCarton = lower.includes('carton');
+  const prefix = isCarton ? 'carton-litter-6l' : 'litter-6l';
+
+  if (lower.includes('charcoal')) return `${prefix}-charcoal`;
+  if (lower.includes('fresh milk')) return `${prefix}-fresh-milk`;
+  if (lower.includes('lavender')) return `${prefix}-lavender`;
   return null;
 };
 
