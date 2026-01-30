@@ -13,9 +13,7 @@ const { sendOrderConfirmation, getOrderDetailsForEmail } = require('../services/
 const PAYMENT_MODE = process.env.PAYMENT_MODE || 'mock';
 const SENANGPAY_MERCHANT_ID = process.env.SENANGPAY_MERCHANT_ID;
 const SENANGPAY_SECRET_KEY = process.env.SENANGPAY_SECRET_KEY;
-const SENANGPAY_BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://app.senangpay.my'
-  : 'https://sandbox.senangpay.my';
+const SENANGPAY_BASE_URL = 'https://app.senangpay.my';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // Check if we're in mock mode
