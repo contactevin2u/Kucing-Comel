@@ -12,13 +12,31 @@ Lilien Premium Cat Litter offers high absorption performance, helping to quickly
 
 Flushable & Eco-Friendly
 Produced using biodegradable, plant-based materials, this litter is non-toxic and safe for daily use. Clumps may be disposed of by flushin', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Charcoal/1.jfif', 'Litter', 80),
-('Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Lilien Premium Cat Litter is a plant-based, eco-friendly litter designed to provide effective absorption, fast clumping, and reliable odor control for daily use. Made from natural, non-toxic ingredients, it supports a cleaner litter environment while remaining gentle on cats'' paws. Each pack contains 1.6kg of litter, suitable for convenient handling and storage.
+('Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Give your cat a cleaner and fresher litter experience with Lilien Premium Tofu Cat Litter – Fresh Milk. This plant-based, eco-friendly litter is designed for strong absorption, fast clumping, and effective odor control, helping to keep your home fresh every day. The Fresh Milk scent offers a light and comforting fragrance suitable for sensitive cats.
 
-Key Features
-Lilien Premium Cat Litter offers high absorption performance, helping to quickly soak up moisture and keep the litter box dry for longer periods. The fast-clumping formula forms firm clumps that are easy to scoop, supporting efficient daily cleaning. Odor control is enhanced to help trap and neutralize unpleasant smells, contributing to a fresher indoor environment. The low-dust formulation minimizes tracking and airborne particles, helping to maintain cleaner surroundings.
+<strong>Why Choose Lilien Tofu Cat Litter?</strong>
+Top-Notch Absorption — Quickly absorbs moisture to keep the litter box dry for longer.
+Easy & Fast Clumping — Forms tight clumps for easy scooping and hassle-free cleaning.
+Advanced Odor Control — Helps trap and neutralize unpleasant smells, leaving a mild Fresh Milk scent.
+Low Dust, Less Mess — Low-dust formula helps reduce tracking and keeps floors cleaner.
 
-Flushable & Eco-Friendly
-Produced using biodegradable, plant-based materials, this litter is non-toxic and safe for daily use. Clumps may be disposed of by flushin', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/1.jfif', 'Litter', 60),
+<strong>Flushable & Eco-Friendly</strong>
+Made from natural, non-toxic, biodegradable ingredients. Safe for cats and environmentally friendly. Clumps can be flushed in small amounts.
+
+<strong>Product Highlights</strong>
+- Antibacterial
+- Non-toxic & pet-safe
+- Easy-to-store packaging
+- Net weight: 1.6kg
+
+<strong>How to Use</strong>
+1. Add at least 2 inches of litter to the tray.
+2. Scoop waste daily.
+3. Flush small amounts or dispose properly.
+
+<strong>Important Notes</strong>
+- Store in a cool, dry place.
+- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/1.jfif', 'Litter', 60),
 ('Lilien Premium Super Clumping Cat Litter 6L - Lavender', 'Lilien Premium Tofu Cat Litter – Lavender is formulated to provide excellent absorption, fast clumping, and reliable odor control. The gentle Lavender scent helps maintain a calm and pleasant litter area while remaining soft and comfortable on your cat''s paws.
 
 <strong>Why Choose Lilien Tofu Cat Litter?</strong>
@@ -48,7 +66,31 @@ Plant-based, biodegradable, and non-toxic. Safe for daily use and can be flushed
 -- Carton Litter - one product per scent
 INSERT OR IGNORE INTO products (name, description, price, member_price, image_url, category, stock) VALUES
 ('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Charcoal', 'Bulk pack of 6 bags - Save more! Premium quality super clumping cat litter with superior odor control. Low dust formula, easy to scoop.', 75.00, 67.50, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Charcoal/1.jfif', 'Litter', 20),
-('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Bulk pack of 6 bags - Save more! Premium quality super clumping cat litter with superior odor control. Low dust formula, easy to scoop.', 75.00, 67.50, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/1.jfif', 'Litter', 15),
+('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Give your cat a cleaner and fresher litter experience with Lilien Premium Tofu Cat Litter – Fresh Milk. This plant-based, eco-friendly litter is designed for strong absorption, fast clumping, and effective odor control, helping to keep your home fresh every day. The Fresh Milk scent offers a light and comforting fragrance suitable for sensitive cats.
+
+<strong>Why Choose Lilien Tofu Cat Litter?</strong>
+Top-Notch Absorption — Quickly absorbs moisture to keep the litter box dry for longer.
+Easy & Fast Clumping — Forms tight clumps for easy scooping and hassle-free cleaning.
+Advanced Odor Control — Helps trap and neutralize unpleasant smells, leaving a mild Fresh Milk scent.
+Low Dust, Less Mess — Low-dust formula helps reduce tracking and keeps floors cleaner.
+
+<strong>Flushable & Eco-Friendly</strong>
+Made from natural, non-toxic, biodegradable ingredients. Safe for cats and environmentally friendly. Clumps can be flushed in small amounts.
+
+<strong>Product Highlights</strong>
+- Antibacterial
+- Non-toxic & pet-safe
+- Easy-to-store packaging
+- Net weight: 1.6kg x 10 packs
+
+<strong>How to Use</strong>
+1. Add at least 2 inches of litter to the tray.
+2. Scoop waste daily.
+3. Flush small amounts or dispose properly.
+
+<strong>Important Notes</strong>
+- Store in a cool, dry place.
+- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 75.00, 67.50, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/1.jfif', 'Litter', 15),
 ('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Lavender', 'Lilien Premium Tofu Cat Litter – Lavender is formulated to provide excellent absorption, fast clumping, and reliable odor control. The gentle Lavender scent helps maintain a calm and pleasant litter area while remaining soft and comfortable on your cat''s paws.
 
 <strong>Why Choose Lilien Tofu Cat Litter?</strong>
