@@ -119,8 +119,8 @@ const initiatePayment = async (req, res, next) => {
       .join(', ')
       .substring(0, 95); // SenangPay detail max ~100 chars
 
-    // Amount in sen (RM 10.50 = 1050)
-    const amountInSen = Math.round(parseFloat(order.total_amount) * 100);
+    // Amount in ringgit with 2 decimal places (e.g. "10.50")
+    const amount = parseFloat(order.total_amount).toFixed(2);
 
     // Generate unique order reference for SenangPay
     const senangpayOrderId = `KC-${order.id}-${Date.now()}`;
@@ -144,7 +144,7 @@ const initiatePayment = async (req, res, next) => {
         payment_url: `${FRONTEND_URL}/mock-payment`,
         params: {
           detail: orderDetails,
-          amount: amountInSen,
+          amount: amount,
           order_id: senangpayOrderId,
           name: order.shipping_name || order.user_name,
           email: order.user_email || order.guest_email,
@@ -160,7 +160,7 @@ const initiatePayment = async (req, res, next) => {
     // ============================================================
     // REAL MODE: Use actual SenangPay API
     // ============================================================
-    const hash = generateRequestHash(orderDetails, amountInSen, senangpayOrderId);
+    const hash = generateRequestHash(orderDetails, amount, senangpayOrderId);
 
     res.json({
       success: true,
@@ -168,7 +168,7 @@ const initiatePayment = async (req, res, next) => {
       payment_url: `${SENANGPAY_BASE_URL}/payment/${SENANGPAY_MERCHANT_ID}`,
       params: {
         detail: orderDetails,
-        amount: amountInSen,
+        amount: amount,
         order_id: senangpayOrderId,
         name: order.shipping_name || order.user_name,
         email: order.user_email || order.guest_email,
