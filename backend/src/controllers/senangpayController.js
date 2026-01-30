@@ -29,7 +29,7 @@ const isMockMode = () => {
  */
 const generateRequestHash = (detail, amount, orderId) => {
   const hashString = SENANGPAY_SECRET_KEY + detail + amount + orderId;
-  return crypto.createHash('md5').update(hashString).digest('hex');
+  return crypto.createHmac('sha256', SENANGPAY_SECRET_KEY).update(hashString).digest('hex');
 };
 
 /**
@@ -41,7 +41,7 @@ const verifyResponseHash = (statusId, orderId, transactionId, msg, receivedHash)
   if (isMockMode()) return true;
 
   const hashString = SENANGPAY_SECRET_KEY + statusId + orderId + transactionId + msg;
-  const expectedHash = crypto.createHash('md5').update(hashString).digest('hex');
+  const expectedHash = crypto.createHmac('sha256', SENANGPAY_SECRET_KEY).update(hashString).digest('hex');
   return expectedHash === receivedHash;
 };
 
