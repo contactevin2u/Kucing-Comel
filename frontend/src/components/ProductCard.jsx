@@ -107,12 +107,6 @@ const ProductCard = ({ product }) => {
           <span className="product-category">{product.category}</span>
           <h3 className="product-name">{product.name}</h3>
 
-          {/* Rating */}
-          <div className="product-rating">
-            <span className="stars">★★★★★</span>
-            <span className="rating-count">(24)</span>
-          </div>
-
           {/* Price Row */}
           <div className="product-price-row">
             <div>
