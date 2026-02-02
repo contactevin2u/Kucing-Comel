@@ -404,16 +404,12 @@ const Checkout = () => {
                   border: '2px solid #4CAF50',
                   borderRadius: '8px',
                   marginBottom: '25px',
-                  background: '#f0fff0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '15px'
+                  background: '#f0fff0'
                 }}>
-                  <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                     <strong>SenangPay</strong>
                     {paymentMode === 'mock' && (
                       <span style={{
-                        marginLeft: '8px',
                         fontSize: '0.75rem',
                         background: '#ffc107',
                         color: '#333',
@@ -421,9 +417,33 @@ const Checkout = () => {
                         borderRadius: '4px'
                       }}>MOCK</span>
                     )}
-                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#666' }}>
-                      FPX, Credit/Debit Card (Visa, Mastercard)
-                    </p>
+                  </div>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#666' }}>
+                    Available payment methods:
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {[
+                      'FPX (Online Banking)',
+                      'Visa',
+                      'Mastercard',
+                      'GrabPay',
+                      'Touch \'n Go eWallet',
+                      'Boost',
+                      'ShopeePay',
+                      'MAE',
+                      'DuitNow QR',
+                      'Atome',
+                      'ShopBack PayLater'
+                    ].map((method) => (
+                      <span key={method} style={{
+                        fontSize: '0.75rem',
+                        background: '#e8f5e9',
+                        color: '#2e7d32',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid #c8e6c9'
+                      }}>{method}</span>
+                    ))}
                   </div>
                 </div>
 
