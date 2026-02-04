@@ -60,6 +60,14 @@ async function initializeDatabase() {
           console.log('Guest checkout column may already exist');
         }
 
+        // Add delivery_fee column for admin dashboard
+        try {
+          await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_fee DECIMAL(10, 2) DEFAULT 8.00`);
+          console.log('Delivery fee column added to orders table');
+        } catch (e) {
+          console.log('Delivery fee column may already exist');
+        }
+
         // Create wishlist table if not exists
         try {
           await db.query(`
@@ -170,6 +178,11 @@ async function initializeDatabase() {
         // Add guest checkout column for SQLite
         try {
           db.db.exec(`ALTER TABLE orders ADD COLUMN guest_email TEXT`);
+        } catch (e) { /* column exists */ }
+
+        // Add delivery_fee column for SQLite
+        try {
+          db.db.exec(`ALTER TABLE orders ADD COLUMN delivery_fee REAL DEFAULT 8.00`);
         } catch (e) { /* column exists */ }
 
         // Create wishlist table for SQLite

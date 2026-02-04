@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "migrate:litter": "node src/db/migrate-litter.js"
+    "migrate:litter": "node src/db/migrate-litter.js",
+    "create-admin": "node src/db/create-admin.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

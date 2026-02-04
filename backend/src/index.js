@@ -15,6 +15,7 @@ const senangpayRoutes = require('./routes/senangpay');
 const variantImagesRoutes = require('./routes/variantImages');
 const wishlistRoutes = require('./routes/wishlist');
 const addressRoutes = require('./routes/addresses');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -128,6 +129,7 @@ app.use('/api/senangpay', senangpayRoutes);
 app.use('/api/variant-images', variantImagesRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/addresses', addressRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not Found' });

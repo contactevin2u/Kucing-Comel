@@ -15,6 +15,7 @@ import Wishlist from './pages/Wishlist';
 import Profile from './pages/Profile';
 import OrderSuccess from './pages/OrderSuccess';
 import MockPayment from './pages/MockPayment';
+import AdminApp from './admin/AdminApp';
 
 // Layout wrapper for pages with header/footer
 const MainLayout = ({ children }) => (
@@ -34,6 +35,15 @@ function App() {
   // Mock payment page has its own layout (simulates external payment page)
   if (location.pathname === '/mock-payment') {
     return <MockPayment />;
+  }
+
+  // Admin pages have their own layout
+  if (location.pathname.startsWith('/admin')) {
+    return (
+      <Routes>
+        <Route path="/admin/*" element={<AdminApp />} />
+      </Routes>
+    );
   }
 
   return (
