@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const { incrementVoucherUsage } = require('./voucherController');
 
 const getOrders = async (req, res, next) => {
   try {
@@ -92,7 +93,7 @@ const getGuestOrderById = async (req, res, next) => {
 
 const createOrder = async (req, res, next) => {
   try {
-    const { shipping_name, shipping_address, shipping_phone } = req.body;
+    const { shipping_name, shipping_address, shipping_phone, voucher_code, voucher_discount } = req.body;
 
     if (!shipping_name || !shipping_address || !shipping_phone) {
       return res.status(400).json({ error: 'Shipping details are required.' });
@@ -127,18 +128,68 @@ const createOrder = async (req, res, next) => {
       }
     }
 
-    const totalAmount = itemsResult.rows.reduce(
+    const subtotal = itemsResult.rows.reduce(
       (sum, item) => sum + parseFloat(item.price) * item.quantity,
       0
     );
 
+    // Validate and apply voucher if provided
+    let appliedVoucherCode = null;
+    let appliedVoucherDiscount = 0;
+    let voucherId = null;
+
+    if (voucher_code) {
+      const voucherResult = await db.query(
+        `SELECT * FROM vouchers WHERE LOWER(code) = LOWER($1)`,
+        [voucher_code.trim()]
+      );
+
+      if (voucherResult.rows.length > 0) {
+        const voucher = voucherResult.rows[0];
+        const now = new Date();
+
+        // Validate voucher
+        if (voucher.is_active &&
+            (!voucher.start_date || new Date(voucher.start_date) <= now) &&
+            (!voucher.expiry_date || new Date(voucher.expiry_date) >= now) &&
+            (voucher.usage_limit === null || voucher.times_used < voucher.usage_limit) &&
+            (!voucher.min_order_amount || subtotal >= parseFloat(voucher.min_order_amount))) {
+
+          // Calculate discount
+          if (voucher.discount_type === 'fixed') {
+            appliedVoucherDiscount = parseFloat(voucher.discount_amount);
+          } else {
+            appliedVoucherDiscount = (subtotal * parseFloat(voucher.discount_amount)) / 100;
+            if (voucher.max_discount && appliedVoucherDiscount > parseFloat(voucher.max_discount)) {
+              appliedVoucherDiscount = parseFloat(voucher.max_discount);
+            }
+          }
+
+          // Discount cannot exceed subtotal
+          if (appliedVoucherDiscount > subtotal) {
+            appliedVoucherDiscount = subtotal;
+          }
+
+          appliedVoucherCode = voucher.code;
+          voucherId = voucher.id;
+        }
+      }
+    }
+
+    const totalAmount = subtotal - appliedVoucherDiscount;
+
     // Create order
     const orderResult = await db.query(
-      `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [req.user.id, totalAmount, shipping_name, shipping_address, shipping_phone]
+      `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone, voucher_code, voucher_discount)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+      [req.user.id, totalAmount, shipping_name, shipping_address, shipping_phone, appliedVoucherCode, appliedVoucherDiscount]
     );
     const orderId = orderResult.rows[0].id;
+
+    // Increment voucher usage if voucher was applied
+    if (voucherId) {
+      await incrementVoucherUsage(voucherId);
+    }
 
     // Create order items and update stock
     for (const item of itemsResult.rows) {
@@ -180,7 +231,8 @@ const createGuestOrder = async (req, res, next) => {
       shipping_address,
       shipping_phone,
       guest_email,
-      items // Array of { product_id, quantity, variant_id? }
+      items, // Array of { product_id, quantity, variant_id? }
+      voucher_code
     } = req.body;
 
     // Validate required fields
@@ -243,18 +295,68 @@ const createGuestOrder = async (req, res, next) => {
       });
     }
 
-    const totalAmount = orderItems.reduce(
+    const subtotal = orderItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
 
+    // Validate and apply voucher if provided
+    let appliedVoucherCode = null;
+    let appliedVoucherDiscount = 0;
+    let voucherId = null;
+
+    if (voucher_code) {
+      const voucherResult = await db.query(
+        `SELECT * FROM vouchers WHERE LOWER(code) = LOWER($1)`,
+        [voucher_code.trim()]
+      );
+
+      if (voucherResult.rows.length > 0) {
+        const voucher = voucherResult.rows[0];
+        const now = new Date();
+
+        // Validate voucher
+        if (voucher.is_active &&
+            (!voucher.start_date || new Date(voucher.start_date) <= now) &&
+            (!voucher.expiry_date || new Date(voucher.expiry_date) >= now) &&
+            (voucher.usage_limit === null || voucher.times_used < voucher.usage_limit) &&
+            (!voucher.min_order_amount || subtotal >= parseFloat(voucher.min_order_amount))) {
+
+          // Calculate discount
+          if (voucher.discount_type === 'fixed') {
+            appliedVoucherDiscount = parseFloat(voucher.discount_amount);
+          } else {
+            appliedVoucherDiscount = (subtotal * parseFloat(voucher.discount_amount)) / 100;
+            if (voucher.max_discount && appliedVoucherDiscount > parseFloat(voucher.max_discount)) {
+              appliedVoucherDiscount = parseFloat(voucher.max_discount);
+            }
+          }
+
+          // Discount cannot exceed subtotal
+          if (appliedVoucherDiscount > subtotal) {
+            appliedVoucherDiscount = subtotal;
+          }
+
+          appliedVoucherCode = voucher.code;
+          voucherId = voucher.id;
+        }
+      }
+    }
+
+    const totalAmount = subtotal - appliedVoucherDiscount;
+
     // Create order (user_id is NULL for guest)
     const orderResult = await db.query(
-      `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone, guest_email)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      [null, totalAmount, shipping_name, shipping_address, shipping_phone, guest_email.toLowerCase()]
+      `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone, guest_email, voucher_code, voucher_discount)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+      [null, totalAmount, shipping_name, shipping_address, shipping_phone, guest_email.toLowerCase(), appliedVoucherCode, appliedVoucherDiscount]
     );
     const orderId = orderResult.rows[0].id;
+
+    // Increment voucher usage if voucher was applied
+    if (voucherId) {
+      await incrementVoucherUsage(voucherId);
+    }
 
     // Create order items and update stock
     for (const item of orderItems) {

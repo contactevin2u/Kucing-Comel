@@ -290,9 +290,21 @@ const AdminOrderDetail = () => {
             <h3>Financial Breakdown</h3>
             <div className="financial-breakdown">
               <div className="financial-row">
-                <span className="financial-label">Product Total</span>
-                <span className="financial-value">{formatCurrency(financials?.productTotal)}</span>
+                <span className="financial-label">Product Subtotal</span>
+                <span className="financial-value">{formatCurrency(parseFloat(financials?.productTotal || 0) + parseFloat(order.voucher_discount || 0))}</span>
               </div>
+              {order.voucher_code && parseFloat(order.voucher_discount) > 0 && (
+                <div className="financial-row" style={{ color: '#4CAF50' }}>
+                  <span className="financial-label">
+                    Voucher Discount
+                    <br />
+                    <span style={{ fontSize: '11px', fontFamily: 'monospace' }}>
+                      {order.voucher_code}
+                    </span>
+                  </span>
+                  <span className="financial-value">-{formatCurrency(order.voucher_discount)}</span>
+                </div>
+              )}
               <div className="financial-row">
                 <span className="financial-label">Delivery Fee</span>
                 <span className="financial-value">{formatCurrency(financials?.deliveryFee)}</span>

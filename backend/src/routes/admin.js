@@ -19,6 +19,14 @@ const {
   getAllCustomers,
   exportOrders,
 } = require('../controllers/adminController');
+const {
+  getAllVouchers,
+  getVoucherById,
+  createVoucher,
+  updateVoucher,
+  deleteVoucher,
+  toggleVoucherStatus,
+} = require('../controllers/voucherController');
 
 // All admin routes require admin authentication
 router.use(adminAuth);
@@ -46,5 +54,13 @@ router.get('/customers', getAllCustomers);
 
 // Configuration
 router.get('/config/fees', getFeeConfig);
+
+// Vouchers
+router.get('/vouchers', getAllVouchers);
+router.get('/vouchers/:id', getVoucherById);
+router.post('/vouchers', createVoucher);
+router.put('/vouchers/:id', updateVoucher);
+router.delete('/vouchers/:id', deleteVoucher);
+router.patch('/vouchers/:id/toggle', toggleVoucherStatus);
 
 module.exports = router;

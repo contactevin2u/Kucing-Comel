@@ -123,6 +123,13 @@ const Checkout = () => {
   // Required for SenangPay approval - Track policy consent state
   const [policyAgreed, setPolicyAgreed] = useState(false);
 
+  // Voucher state
+  const [voucherCode, setVoucherCode] = useState('');
+  const [voucherApplied, setVoucherApplied] = useState(null);
+  const [voucherDiscount, setVoucherDiscount] = useState(0);
+  const [voucherLoading, setVoucherLoading] = useState(false);
+  const [voucherError, setVoucherError] = useState('');
+
   const [shippingData, setShippingData] = useState({
     shipping_name: user?.name || '',
     shipping_phone: user?.phone || '',
@@ -141,6 +148,54 @@ const Checkout = () => {
     };
     fetchConfig();
   }, []);
+
+  // Calculate subtotal
+  const subtotal = cart.items.reduce(
+    (sum, item) => sum + parseFloat(item.price) * item.quantity,
+    0
+  );
+
+  // Handle voucher application
+  const handleApplyVoucher = async () => {
+    if (!voucherCode.trim()) {
+      setVoucherError('Please enter a voucher code');
+      return;
+    }
+
+    setVoucherLoading(true);
+    setVoucherError('');
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/vouchers/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: voucherCode.trim(), subtotal })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Invalid voucher code');
+      }
+
+      setVoucherApplied(data.voucher);
+      setVoucherDiscount(data.calculated_discount);
+      setVoucherError('');
+    } catch (err) {
+      setVoucherError(err.message);
+      setVoucherApplied(null);
+      setVoucherDiscount(0);
+    } finally {
+      setVoucherLoading(false);
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setVoucherCode('');
+    setVoucherApplied(null);
+    setVoucherDiscount(0);
+    setVoucherError('');
+  };
 
   // Handle payment status from URL params (SenangPay return)
   useEffect(() => {
@@ -193,13 +248,18 @@ const Checkout = () => {
 
       if (isAuthenticated) {
         // Authenticated user - use regular order endpoint
-        data = await api.createOrder(shippingData);
+        const orderPayload = {
+          ...shippingData,
+          voucher_code: voucherApplied?.code || null
+        };
+        data = await api.createOrder(orderPayload);
       } else {
         // Guest checkout - use guest order endpoint
         const orderData = {
           ...shippingData,
           guest_email: guestEmail,
-          items: getCartItemsForOrder()
+          items: getCartItemsForOrder(),
+          voucher_code: voucherApplied?.code || null
         };
         data = await api.createGuestOrder(orderData);
       }
@@ -611,14 +671,106 @@ const Checkout = () => {
               </div>
             ))}
 
+            {/* Voucher Input - Only show on step 1 before order is created */}
+            {step === 1 && (
+              <div style={{ marginTop: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '8px' }}>
+                <label style={{ fontWeight: '500', marginBottom: '8px', display: 'block', fontSize: '0.9rem' }}>
+                  Voucher Code
+                </label>
+                {voucherApplied ? (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: '#e8f5e9',
+                    padding: '10px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #4CAF50'
+                  }}>
+                    <div>
+                      <span style={{ fontWeight: '600', color: '#2e7d32', fontFamily: 'monospace' }}>
+                        {voucherApplied.code}
+                      </span>
+                      <span style={{ marginLeft: '10px', color: '#4CAF50', fontSize: '0.85rem' }}>
+                        -RM {voucherDiscount.toFixed(2)}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveVoucher}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#d32f2f',
+                        cursor: 'pointer',
+                        fontSize: '1.2rem'
+                      }}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      value={voucherCode}
+                      onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                      placeholder="Enter code"
+                      style={{
+                        flex: 1,
+                        padding: '10px 12px',
+                        border: '1px solid #ddd',
+                        borderRadius: '6px',
+                        fontFamily: 'monospace',
+                        textTransform: 'uppercase'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyVoucher}
+                      disabled={voucherLoading}
+                      style={{
+                        padding: '10px 16px',
+                        background: '#FF6B6B',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: voucherLoading ? 'not-allowed' : 'pointer',
+                        fontWeight: '500'
+                      }}
+                    >
+                      {voucherLoading ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                )}
+                {voucherError && (
+                  <p style={{ color: '#d32f2f', fontSize: '0.8rem', marginTop: '8px', marginBottom: 0 }}>
+                    {voucherError}
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="summary-row" style={{ marginTop: '15px' }}>
+              <span>Subtotal</span>
+              <span>RM {order ? (parseFloat(order.total_amount) + parseFloat(order.voucher_discount || 0)).toFixed(2) : subtotal.toFixed(2)}</span>
+            </div>
+
+            {(voucherDiscount > 0 || (order?.voucher_discount && parseFloat(order.voucher_discount) > 0)) && (
+              <div className="summary-row" style={{ color: '#4CAF50' }}>
+                <span>Discount {order?.voucher_code || voucherApplied?.code ? `(${order?.voucher_code || voucherApplied.code})` : ''}</span>
+                <span>-RM {order?.voucher_discount ? parseFloat(order.voucher_discount).toFixed(2) : voucherDiscount.toFixed(2)}</span>
+              </div>
+            )}
+
+            <div className="summary-row">
               <span>Shipping</span>
               <span style={{ color: '#27AE60' }}>FREE</span>
             </div>
 
             <div className="summary-row summary-total">
               <span>Total</span>
-              <span>RM {order?.total_amount || cart.total}</span>
+              <span>RM {order?.total_amount ? parseFloat(order.total_amount).toFixed(2) : (subtotal - voucherDiscount).toFixed(2)}</span>
             </div>
           </div>
         </div>

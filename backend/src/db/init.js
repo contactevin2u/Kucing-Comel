@@ -68,6 +68,40 @@ async function initializeDatabase() {
           console.log('Delivery fee column may already exist');
         }
 
+        // Add voucher columns to orders
+        try {
+          await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS voucher_code VARCHAR(50)`);
+          await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS voucher_discount DECIMAL(10, 2) DEFAULT 0`);
+          console.log('Voucher columns added to orders table');
+        } catch (e) {
+          console.log('Voucher columns may already exist');
+        }
+
+        // Create vouchers table
+        try {
+          await db.query(`
+            CREATE TABLE IF NOT EXISTS vouchers (
+              id SERIAL PRIMARY KEY,
+              code VARCHAR(50) NOT NULL UNIQUE,
+              discount_type VARCHAR(20) NOT NULL CHECK (discount_type IN ('fixed', 'percentage')),
+              discount_amount DECIMAL(10, 2) NOT NULL,
+              max_discount DECIMAL(10, 2),
+              min_order_amount DECIMAL(10, 2),
+              start_date TIMESTAMP,
+              expiry_date TIMESTAMP,
+              usage_limit INTEGER,
+              times_used INTEGER DEFAULT 0,
+              is_active BOOLEAN DEFAULT true,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_vouchers_code ON vouchers(code);
+          `);
+          console.log('Vouchers table ensured');
+        } catch (e) {
+          console.log('Vouchers table may already exist');
+        }
+
         // Create wishlist table if not exists
         try {
           await db.query(`
@@ -184,6 +218,37 @@ async function initializeDatabase() {
         try {
           db.db.exec(`ALTER TABLE orders ADD COLUMN delivery_fee REAL DEFAULT 8.00`);
         } catch (e) { /* column exists */ }
+
+        // Add voucher columns for SQLite
+        try {
+          db.db.exec(`ALTER TABLE orders ADD COLUMN voucher_code TEXT`);
+        } catch (e) { /* column exists */ }
+        try {
+          db.db.exec(`ALTER TABLE orders ADD COLUMN voucher_discount REAL DEFAULT 0`);
+        } catch (e) { /* column exists */ }
+
+        // Create vouchers table for SQLite
+        try {
+          db.db.exec(`
+            CREATE TABLE IF NOT EXISTS vouchers (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              code TEXT NOT NULL UNIQUE,
+              discount_type TEXT NOT NULL CHECK (discount_type IN ('fixed', 'percentage')),
+              discount_amount REAL NOT NULL,
+              max_discount REAL,
+              min_order_amount REAL,
+              start_date TEXT,
+              expiry_date TEXT,
+              usage_limit INTEGER,
+              times_used INTEGER DEFAULT 0,
+              is_active INTEGER DEFAULT 1,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+              updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_vouchers_code ON vouchers(code);
+          `);
+          console.log('Vouchers table ensured');
+        } catch (e) { /* table exists */ }
 
         // Create wishlist table for SQLite
         try {
