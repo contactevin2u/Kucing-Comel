@@ -126,48 +126,112 @@ const ProductCard = ({ product }) => {
           <span className="product-category">{product.category}</span>
           <h3 className="product-name">{product.name}</h3>
 
-          {/* Price Row */}
-          <div className="product-price-row">
-            <div>
-              <span className="product-price">RM {parseFloat(product.price).toFixed(2)}</span>
-              {isMemberPrice && (
-                <span className="product-price-old">
-                  RM {parseFloat(product.originalPrice).toFixed(2)}
-                </span>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <button
-                onClick={handleAddToCart}
-                className="add-to-cart-btn"
-                disabled={product.stock === 0}
-                title={product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-              >
-                🛒
-              </button>
-              <button
-                onClick={handleBuyNow}
-                className="buy-now-btn"
-                disabled={product.stock === 0}
-                title={product.stock === 0 ? 'Out of Stock' : 'Buy Now'}
-                style={{
-                  background: '#FF6B6B',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '8px 12px',
-                  fontSize: '0.75rem',
-                  fontWeight: '600',
-                  cursor: product.stock === 0 ? 'not-allowed' : 'pointer',
-                  opacity: product.stock === 0 ? 0.5 : 1
-                }}
-              >
-                Buy Now
-              </button>
-            </div>
+          {/* Price */}
+          <div className="product-price-row" style={{ marginBottom: '12px' }}>
+            <span className="product-price">RM {parseFloat(product.price).toFixed(2)}</span>
+            {isMemberPrice && (
+              <span className="product-price-old">
+                RM {parseFloat(product.originalPrice).toFixed(2)}
+              </span>
+            )}
           </div>
         </div>
       </Link>
+
+      {/* Action Buttons - Outside Link for better click handling */}
+      <div className="product-actions">
+        <button
+          onClick={handleAddToCart}
+          className="product-btn btn-cart"
+          disabled={product.stock === 0}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="9" cy="21" r="1"/>
+            <circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          <span>Add to Cart</span>
+        </button>
+        <button
+          onClick={handleBuyNow}
+          className="product-btn btn-buy"
+          disabled={product.stock === 0}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+          <span>Buy Now</span>
+        </button>
+      </div>
+
+      <style>{`
+        .product-actions {
+          display: flex;
+          gap: 8px;
+          padding: 0 15px 15px;
+        }
+
+        .product-btn {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 10px 12px;
+          border: none;
+          border-radius: 8px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .product-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .product-btn svg {
+          flex-shrink: 0;
+        }
+
+        .btn-cart {
+          background: #f0f0f0;
+          color: #333;
+          border: 1px solid #ddd;
+        }
+
+        .btn-cart:hover:not(:disabled) {
+          background: #e0e0e0;
+          border-color: #ccc;
+        }
+
+        .btn-buy {
+          background: linear-gradient(135deg, #FF6B6B 0%, #ee5a5a 100%);
+          color: #fff;
+        }
+
+        .btn-buy:hover:not(:disabled) {
+          background: linear-gradient(135deg, #ff5252 0%, #e04848 100%);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-buy:active:not(:disabled) {
+          transform: translateY(0);
+        }
+
+        @media (max-width: 480px) {
+          .product-actions {
+            flex-direction: column;
+            gap: 6px;
+          }
+
+          .product-btn {
+            padding: 12px;
+          }
+        }
+      `}</style>
     </div>
   );
 };
