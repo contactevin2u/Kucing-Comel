@@ -6,121 +6,20 @@ import { useCart } from '../context/CartContext';
 
 /**
  * ============================================================
- * CHECKOUT PAGE - Supports both logged-in users and guests
+ * CHECKOUT PAGE - Single page with shipping & payment
  * ============================================================
  */
-
-const SenangPayCheckoutForm = ({ order, guestEmail, onProcessing, policyAgreed }) => {
-  const navigate = useNavigate();
-  const [processing, setProcessing] = useState(false);
-  const [error, setError] = useState(null);
-
-  const handleSenangPayPayment = async () => {
-    setProcessing(true);
-    setError(null);
-    onProcessing(true);
-
-    try {
-      // Pass guest email if this is a guest order
-      const response = await api.initiateSenangPayPayment(order.id, guestEmail);
-
-      if (response.success) {
-        // Store guest email in sessionStorage for mock payment page
-        if (guestEmail) {
-          sessionStorage.setItem('guestEmail', guestEmail);
-        }
-
-        // ============================================================
-        // MOCK MODE: Navigate to local mock payment page
-        // ============================================================
-        if (response.mode === 'mock') {
-          sessionStorage.setItem('mockPaymentData', JSON.stringify(response.params));
-          navigate('/mock-payment');
-          return;
-        }
-
-        // ============================================================
-        // REAL MODE: Submit form to SenangPay
-        // ============================================================
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = response.payment_url;
-
-        Object.entries(response.params).forEach(([key, value]) => {
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = key;
-          input.value = value;
-          form.appendChild(input);
-        });
-
-        document.body.appendChild(form);
-        form.submit();
-      } else {
-        setError('Failed to initiate payment');
-        onProcessing(false);
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to initiate SenangPay payment');
-      setProcessing(false);
-      onProcessing(false);
-    }
-  };
-
-  return (
-    <div>
-      <div style={{
-        padding: '20px',
-        background: '#f8f9fa',
-        borderRadius: '8px',
-        marginBottom: '20px',
-        textAlign: 'center'
-      }}>
-        <img
-          src="https://app.senangpay.my/assets/logo/senangpay-logo.png"
-          alt="SenangPay"
-          style={{ height: '40px', marginBottom: '15px' }}
-          onError={(e) => { e.target.style.display = 'none'; }}
-        />
-        <p style={{ color: '#666', fontSize: '0.9rem', margin: 0 }}>
-          You will be redirected to complete your payment securely.
-        </p>
-      </div>
-
-      {error && <div className="alert alert-error">{error}</div>}
-
-      {/* Required for SenangPay approval - Button disabled until policy consent */}
-      <button
-        type="button"
-        className="btn btn-primary btn-lg"
-        style={{
-          width: '100%',
-          background: policyAgreed ? '#4CAF50' : '#ccc',
-          cursor: policyAgreed && !processing ? 'pointer' : 'not-allowed'
-        }}
-        onClick={handleSenangPayPayment}
-        disabled={processing || !policyAgreed}
-      >
-        {processing ? 'Redirecting...' : `Pay RM ${order.total_amount} with SenangPay`}
-      </button>
-    </div>
-  );
-};
 
 const Checkout = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, isAuthenticated } = useAuth();
-  const { cart, clearCart, getCartItemsForOrder, isGuestCart } = useCart();
+  const { cart, clearCart, getCartItemsForOrder } = useCart();
 
-  const [step, setStep] = useState(1);
-  const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isRedirecting, setIsRedirecting] = useState(false);
   const [paymentMode, setPaymentMode] = useState(null);
   const [guestEmail, setGuestEmail] = useState('');
-  // Required for SenangPay approval - Track policy consent state
   const [policyAgreed, setPolicyAgreed] = useState(false);
 
   // Voucher state
@@ -162,7 +61,6 @@ const Checkout = () => {
       return;
     }
 
-    // Get user email for per-user validation
     const userEmail = isAuthenticated ? user?.email : guestEmail;
 
     setVoucherLoading(true);
@@ -213,16 +111,17 @@ const Checkout = () => {
     }
   }, [searchParams]);
 
-  // Redirect if cart is empty (but allow if we have an order)
+  // Redirect if cart is empty
   useEffect(() => {
-    if (cart.items.length === 0 && !order) {
+    if (cart.items.length === 0) {
       navigate('/cart');
     }
-  }, [cart.items.length, order, navigate]);
+  }, [cart.items.length, navigate]);
 
-  const handleShippingSubmit = async (e) => {
+  const handlePayment = async (e) => {
     e.preventDefault();
 
+    // Validate shipping info
     if (!shippingData.shipping_name || !shippingData.shipping_phone || !shippingData.shipping_address) {
       setError('Please fill in all shipping details');
       return;
@@ -243,11 +142,17 @@ const Checkout = () => {
       }
     }
 
+    // Policy must be agreed
+    if (!policyAgreed) {
+      setError('Please agree to the terms and policies before proceeding');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      let data;
+      let orderData;
 
       if (isAuthenticated) {
         // Authenticated user - use regular order endpoint
@@ -255,36 +160,58 @@ const Checkout = () => {
           ...shippingData,
           voucher_code: voucherApplied?.code || null
         };
-        data = await api.createOrder(orderPayload);
+        orderData = await api.createOrder(orderPayload);
       } else {
         // Guest checkout - use guest order endpoint
-        const orderData = {
+        const payload = {
           ...shippingData,
           guest_email: guestEmail,
           items: getCartItemsForOrder(),
           voucher_code: voucherApplied?.code || null
         };
-        data = await api.createGuestOrder(orderData);
+        orderData = await api.createGuestOrder(payload);
       }
 
-      setOrder(data.order);
-      setStep(2);
-    } catch (err) {
-      setError(err.message || 'Failed to create order');
-    } finally {
-      setLoading(false);
-    }
-  };
+      const order = orderData.order;
 
-  const handlePaymentSuccess = () => {
-    clearCart();
-    if (isAuthenticated) {
-      navigate('/orders', {
-        state: { message: 'Payment successful! Thank you for your order.' }
-      });
-    } else {
-      // Guest - redirect to order success page
-      navigate(`/order-success?order_id=${order.id}`);
+      // Store guest email in sessionStorage for payment page
+      if (!isAuthenticated && guestEmail) {
+        sessionStorage.setItem('guestEmail', guestEmail);
+      }
+
+      // Initiate SenangPay payment
+      const response = await api.initiateSenangPayPayment(order.id, !isAuthenticated ? guestEmail : null);
+
+      if (response.success) {
+        // MOCK MODE: Navigate to local mock payment page
+        if (response.mode === 'mock') {
+          sessionStorage.setItem('mockPaymentData', JSON.stringify(response.params));
+          navigate('/mock-payment');
+          return;
+        }
+
+        // REAL MODE: Submit form to SenangPay
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = response.payment_url;
+
+        Object.entries(response.params).forEach(([key, value]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = value;
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+      } else {
+        setError('Failed to initiate payment');
+        setLoading(false);
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to process checkout');
+      setLoading(false);
     }
   };
 
@@ -331,134 +258,73 @@ const Checkout = () => {
           </div>
         )}
 
-        {/* Progress Steps */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '30px',
-          marginBottom: '40px'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            color: step >= 1 ? '#FF6B6B' : '#95A5A6'
-          }}>
-            <span style={{
-              width: '30px',
-              height: '30px',
-              borderRadius: '50%',
-              background: step >= 1 ? '#FF6B6B' : '#F7F9FC',
-              color: step >= 1 ? '#fff' : '#95A5A6',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: '600'
-            }}>1</span>
-            Shipping
-          </div>
-          <div style={{ color: '#95A5A6' }}>→</div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            color: step >= 2 ? '#FF6B6B' : '#95A5A6'
-          }}>
-            <span style={{
-              width: '30px',
-              height: '30px',
-              borderRadius: '50%',
-              background: step >= 2 ? '#FF6B6B' : '#F7F9FC',
-              color: step >= 2 ? '#fff' : '#95A5A6',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: '600'
-            }}>2</span>
-            Payment
-          </div>
-        </div>
-
         <div className="checkout-grid">
           <div className="checkout-form">
-            {step === 1 && (
-              <form onSubmit={handleShippingSubmit}>
-                <div className="form-section">
-                  <h3>Contact & Shipping Information</h3>
+            <form onSubmit={handlePayment}>
+              {/* Shipping Section */}
+              <div className="form-section">
+                <h3>Contact & Shipping Information</h3>
 
-                  {/* Email field */}
-                  <div className="form-group">
-                    <label>Email Address *</label>
-                    {isAuthenticated ? (
-                      <input
-                        type="email"
-                        value={user?.email || ''}
-                        readOnly
-                        style={{ background: '#f5f5f5', cursor: 'not-allowed' }}
-                      />
-                    ) : (
-                      <input
-                        type="email"
-                        value={guestEmail}
-                        onChange={(e) => setGuestEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        required
-                      />
-                    )}
-                    <small style={{ color: '#666', fontSize: '0.8rem' }}>
-                      Order confirmation will be sent to this email
-                    </small>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Full Name *</label>
+                {/* Email field */}
+                <div className="form-group">
+                  <label>Email Address *</label>
+                  {isAuthenticated ? (
                     <input
-                      type="text"
-                      value={shippingData.shipping_name}
-                      onChange={(e) => setShippingData({ ...shippingData, shipping_name: e.target.value })}
-                      placeholder="Enter your full name"
-                      required
+                      type="email"
+                      value={user?.email || ''}
+                      readOnly
+                      style={{ background: '#f5f5f5', cursor: 'not-allowed' }}
                     />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Phone Number *</label>
+                  ) : (
                     <input
-                      type="tel"
-                      value={shippingData.shipping_phone}
-                      onChange={(e) => setShippingData({ ...shippingData, shipping_phone: e.target.value })}
-                      placeholder="e.g., +60 12-345-6789"
+                      type="email"
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      placeholder="Enter your email"
                       required
                     />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Shipping Address *</label>
-                    <textarea
-                      value={shippingData.shipping_address}
-                      onChange={(e) => setShippingData({ ...shippingData, shipping_address: e.target.value })}
-                      placeholder="Enter your full address"
-                      rows="4"
-                      required
-                    />
-                  </div>
+                  )}
+                  <small style={{ color: '#666', fontSize: '0.8rem' }}>
+                    Order confirmation will be sent to this email
+                  </small>
                 </div>
 
-                {error && <div className="alert alert-error">{error}</div>}
+                <div className="form-group">
+                  <label>Full Name *</label>
+                  <input
+                    type="text"
+                    value={shippingData.shipping_name}
+                    onChange={(e) => setShippingData({ ...shippingData, shipping_name: e.target.value })}
+                    placeholder="Enter your full name"
+                    required
+                  />
+                </div>
 
-                <button
-                  type="submit"
-                  className="btn btn-primary btn-lg"
-                  style={{ width: '100%' }}
-                  disabled={loading}
-                >
-                  {loading ? 'Creating Order...' : 'Continue to Payment'}
-                </button>
-              </form>
-            )}
+                <div className="form-group">
+                  <label>Phone Number *</label>
+                  <input
+                    type="tel"
+                    value={shippingData.shipping_phone}
+                    onChange={(e) => setShippingData({ ...shippingData, shipping_phone: e.target.value })}
+                    placeholder="e.g., +60 12-345-6789"
+                    required
+                  />
+                </div>
 
-            {step === 2 && order && (
-              <div className="form-section">
+                <div className="form-group">
+                  <label>Shipping Address *</label>
+                  <textarea
+                    value={shippingData.shipping_address}
+                    onChange={(e) => setShippingData({ ...shippingData, shipping_address: e.target.value })}
+                    placeholder="Enter your full address"
+                    rows="4"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Payment Section */}
+              <div className="form-section" style={{ marginTop: '30px' }}>
                 <h3>Payment</h3>
 
                 {/* SenangPay Info */}
@@ -510,10 +376,7 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                {/* ============================================================
-                   Required for SenangPay approval - Policy links must be
-                   displayed on checkout page near payment button
-                   ============================================================ */}
+                {/* Policy Links */}
                 <div style={{
                   padding: '15px',
                   background: '#f8f9fa',
@@ -563,10 +426,7 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                {/* ============================================================
-                   Required for SenangPay approval - Mandatory consent checkbox
-                   Payment button is disabled until user agrees to policies
-                   ============================================================ */}
+                {/* Policy Consent Checkbox */}
                 <div style={{
                   padding: '15px',
                   border: policyAgreed ? '2px solid #4CAF50' : '2px solid #e0e0e0',
@@ -637,28 +497,34 @@ const Checkout = () => {
                   </label>
                 </div>
 
-                {/* Payment Form */}
-                <SenangPayCheckoutForm
-                  order={order}
-                  guestEmail={!isAuthenticated ? guestEmail : null}
-                  onProcessing={setIsRedirecting}
-                  policyAgreed={policyAgreed}
-                />
+                {error && <div className="alert alert-error" style={{ marginBottom: '15px' }}>{error}</div>}
 
-                {error && <div className="alert alert-error" style={{ marginTop: '15px' }}>{error}</div>}
+                {/* Pay Button */}
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-lg"
+                  style={{
+                    width: '100%',
+                    background: policyAgreed ? '#4CAF50' : '#ccc',
+                    cursor: policyAgreed && !loading ? 'pointer' : 'not-allowed'
+                  }}
+                  disabled={loading || !policyAgreed}
+                >
+                  {loading ? 'Processing...' : `Pay RM ${(subtotal - voucherDiscount).toFixed(2)} with SenangPay`}
+                </button>
 
                 <p style={{ marginTop: '20px', fontSize: '0.85rem', color: '#95A5A6', textAlign: 'center' }}>
                   Your payment is secure and encrypted
                 </p>
               </div>
-            )}
+            </form>
           </div>
 
           {/* Order Summary */}
           <div className="cart-summary">
             <h3>Order Summary</h3>
 
-            {(order?.items || cart.items).map((item) => (
+            {cart.items.map((item) => (
               <div key={item.id} style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -666,103 +532,101 @@ const Checkout = () => {
                 borderBottom: '1px solid #F7F9FC'
               }}>
                 <span>
-                  {item.product_name || item.name} x {item.quantity}
+                  {item.name} x {item.quantity}
                 </span>
                 <span>
-                  RM {((item.product_price || item.price) * item.quantity).toFixed(2)}
+                  RM {(item.price * item.quantity).toFixed(2)}
                 </span>
               </div>
             ))}
 
-            {/* Voucher Input - Only show on step 1 before order is created */}
-            {step === 1 && (
-              <div style={{ marginTop: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '8px' }}>
-                <label style={{ fontWeight: '500', marginBottom: '8px', display: 'block', fontSize: '0.9rem' }}>
-                  Voucher Code
-                </label>
-                {voucherApplied ? (
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    background: '#e8f5e9',
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    border: '1px solid #4CAF50'
-                  }}>
-                    <div>
-                      <span style={{ fontWeight: '600', color: '#2e7d32', fontFamily: 'monospace' }}>
-                        {voucherApplied.code}
-                      </span>
-                      <span style={{ marginLeft: '10px', color: '#4CAF50', fontSize: '0.85rem' }}>
-                        -RM {voucherDiscount.toFixed(2)}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleRemoveVoucher}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#d32f2f',
-                        cursor: 'pointer',
-                        fontSize: '1.2rem'
-                      }}
-                    >
-                      &times;
-                    </button>
+            {/* Voucher Input */}
+            <div style={{ marginTop: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '8px' }}>
+              <label style={{ fontWeight: '500', marginBottom: '8px', display: 'block', fontSize: '0.9rem' }}>
+                Voucher Code
+              </label>
+              {voucherApplied ? (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: '#e8f5e9',
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid #4CAF50'
+                }}>
+                  <div>
+                    <span style={{ fontWeight: '600', color: '#2e7d32', fontFamily: 'monospace' }}>
+                      {voucherApplied.code}
+                    </span>
+                    <span style={{ marginLeft: '10px', color: '#4CAF50', fontSize: '0.85rem' }}>
+                      -RM {voucherDiscount.toFixed(2)}
+                    </span>
                   </div>
-                ) : (
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <input
-                      type="text"
-                      value={voucherCode}
-                      onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
-                      placeholder="Enter code"
-                      style={{
-                        flex: 1,
-                        padding: '10px 12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        fontFamily: 'monospace',
-                        textTransform: 'uppercase'
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleApplyVoucher}
-                      disabled={voucherLoading}
-                      style={{
-                        padding: '10px 16px',
-                        background: '#FF6B6B',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: voucherLoading ? 'not-allowed' : 'pointer',
-                        fontWeight: '500'
-                      }}
-                    >
-                      {voucherLoading ? '...' : 'Apply'}
-                    </button>
-                  </div>
-                )}
-                {voucherError && (
-                  <p style={{ color: '#d32f2f', fontSize: '0.8rem', marginTop: '8px', marginBottom: 0 }}>
-                    {voucherError}
-                  </p>
-                )}
-              </div>
-            )}
+                  <button
+                    type="button"
+                    onClick={handleRemoveVoucher}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#d32f2f',
+                      cursor: 'pointer',
+                      fontSize: '1.2rem'
+                    }}
+                  >
+                    &times;
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    value={voucherCode}
+                    onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                    placeholder="Enter code"
+                    style={{
+                      flex: 1,
+                      padding: '10px 12px',
+                      border: '1px solid #ddd',
+                      borderRadius: '6px',
+                      fontFamily: 'monospace',
+                      textTransform: 'uppercase'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyVoucher}
+                    disabled={voucherLoading}
+                    style={{
+                      padding: '10px 16px',
+                      background: '#FF6B6B',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: voucherLoading ? 'not-allowed' : 'pointer',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {voucherLoading ? '...' : 'Apply'}
+                  </button>
+                </div>
+              )}
+              {voucherError && (
+                <p style={{ color: '#d32f2f', fontSize: '0.8rem', marginTop: '8px', marginBottom: 0 }}>
+                  {voucherError}
+                </p>
+              )}
+            </div>
 
             <div className="summary-row" style={{ marginTop: '15px' }}>
               <span>Subtotal</span>
-              <span>RM {order ? (parseFloat(order.total_amount) + parseFloat(order.voucher_discount || 0)).toFixed(2) : subtotal.toFixed(2)}</span>
+              <span>RM {subtotal.toFixed(2)}</span>
             </div>
 
-            {(voucherDiscount > 0 || (order?.voucher_discount && parseFloat(order.voucher_discount) > 0)) && (
+            {voucherDiscount > 0 && (
               <div className="summary-row" style={{ color: '#4CAF50' }}>
-                <span>Discount {order?.voucher_code || voucherApplied?.code ? `(${order?.voucher_code || voucherApplied.code})` : ''}</span>
-                <span>-RM {order?.voucher_discount ? parseFloat(order.voucher_discount).toFixed(2) : voucherDiscount.toFixed(2)}</span>
+                <span>Discount {voucherApplied?.code ? `(${voucherApplied.code})` : ''}</span>
+                <span>-RM {voucherDiscount.toFixed(2)}</span>
               </div>
             )}
 
@@ -773,7 +637,7 @@ const Checkout = () => {
 
             <div className="summary-row summary-total">
               <span>Total</span>
-              <span>RM {order?.total_amount ? parseFloat(order.total_amount).toFixed(2) : (subtotal - voucherDiscount).toFixed(2)}</span>
+              <span>RM {(subtotal - voucherDiscount).toFixed(2)}</span>
             </div>
           </div>
         </div>
