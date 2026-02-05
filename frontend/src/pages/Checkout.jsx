@@ -215,8 +215,170 @@ const Checkout = () => {
     }
   };
 
+  // Order Summary Component (reusable)
+  const OrderSummary = ({ className }) => (
+    <div className={`cart-summary ${className || ''}`}>
+      <h3>Order Summary</h3>
+
+      {cart.items.map((item) => (
+        <div key={item.id} style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          padding: '10px 0',
+          borderBottom: '1px solid #F7F9FC'
+        }}>
+          <span>
+            {item.name} x {item.quantity}
+          </span>
+          <span>
+            RM {(item.price * item.quantity).toFixed(2)}
+          </span>
+        </div>
+      ))}
+
+      {/* Voucher Input */}
+      <div style={{ marginTop: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '8px' }}>
+        <label style={{ fontWeight: '500', marginBottom: '8px', display: 'block', fontSize: '0.9rem' }}>
+          Voucher Code
+        </label>
+        {voucherApplied ? (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: '#e8f5e9',
+            padding: '10px 12px',
+            borderRadius: '6px',
+            border: '1px solid #4CAF50'
+          }}>
+            <div>
+              <span style={{ fontWeight: '600', color: '#2e7d32', fontFamily: 'monospace' }}>
+                {voucherApplied.code}
+              </span>
+              <span style={{ marginLeft: '10px', color: '#4CAF50', fontSize: '0.85rem' }}>
+                -RM {voucherDiscount.toFixed(2)}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleRemoveVoucher}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#d32f2f',
+                cursor: 'pointer',
+                fontSize: '1.2rem'
+              }}
+            >
+              &times;
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input
+              type="text"
+              value={voucherCode}
+              onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+              placeholder="Enter code"
+              style={{
+                flex: 1,
+                padding: '10px 12px',
+                border: '1px solid #ddd',
+                borderRadius: '6px',
+                fontFamily: 'monospace',
+                textTransform: 'uppercase'
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleApplyVoucher}
+              disabled={voucherLoading}
+              style={{
+                padding: '10px 16px',
+                background: '#FF6B6B',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: voucherLoading ? 'not-allowed' : 'pointer',
+                fontWeight: '500'
+              }}
+            >
+              {voucherLoading ? '...' : 'Apply'}
+            </button>
+          </div>
+        )}
+        {voucherError && (
+          <p style={{ color: '#d32f2f', fontSize: '0.8rem', marginTop: '8px', marginBottom: 0 }}>
+            {voucherError}
+          </p>
+        )}
+      </div>
+
+      <div className="summary-row" style={{ marginTop: '15px' }}>
+        <span>Subtotal</span>
+        <span>RM {subtotal.toFixed(2)}</span>
+      </div>
+
+      {voucherDiscount > 0 && (
+        <div className="summary-row" style={{ color: '#4CAF50' }}>
+          <span>Discount {voucherApplied?.code ? `(${voucherApplied.code})` : ''}</span>
+          <span>-RM {voucherDiscount.toFixed(2)}</span>
+        </div>
+      )}
+
+      <div className="summary-row">
+        <span>Shipping</span>
+        <span style={{ color: '#27AE60' }}>FREE</span>
+      </div>
+
+      <div className="summary-row summary-total">
+        <span>Total</span>
+        <span>RM {(subtotal - voucherDiscount).toFixed(2)}</span>
+      </div>
+    </div>
+  );
+
   return (
     <div className="checkout-page">
+      <style>{`
+        .checkout-layout {
+          display: grid;
+          grid-template-columns: 1fr 380px;
+          gap: 30px;
+          align-items: start;
+        }
+
+        .checkout-main {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .order-summary-desktop {
+          position: sticky;
+          top: 20px;
+        }
+
+        .order-summary-mobile {
+          display: none;
+        }
+
+        @media (max-width: 768px) {
+          .checkout-layout {
+            grid-template-columns: 1fr;
+          }
+
+          .order-summary-desktop {
+            display: none;
+          }
+
+          .order-summary-mobile {
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 20px;
+          }
+        }
+      `}</style>
+
       <div className="container">
         <h1 style={{ marginBottom: '30px' }}>Checkout</h1>
 
@@ -258,8 +420,8 @@ const Checkout = () => {
           </div>
         )}
 
-        <div className="checkout-grid">
-          <div className="checkout-form">
+        <div className="checkout-layout">
+          <div className="checkout-main">
             <form onSubmit={handlePayment}>
               {/* Shipping Section */}
               <div className="form-section">
@@ -322,6 +484,9 @@ const Checkout = () => {
                   />
                 </div>
               </div>
+
+              {/* Order Summary - Mobile Only (between shipping and payment) */}
+              <OrderSummary className="order-summary-mobile" />
 
               {/* Payment Section */}
               <div className="form-section" style={{ marginTop: '30px' }}>
@@ -520,126 +685,8 @@ const Checkout = () => {
             </form>
           </div>
 
-          {/* Order Summary */}
-          <div className="cart-summary" style={{ position: 'sticky', top: '20px', alignSelf: 'flex-start' }}>
-            <h3>Order Summary</h3>
-
-            {cart.items.map((item) => (
-              <div key={item.id} style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                padding: '10px 0',
-                borderBottom: '1px solid #F7F9FC'
-              }}>
-                <span>
-                  {item.name} x {item.quantity}
-                </span>
-                <span>
-                  RM {(item.price * item.quantity).toFixed(2)}
-                </span>
-              </div>
-            ))}
-
-            {/* Voucher Input */}
-            <div style={{ marginTop: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '8px' }}>
-              <label style={{ fontWeight: '500', marginBottom: '8px', display: 'block', fontSize: '0.9rem' }}>
-                Voucher Code
-              </label>
-              {voucherApplied ? (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  background: '#e8f5e9',
-                  padding: '10px 12px',
-                  borderRadius: '6px',
-                  border: '1px solid #4CAF50'
-                }}>
-                  <div>
-                    <span style={{ fontWeight: '600', color: '#2e7d32', fontFamily: 'monospace' }}>
-                      {voucherApplied.code}
-                    </span>
-                    <span style={{ marginLeft: '10px', color: '#4CAF50', fontSize: '0.85rem' }}>
-                      -RM {voucherDiscount.toFixed(2)}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleRemoveVoucher}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#d32f2f',
-                      cursor: 'pointer',
-                      fontSize: '1.2rem'
-                    }}
-                  >
-                    &times;
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="text"
-                    value={voucherCode}
-                    onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
-                    placeholder="Enter code"
-                    style={{
-                      flex: 1,
-                      padding: '10px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '6px',
-                      fontFamily: 'monospace',
-                      textTransform: 'uppercase'
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleApplyVoucher}
-                    disabled={voucherLoading}
-                    style={{
-                      padding: '10px 16px',
-                      background: '#FF6B6B',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: voucherLoading ? 'not-allowed' : 'pointer',
-                      fontWeight: '500'
-                    }}
-                  >
-                    {voucherLoading ? '...' : 'Apply'}
-                  </button>
-                </div>
-              )}
-              {voucherError && (
-                <p style={{ color: '#d32f2f', fontSize: '0.8rem', marginTop: '8px', marginBottom: 0 }}>
-                  {voucherError}
-                </p>
-              )}
-            </div>
-
-            <div className="summary-row" style={{ marginTop: '15px' }}>
-              <span>Subtotal</span>
-              <span>RM {subtotal.toFixed(2)}</span>
-            </div>
-
-            {voucherDiscount > 0 && (
-              <div className="summary-row" style={{ color: '#4CAF50' }}>
-                <span>Discount {voucherApplied?.code ? `(${voucherApplied.code})` : ''}</span>
-                <span>-RM {voucherDiscount.toFixed(2)}</span>
-              </div>
-            )}
-
-            <div className="summary-row">
-              <span>Shipping</span>
-              <span style={{ color: '#27AE60' }}>FREE</span>
-            </div>
-
-            <div className="summary-row summary-total">
-              <span>Total</span>
-              <span>RM {(subtotal - voucherDiscount).toFixed(2)}</span>
-            </div>
-          </div>
+          {/* Order Summary - Desktop Only (sticky sidebar) */}
+          <OrderSummary className="order-summary-desktop" />
         </div>
       </div>
     </div>
