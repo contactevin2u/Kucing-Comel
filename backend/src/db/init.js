@@ -91,6 +91,7 @@ async function initializeDatabase() {
               expiry_date TIMESTAMP,
               usage_limit INTEGER,
               times_used INTEGER DEFAULT 0,
+              once_per_user BOOLEAN DEFAULT true,
               is_active BOOLEAN DEFAULT true,
               created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
               updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -100,6 +101,14 @@ async function initializeDatabase() {
           console.log('Vouchers table ensured');
         } catch (e) {
           console.log('Vouchers table may already exist');
+        }
+
+        // Add once_per_user column if not exists
+        try {
+          await db.query(`ALTER TABLE vouchers ADD COLUMN IF NOT EXISTS once_per_user BOOLEAN DEFAULT true`);
+          console.log('once_per_user column ensured');
+        } catch (e) {
+          console.log('once_per_user column may already exist');
         }
 
         // Create voucher_usage table (track per-user usage)
@@ -260,6 +269,7 @@ async function initializeDatabase() {
               expiry_date TEXT,
               usage_limit INTEGER,
               times_used INTEGER DEFAULT 0,
+              once_per_user INTEGER DEFAULT 1,
               is_active INTEGER DEFAULT 1,
               created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
               updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -268,6 +278,11 @@ async function initializeDatabase() {
           `);
           console.log('Vouchers table ensured');
         } catch (e) { /* table exists */ }
+
+        // Add once_per_user column if not exists
+        try {
+          db.db.exec(`ALTER TABLE vouchers ADD COLUMN once_per_user INTEGER DEFAULT 1`);
+        } catch (e) { /* column exists */ }
 
         // Create voucher_usage table for SQLite
         try {

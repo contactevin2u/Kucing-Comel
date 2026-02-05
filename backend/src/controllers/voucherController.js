@@ -44,8 +44,8 @@ const validateVoucher = async (req, res, next) => {
       return res.status(400).json({ error: 'This voucher has reached its usage limit.' });
     }
 
-    // Check per-user usage (if email provided)
-    if (email) {
+    // Check per-user usage (if email provided and once_per_user is enabled)
+    if (email && voucher.once_per_user) {
       const usageResult = await db.query(
         `SELECT id FROM voucher_usage WHERE voucher_id = $1 AND LOWER(user_email) = LOWER($2)`,
         [voucher.id, email.trim()]
@@ -149,6 +149,7 @@ const createVoucher = async (req, res, next) => {
       start_date,
       expiry_date,
       usage_limit,
+      once_per_user,
       is_active
     } = req.body;
 
@@ -180,8 +181,8 @@ const createVoucher = async (req, res, next) => {
     }
 
     const result = await db.query(
-      `INSERT INTO vouchers (code, discount_type, discount_amount, max_discount, min_order_amount, start_date, expiry_date, usage_limit, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO vouchers (code, discount_type, discount_amount, max_discount, min_order_amount, start_date, expiry_date, usage_limit, once_per_user, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
       [
         code.trim().toUpperCase(),
@@ -192,6 +193,7 @@ const createVoucher = async (req, res, next) => {
         start_date || null,
         expiry_date || null,
         usage_limit || null,
+        once_per_user !== false,
         is_active !== false
       ]
     );
@@ -220,6 +222,7 @@ const updateVoucher = async (req, res, next) => {
       start_date,
       expiry_date,
       usage_limit,
+      once_per_user,
       is_active
     } = req.body;
 
@@ -269,9 +272,10 @@ const updateVoucher = async (req, res, next) => {
         start_date = $6,
         expiry_date = $7,
         usage_limit = $8,
-        is_active = COALESCE($9, is_active),
+        once_per_user = COALESCE($9, once_per_user),
+        is_active = COALESCE($10, is_active),
         updated_at = CURRENT_TIMESTAMP
-       WHERE id = $10
+       WHERE id = $11
        RETURNING *`,
       [
         code ? code.trim().toUpperCase() : null,
@@ -282,6 +286,7 @@ const updateVoucher = async (req, res, next) => {
         start_date !== undefined ? start_date : existingResult.rows[0].start_date,
         expiry_date !== undefined ? expiry_date : existingResult.rows[0].expiry_date,
         usage_limit !== undefined ? usage_limit : existingResult.rows[0].usage_limit,
+        once_per_user,
         is_active,
         id
       ]

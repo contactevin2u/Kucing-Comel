@@ -152,12 +152,15 @@ const createOrder = async (req, res, next) => {
         const voucher = voucherResult.rows[0];
         const now = new Date();
 
-        // Check per-user usage
-        const usageResult = await db.query(
-          `SELECT id FROM voucher_usage WHERE voucher_id = $1 AND LOWER(user_email) = LOWER($2)`,
-          [voucher.id, userEmail]
-        );
-        const alreadyUsed = usageResult.rows.length > 0;
+        // Check per-user usage (only if once_per_user is enabled)
+        let alreadyUsed = false;
+        if (voucher.once_per_user) {
+          const usageResult = await db.query(
+            `SELECT id FROM voucher_usage WHERE voucher_id = $1 AND LOWER(user_email) = LOWER($2)`,
+            [voucher.id, userEmail]
+          );
+          alreadyUsed = usageResult.rows.length > 0;
+        }
 
         // Validate voucher
         if (voucher.is_active &&
@@ -327,12 +330,15 @@ const createGuestOrder = async (req, res, next) => {
         const voucher = voucherResult.rows[0];
         const now = new Date();
 
-        // Check per-user usage
-        const usageResult = await db.query(
-          `SELECT id FROM voucher_usage WHERE voucher_id = $1 AND LOWER(user_email) = LOWER($2)`,
-          [voucher.id, guest_email]
-        );
-        const alreadyUsed = usageResult.rows.length > 0;
+        // Check per-user usage (only if once_per_user is enabled)
+        let alreadyUsed = false;
+        if (voucher.once_per_user) {
+          const usageResult = await db.query(
+            `SELECT id FROM voucher_usage WHERE voucher_id = $1 AND LOWER(user_email) = LOWER($2)`,
+            [voucher.id, guest_email]
+          );
+          alreadyUsed = usageResult.rows.length > 0;
+        }
 
         // Validate voucher
         if (voucher.is_active &&

@@ -19,6 +19,7 @@ const AdminVouchers = () => {
     start_date: '',
     expiry_date: '',
     usage_limit: '',
+    once_per_user: true,
     is_active: true
   });
   const [formError, setFormError] = useState('');
@@ -58,6 +59,7 @@ const AdminVouchers = () => {
       start_date: '',
       expiry_date: '',
       usage_limit: '',
+      once_per_user: true,
       is_active: true
     });
     setFormError('');
@@ -75,6 +77,7 @@ const AdminVouchers = () => {
       start_date: voucher.start_date ? voucher.start_date.split('T')[0] : '',
       expiry_date: voucher.expiry_date ? voucher.expiry_date.split('T')[0] : '',
       usage_limit: voucher.usage_limit || '',
+      once_per_user: voucher.once_per_user !== false,
       is_active: voucher.is_active
     });
     setFormError('');
@@ -103,6 +106,7 @@ const AdminVouchers = () => {
         start_date: formData.start_date || null,
         expiry_date: formData.expiry_date || null,
         usage_limit: formData.usage_limit ? parseInt(formData.usage_limit) : null,
+        once_per_user: formData.once_per_user,
         is_active: formData.is_active
       };
 
@@ -433,7 +437,7 @@ const AdminVouchers = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="usage_limit">Usage Limit - Optional</label>
+                <label htmlFor="usage_limit">Total Usage Limit - Optional</label>
                 <input
                   type="number"
                   id="usage_limit"
@@ -442,6 +446,23 @@ const AdminVouchers = () => {
                   placeholder="Leave empty for unlimited"
                   min="1"
                 />
+                <small style={{ color: 'var(--admin-text-muted)' }}>
+                  Maximum total uses across all customers
+                </small>
+              </div>
+
+              <div className="form-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={formData.once_per_user}
+                    onChange={(e) => setFormData({ ...formData, once_per_user: e.target.checked })}
+                  />
+                  Once per user
+                </label>
+                <small style={{ color: 'var(--admin-text-muted)', display: 'block', marginTop: '4px' }}>
+                  When enabled, each customer can only use this voucher once
+                </small>
               </div>
 
               <div className="form-group">
