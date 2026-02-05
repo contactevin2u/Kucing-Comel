@@ -46,6 +46,18 @@ const ProductCard = ({ product }) => {
     }
   };
 
+  const handleBuyNow = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const result = await addToCart(product.id, 1);
+    if (result.success) {
+      navigate('/checkout');
+    } else {
+      alert(result.error || 'Failed to add to cart');
+    }
+  };
+
   const handleWishlist = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -117,14 +129,35 @@ const ProductCard = ({ product }) => {
                 </span>
               )}
             </div>
-            <button
-              onClick={handleAddToCart}
-              className="add-to-cart-btn"
-              disabled={product.stock === 0}
-              title={product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-            >
-              🛒
-            </button>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button
+                onClick={handleAddToCart}
+                className="add-to-cart-btn"
+                disabled={product.stock === 0}
+                title={product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+              >
+                🛒
+              </button>
+              <button
+                onClick={handleBuyNow}
+                className="buy-now-btn"
+                disabled={product.stock === 0}
+                title={product.stock === 0 ? 'Out of Stock' : 'Buy Now'}
+                style={{
+                  background: '#FF6B6B',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  cursor: product.stock === 0 ? 'not-allowed' : 'pointer',
+                  opacity: product.stock === 0 ? 0.5 : 1
+                }}
+              >
+                Buy Now
+              </button>
+            </div>
           </div>
         </div>
       </Link>
