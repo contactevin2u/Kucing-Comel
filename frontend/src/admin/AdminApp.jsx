@@ -171,10 +171,9 @@ const AdminLayout = () => {
         <div className="sidebar-footer">
           <div className="admin-info">
             <div className="admin-avatar">
-              {admin?.name?.charAt(0)?.toUpperCase() || 'A'}
+              {admin?.email?.charAt(0)?.toUpperCase() || 'A'}
             </div>
             <div className="admin-details">
-              <span className="admin-name">{admin?.name}</span>
               <span className="admin-email">{admin?.email}</span>
             </div>
           </div>
