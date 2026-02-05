@@ -127,7 +127,7 @@ const ProductCard = ({ product }) => {
           <h3 className="product-name">{product.name}</h3>
 
           {/* Price */}
-          <div className="product-price-row" style={{ marginBottom: '12px' }}>
+          <div className="product-price-row">
             <span className="product-price">RM {parseFloat(product.price).toFixed(2)}</span>
             {isMemberPrice && (
               <span className="product-price-old">
@@ -168,7 +168,7 @@ const ProductCard = ({ product }) => {
         .product-actions {
           display: flex;
           gap: 8px;
-          padding: 0 15px 15px;
+          padding: 12px 15px 15px;
         }
 
         .product-btn {
