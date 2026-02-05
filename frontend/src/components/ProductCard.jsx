@@ -165,10 +165,14 @@ const ProductCard = ({ product }) => {
       </div>
 
       <style>{`
+        .product-card .product-info {
+          padding-bottom: 0 !important;
+        }
+
         .product-actions {
           display: flex;
           gap: 8px;
-          padding: 12px 15px 15px;
+          padding: 15px 18px 18px;
         }
 
         .product-btn {
