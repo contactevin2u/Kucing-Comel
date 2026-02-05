@@ -360,6 +360,7 @@ const Checkout = () => {
 
         .order-summary-mobile {
           display: none;
+          position: static !important;
         }
 
         @media (max-width: 768px) {
@@ -373,6 +374,7 @@ const Checkout = () => {
 
           .order-summary-mobile {
             display: block;
+            position: static !important;
             margin-top: 20px;
             margin-bottom: 20px;
           }
