@@ -58,10 +58,6 @@ const AdminSettings = () => {
           <h3>Admin Account</h3>
           <div className="order-info-grid">
             <div className="order-info-item">
-              <span className="order-info-label">Name</span>
-              <span className="order-info-value">{admin?.name}</span>
-            </div>
-            <div className="order-info-item">
               <span className="order-info-label">Email</span>
               <span className="order-info-value">{admin?.email}</span>
             </div>
