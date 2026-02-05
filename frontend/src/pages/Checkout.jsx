@@ -162,6 +162,9 @@ const Checkout = () => {
       return;
     }
 
+    // Get user email for per-user validation
+    const userEmail = isAuthenticated ? user?.email : guestEmail;
+
     setVoucherLoading(true);
     setVoucherError('');
 
@@ -169,7 +172,7 @@ const Checkout = () => {
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/vouchers/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: voucherCode.trim(), subtotal })
+        body: JSON.stringify({ code: voucherCode.trim(), subtotal, email: userEmail })
       });
 
       const data = await response.json();

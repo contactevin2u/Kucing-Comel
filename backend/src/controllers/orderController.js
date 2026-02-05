@@ -138,6 +138,10 @@ const createOrder = async (req, res, next) => {
     let appliedVoucherDiscount = 0;
     let voucherId = null;
 
+    // Get user email for voucher tracking
+    const userEmailResult = await db.query('SELECT email FROM users WHERE id = $1', [req.user.id]);
+    const userEmail = userEmailResult.rows[0]?.email;
+
     if (voucher_code) {
       const voucherResult = await db.query(
         `SELECT * FROM vouchers WHERE LOWER(code) = LOWER($1)`,
@@ -148,8 +152,16 @@ const createOrder = async (req, res, next) => {
         const voucher = voucherResult.rows[0];
         const now = new Date();
 
+        // Check per-user usage
+        const usageResult = await db.query(
+          `SELECT id FROM voucher_usage WHERE voucher_id = $1 AND LOWER(user_email) = LOWER($2)`,
+          [voucher.id, userEmail]
+        );
+        const alreadyUsed = usageResult.rows.length > 0;
+
         // Validate voucher
         if (voucher.is_active &&
+            !alreadyUsed &&
             (!voucher.start_date || new Date(voucher.start_date) <= now) &&
             (!voucher.expiry_date || new Date(voucher.expiry_date) >= now) &&
             (voucher.usage_limit === null || voucher.times_used < voucher.usage_limit) &&
@@ -188,7 +200,7 @@ const createOrder = async (req, res, next) => {
 
     // Increment voucher usage if voucher was applied
     if (voucherId) {
-      await incrementVoucherUsage(voucherId);
+      await incrementVoucherUsage(voucherId, userEmail, orderId);
     }
 
     // Create order items and update stock
@@ -315,8 +327,16 @@ const createGuestOrder = async (req, res, next) => {
         const voucher = voucherResult.rows[0];
         const now = new Date();
 
+        // Check per-user usage
+        const usageResult = await db.query(
+          `SELECT id FROM voucher_usage WHERE voucher_id = $1 AND LOWER(user_email) = LOWER($2)`,
+          [voucher.id, guest_email]
+        );
+        const alreadyUsed = usageResult.rows.length > 0;
+
         // Validate voucher
         if (voucher.is_active &&
+            !alreadyUsed &&
             (!voucher.start_date || new Date(voucher.start_date) <= now) &&
             (!voucher.expiry_date || new Date(voucher.expiry_date) >= now) &&
             (voucher.usage_limit === null || voucher.times_used < voucher.usage_limit) &&
@@ -355,7 +375,7 @@ const createGuestOrder = async (req, res, next) => {
 
     // Increment voucher usage if voucher was applied
     if (voucherId) {
-      await incrementVoucherUsage(voucherId);
+      await incrementVoucherUsage(voucherId, guest_email, orderId);
     }
 
     // Create order items and update stock

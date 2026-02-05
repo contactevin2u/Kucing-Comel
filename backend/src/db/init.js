@@ -102,6 +102,25 @@ async function initializeDatabase() {
           console.log('Vouchers table may already exist');
         }
 
+        // Create voucher_usage table (track per-user usage)
+        try {
+          await db.query(`
+            CREATE TABLE IF NOT EXISTS voucher_usage (
+              id SERIAL PRIMARY KEY,
+              voucher_id INTEGER NOT NULL REFERENCES vouchers(id) ON DELETE CASCADE,
+              user_email VARCHAR(255) NOT NULL,
+              order_id INTEGER REFERENCES orders(id) ON DELETE SET NULL,
+              used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+              UNIQUE(voucher_id, user_email)
+            );
+            CREATE INDEX IF NOT EXISTS idx_voucher_usage_voucher ON voucher_usage(voucher_id);
+            CREATE INDEX IF NOT EXISTS idx_voucher_usage_email ON voucher_usage(user_email);
+          `);
+          console.log('Voucher usage table ensured');
+        } catch (e) {
+          console.log('Voucher usage table may already exist');
+        }
+
         // Create wishlist table if not exists
         try {
           await db.query(`
@@ -248,6 +267,23 @@ async function initializeDatabase() {
             CREATE INDEX IF NOT EXISTS idx_vouchers_code ON vouchers(code);
           `);
           console.log('Vouchers table ensured');
+        } catch (e) { /* table exists */ }
+
+        // Create voucher_usage table for SQLite
+        try {
+          db.db.exec(`
+            CREATE TABLE IF NOT EXISTS voucher_usage (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              voucher_id INTEGER NOT NULL REFERENCES vouchers(id) ON DELETE CASCADE,
+              user_email TEXT NOT NULL,
+              order_id INTEGER REFERENCES orders(id) ON DELETE SET NULL,
+              used_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+              UNIQUE(voucher_id, user_email)
+            );
+            CREATE INDEX IF NOT EXISTS idx_voucher_usage_voucher ON voucher_usage(voucher_id);
+            CREATE INDEX IF NOT EXISTS idx_voucher_usage_email ON voucher_usage(user_email);
+          `);
+          console.log('Voucher usage table ensured');
         } catch (e) { /* table exists */ }
 
         // Create wishlist table for SQLite

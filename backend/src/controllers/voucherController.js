@@ -6,7 +6,7 @@ const db = require('../config/database');
  */
 const validateVoucher = async (req, res, next) => {
   try {
-    const { code, subtotal } = req.body;
+    const { code, subtotal, email } = req.body;
 
     if (!code) {
       return res.status(400).json({ error: 'Voucher code is required.' });
@@ -42,6 +42,18 @@ const validateVoucher = async (req, res, next) => {
     // Check usage limit
     if (voucher.usage_limit !== null && voucher.times_used >= voucher.usage_limit) {
       return res.status(400).json({ error: 'This voucher has reached its usage limit.' });
+    }
+
+    // Check per-user usage (if email provided)
+    if (email) {
+      const usageResult = await db.query(
+        `SELECT id FROM voucher_usage WHERE voucher_id = $1 AND LOWER(user_email) = LOWER($2)`,
+        [voucher.id, email.trim()]
+      );
+
+      if (usageResult.rows.length > 0) {
+        return res.status(400).json({ error: 'You have already used this voucher.' });
+      }
     }
 
     // Check minimum order amount
@@ -332,13 +344,27 @@ const toggleVoucherStatus = async (req, res, next) => {
 };
 
 /**
- * Increment voucher usage count (internal use)
+ * Increment voucher usage count and record user usage (internal use)
  */
-const incrementVoucherUsage = async (voucherId) => {
+const incrementVoucherUsage = async (voucherId, userEmail, orderId) => {
+  // Increment total usage count
   await db.query(
     `UPDATE vouchers SET times_used = times_used + 1, updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
     [voucherId]
   );
+
+  // Record per-user usage
+  if (userEmail) {
+    try {
+      await db.query(
+        `INSERT INTO voucher_usage (voucher_id, user_email, order_id) VALUES ($1, $2, $3)`,
+        [voucherId, userEmail.toLowerCase(), orderId]
+      );
+    } catch (e) {
+      // Ignore duplicate key error (user already used this voucher)
+      console.log('Voucher usage already recorded for this user');
+    }
+  }
 };
 
 module.exports = {
