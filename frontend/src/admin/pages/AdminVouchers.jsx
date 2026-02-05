@@ -395,7 +395,7 @@ const AdminVouchers = () => {
                     min="0"
                     step="0.01"
                   />
-                  <small style={{ color: 'var(--admin-text-muted)' }}>
+                  <small style={{ color: 'var(--admin-text)' }}>
                     Cap the maximum discount amount for percentage vouchers
                   </small>
                 </div>
@@ -446,7 +446,7 @@ const AdminVouchers = () => {
                   placeholder="Leave empty for unlimited"
                   min="1"
                 />
-                <small style={{ color: 'var(--admin-text-muted)' }}>
+                <small style={{ color: 'var(--admin-text)' }}>
                   Maximum total uses across all customers
                 </small>
               </div>
@@ -460,7 +460,7 @@ const AdminVouchers = () => {
                   />
                   Once per user
                 </label>
-                <small style={{ color: 'var(--admin-text-muted)', display: 'block', marginTop: '4px' }}>
+                <small style={{ color: 'var(--admin-text)', display: 'block', marginTop: '4px' }}>
                   When enabled, each customer can only use this voucher once
                 </small>
               </div>
