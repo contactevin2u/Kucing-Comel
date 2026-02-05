@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -12,9 +12,14 @@ import { useCart } from '../context/CartContext';
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const { user, isAuthenticated } = useAuth();
   const { cart, clearCart, getCartItemsForOrder } = useCart();
+
+  // Check for Buy Now mode
+  const buyNowMode = location.state?.buyNow || false;
+  const buyNowItem = location.state?.item || null;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -48,8 +53,13 @@ const Checkout = () => {
     fetchConfig();
   }, []);
 
+  // Get items to checkout (either buyNow item or cart items)
+  const checkoutItems = buyNowMode && buyNowItem
+    ? [{ id: buyNowItem.product_id, name: buyNowItem.name, price: buyNowItem.price, quantity: buyNowItem.quantity }]
+    : cart.items;
+
   // Calculate subtotal
-  const subtotal = cart.items.reduce(
+  const subtotal = checkoutItems.reduce(
     (sum, item) => sum + parseFloat(item.price) * item.quantity,
     0
   );
@@ -111,12 +121,15 @@ const Checkout = () => {
     }
   }, [searchParams]);
 
-  // Redirect if cart is empty
+  // Redirect if cart is empty (unless in Buy Now mode)
   useEffect(() => {
-    if (cart.items.length === 0) {
+    if (!buyNowMode && cart.items.length === 0) {
       navigate('/cart');
     }
-  }, [cart.items.length, navigate]);
+    if (buyNowMode && !buyNowItem) {
+      navigate('/');
+    }
+  }, [cart.items.length, navigate, buyNowMode, buyNowItem]);
 
   const handlePayment = async (e) => {
     e.preventDefault();
@@ -154,7 +167,16 @@ const Checkout = () => {
     try {
       let orderData;
 
-      if (isAuthenticated) {
+      if (buyNowMode) {
+        // Buy Now mode - always use guest order endpoint with single item
+        const payload = {
+          ...shippingData,
+          guest_email: isAuthenticated ? user?.email : guestEmail,
+          items: [{ product_id: buyNowItem.product_id, quantity: buyNowItem.quantity }],
+          voucher_code: voucherApplied?.code || null
+        };
+        orderData = await api.createGuestOrder(payload);
+      } else if (isAuthenticated) {
         // Authenticated user - use regular order endpoint
         const orderPayload = {
           ...shippingData,
@@ -220,8 +242,8 @@ const Checkout = () => {
     <div className={`cart-summary ${className || ''}`}>
       <h3>Order Summary</h3>
 
-      {cart.items.map((item) => (
-        <div key={item.id} style={{
+      {checkoutItems.map((item, index) => (
+        <div key={item.id || index} style={{
           display: 'flex',
           justifyContent: 'space-between',
           padding: '10px 0',

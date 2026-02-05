@@ -46,16 +46,23 @@ const ProductCard = ({ product }) => {
     }
   };
 
-  const handleBuyNow = async (e) => {
+  const handleBuyNow = (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const result = await addToCart(product.id, 1);
-    if (result.success) {
-      navigate('/checkout');
-    } else {
-      alert(result.error || 'Failed to add to cart');
-    }
+    // Navigate to checkout with just this product
+    navigate('/checkout', {
+      state: {
+        buyNow: true,
+        item: {
+          product_id: product.id,
+          name: product.name,
+          price: parseFloat(product.price),
+          quantity: 1,
+          image_url: product.image_url
+        }
+      }
+    });
   };
 
   const handleWishlist = async (e) => {
