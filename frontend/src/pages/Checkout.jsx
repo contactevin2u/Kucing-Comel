@@ -521,7 +521,7 @@ const Checkout = () => {
           </div>
 
           {/* Order Summary */}
-          <div className="cart-summary">
+          <div className="cart-summary" style={{ position: 'sticky', top: '20px', alignSelf: 'flex-start' }}>
             <h3>Order Summary</h3>
 
             {cart.items.map((item) => (
