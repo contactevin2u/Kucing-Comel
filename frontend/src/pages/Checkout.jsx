@@ -37,7 +37,8 @@ const Checkout = () => {
   const [shippingData, setShippingData] = useState({
     shipping_name: user?.name || '',
     shipping_phone: user?.phone || '',
-    shipping_address: user?.address || ''
+    shipping_address: user?.address || '',
+    shipping_postcode: ''
   });
 
   // Fetch SenangPay config to check mode
@@ -137,6 +138,12 @@ const Checkout = () => {
     // Validate shipping info
     if (!shippingData.shipping_name || !shippingData.shipping_phone || !shippingData.shipping_address) {
       setError('Please fill in all shipping details');
+      return;
+    }
+
+    // Validate postcode (5-digit Malaysian postcode)
+    if (shippingData.shipping_postcode && !/^\d{5}$/.test(shippingData.shipping_postcode)) {
+      setError('Please enter a valid 5-digit Malaysian postcode');
       return;
     }
 
@@ -506,6 +513,24 @@ const Checkout = () => {
                     rows="4"
                     required
                   />
+                </div>
+
+                <div className="form-group">
+                  <label>Postcode</label>
+                  <input
+                    type="text"
+                    value={shippingData.shipping_postcode}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+                      setShippingData({ ...shippingData, shipping_postcode: value });
+                    }}
+                    placeholder="e.g., 50000"
+                    maxLength={5}
+                    pattern="\d{5}"
+                  />
+                  <small style={{ color: '#666', fontSize: '0.8rem' }}>
+                    5-digit Malaysian postcode (optional but recommended for faster delivery)
+                  </small>
                 </div>
               </div>
 

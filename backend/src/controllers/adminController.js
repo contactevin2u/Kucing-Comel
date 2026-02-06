@@ -1207,6 +1207,204 @@ const exportOrders = async (req, res, next) => {
   }
 };
 
+/**
+ * Get orders ready for shipping (paid but not yet shipped, no tracking number)
+ */
+const getShippingOrders = async (req, res, next) => {
+  try {
+    const query = isPostgres
+      ? `SELECT
+          o.*,
+          u.email as user_email,
+          u.name as user_name
+         FROM orders o
+         LEFT JOIN users u ON o.user_id = u.id
+         WHERE o.payment_status = 'paid'
+           AND (o.status = 'pending' OR o.status = 'confirmed' OR o.status = 'processing')
+           AND (o.tracking_number IS NULL OR o.tracking_number = '')
+         ORDER BY o.created_at ASC`
+      : `SELECT
+          o.*,
+          u.email as user_email,
+          u.name as user_name
+         FROM orders o
+         LEFT JOIN users u ON o.user_id = u.id
+         WHERE o.payment_status = 'paid'
+           AND (o.status = 'pending' OR o.status = 'confirmed' OR o.status = 'processing')
+           AND (o.tracking_number IS NULL OR o.tracking_number = '')
+         ORDER BY o.created_at ASC`;
+
+    const ordersResult = await db.query(query);
+
+    // Get items for each order and calculate total weight
+    const orders = [];
+    for (const order of ordersResult.rows) {
+      const itemsQuery = isPostgres
+        ? `SELECT oi.*, p.weight
+           FROM order_items oi
+           LEFT JOIN products p ON oi.product_id = p.id
+           WHERE oi.order_id = $1`
+        : `SELECT oi.*, p.weight
+           FROM order_items oi
+           LEFT JOIN products p ON oi.product_id = p.id
+           WHERE oi.order_id = ?`;
+
+      const itemsResult = await db.query(itemsQuery, [order.id]);
+
+      // Calculate total weight (sum of product weight * quantity)
+      let totalWeight = 0;
+      for (const item of itemsResult.rows) {
+        const weight = parseFloat(item.weight) || 0.5; // Default to 0.5kg if no weight set
+        totalWeight += weight * item.quantity;
+      }
+
+      orders.push({
+        ...order,
+        customer_email: order.user_email || order.guest_email,
+        customer_name: order.shipping_name || order.user_name,
+        items: itemsResult.rows,
+        total_weight: Math.round(totalWeight * 1000) / 1000, // Round to 3 decimal places
+      });
+    }
+
+    res.json({ orders });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get SPX data for a single order (for Chrome extension)
+ */
+const getOrderSpxData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const orderQuery = isPostgres
+      ? `SELECT
+          o.*,
+          u.email as user_email,
+          u.name as user_name
+         FROM orders o
+         LEFT JOIN users u ON o.user_id = u.id
+         WHERE o.id = $1`
+      : `SELECT
+          o.*,
+          u.email as user_email,
+          u.name as user_name
+         FROM orders o
+         LEFT JOIN users u ON o.user_id = u.id
+         WHERE o.id = ?`;
+
+    const orderResult = await db.query(orderQuery, [id]);
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found.' });
+    }
+
+    const order = orderResult.rows[0];
+
+    // Get items with product weights
+    const itemsQuery = isPostgres
+      ? `SELECT oi.*, p.weight
+         FROM order_items oi
+         LEFT JOIN products p ON oi.product_id = p.id
+         WHERE oi.order_id = $1`
+      : `SELECT oi.*, p.weight
+         FROM order_items oi
+         LEFT JOIN products p ON oi.product_id = p.id
+         WHERE oi.order_id = ?`;
+
+    const itemsResult = await db.query(itemsQuery, [id]);
+
+    // Calculate total weight
+    let totalWeight = 0;
+    for (const item of itemsResult.rows) {
+      const weight = parseFloat(item.weight) || 0.5;
+      totalWeight += weight * item.quantity;
+    }
+
+    // Return SPX-specific data format
+    res.json({
+      spxData: {
+        orderId: order.id,
+        receiverName: order.shipping_name,
+        receiverPhone: order.shipping_phone,
+        receiverAddress: order.shipping_address,
+        receiverPostcode: order.shipping_postcode || '',
+        totalWeight: Math.round(totalWeight * 1000) / 1000,
+        items: itemsResult.rows.map(item => ({
+          name: item.product_name,
+          quantity: item.quantity,
+          weight: parseFloat(item.weight) || 0.5,
+        })),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Save tracking number and mark order as shipped
+ */
+const updateOrderTracking = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { tracking_number } = req.body;
+
+    if (!tracking_number || tracking_number.trim() === '') {
+      return res.status(400).json({ error: 'Tracking number is required.' });
+    }
+
+    const updateQuery = isPostgres
+      ? `UPDATE orders
+         SET tracking_number = $1, status = 'shipped', updated_at = CURRENT_TIMESTAMP
+         WHERE id = $2
+         RETURNING *`
+      : `UPDATE orders
+         SET tracking_number = ?, status = 'shipped', updated_at = datetime('now')
+         WHERE id = ?`;
+
+    const result = await db.query(updateQuery, [tracking_number.trim(), id]);
+
+    let updatedOrder;
+    if (isPostgres) {
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found.' });
+      }
+      updatedOrder = result.rows[0];
+    } else {
+      const fetchResult = await db.query('SELECT * FROM orders WHERE id = ?', [id]);
+      if (fetchResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found.' });
+      }
+      updatedOrder = fetchResult.rows[0];
+    }
+
+    // Get order items
+    const itemsResult = await db.query(
+      isPostgres
+        ? 'SELECT * FROM order_items WHERE order_id = $1'
+        : 'SELECT * FROM order_items WHERE order_id = ?',
+      [id]
+    );
+
+    const financials = calculateOrderFinancials(updatedOrder);
+
+    res.json({
+      message: 'Order marked as shipped with tracking number.',
+      order: {
+        ...updatedOrder,
+        items: itemsResult.rows,
+        financials,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getDashboardSummary,
   getDailyStats,
@@ -1224,4 +1422,7 @@ module.exports = {
   getFeeConfig,
   getAllCustomers,
   exportOrders,
+  getShippingOrders,
+  getOrderSpxData,
+  updateOrderTracking,
 };

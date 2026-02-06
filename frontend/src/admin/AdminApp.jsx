@@ -8,6 +8,7 @@ import AdminOrderDetail from './pages/AdminOrderDetail';
 import AdminCustomers from './pages/AdminCustomers';
 import AdminSettings from './pages/AdminSettings';
 import AdminVouchers from './pages/AdminVouchers';
+import AdminShipping from './pages/AdminShipping';
 import './admin.css';
 
 // Add noindex meta tag for admin pages (prevent search engine indexing)
@@ -146,6 +147,20 @@ const AdminLayout = () => {
           </Link>
 
           <Link
+            to="/admin/shipping"
+            className={`nav-item ${isActive('/admin/shipping') ? 'active' : ''}`}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="1" y="3" width="15" height="13" rx="2" />
+              <path d="M16 8h4l3 3v5a2 2 0 01-2 2h-1" />
+              <circle cx="5.5" cy="18.5" r="2.5" />
+              <circle cx="18.5" cy="18.5" r="2.5" />
+              <path d="M8 18.5h8" />
+            </svg>
+            Shipping
+          </Link>
+
+          <Link
             to="/admin/customers"
             className={`nav-item ${isActive('/admin/customers') ? 'active' : ''}`}
           >
@@ -253,6 +268,7 @@ const AdminApp = () => {
           <Route path="drilldown" element={<AdminDrilldown />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="orders/:id" element={<AdminOrderDetail />} />
+          <Route path="shipping" element={<AdminShipping />} />
           <Route path="customers" element={<AdminCustomers />} />
           <Route path="vouchers" element={<AdminVouchers />} />
           <Route path="settings" element={<AdminSettings />} />

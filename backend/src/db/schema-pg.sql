@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS products (
     image_url VARCHAR(500),
     category VARCHAR(100),
     stock INTEGER DEFAULT 0,
+    weight DECIMAL(6, 3) DEFAULT 0.5,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -64,6 +65,8 @@ CREATE TABLE IF NOT EXISTS orders (
     shipping_name VARCHAR(255),
     shipping_address TEXT,
     shipping_phone VARCHAR(20),
+    shipping_postcode VARCHAR(10),
+    tracking_number VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

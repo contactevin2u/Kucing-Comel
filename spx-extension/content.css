@@ -1,0 +1,151 @@
+/* SPX Extension Status Indicator Styles */
+
+#spx-status-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 999999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  min-width: 280px;
+  max-width: 350px;
+  overflow: hidden;
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+#spx-status-indicator.spx-ready {
+  border-color: #FF5722;
+}
+
+#spx-status-indicator.spx-success {
+  border-color: #4CAF50;
+}
+
+#spx-status-indicator.spx-error {
+  border-color: #f44336;
+}
+
+.spx-status-content {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+.spx-status-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.spx-status-icon svg {
+  width: 18px;
+  height: 18px;
+  color: #666;
+}
+
+#spx-status-indicator.spx-ready .spx-status-icon {
+  background: #FFF3E0;
+}
+
+#spx-status-indicator.spx-ready .spx-status-icon svg {
+  color: #FF5722;
+}
+
+#spx-status-indicator.spx-success .spx-status-icon {
+  background: #E8F5E9;
+}
+
+#spx-status-indicator.spx-success .spx-status-icon svg {
+  color: #4CAF50;
+}
+
+#spx-status-indicator.spx-error .spx-status-icon {
+  background: #FFEBEE;
+}
+
+#spx-status-indicator.spx-error .spx-status-icon svg {
+  color: #f44336;
+}
+
+.spx-status-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spx-status-text strong {
+  font-weight: 600;
+  color: #333;
+}
+
+.spx-status-message {
+  color: #666;
+  font-size: 12px;
+}
+
+.spx-close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.spx-close-btn:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.spx-actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+}
+
+.spx-btn {
+  flex: 1;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.spx-btn-fill {
+  background: #FF5722;
+  color: #fff;
+}
+
+.spx-btn-fill:hover {
+  background: #E64A19;
+}
+
+.spx-btn-clear {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.spx-btn-clear:hover {
+  background: #e0e0e0;
+}
