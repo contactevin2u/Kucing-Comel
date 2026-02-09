@@ -32,13 +32,17 @@ const getFrontendOrigin = () => {
 const allowedOrigins = [
   getFrontendOrigin(),
   'https://kucing-comel-frontend.onrender.com',
+  'https://frontend-aa-alive.vercel.app',
   'http://localhost:3000',
   'http://localhost:3001'
 ].filter(Boolean);
 
+// Also allow any *.vercel.app preview deployments
+const isVercelPreview = (origin) => origin && /^https:\/\/frontend-[\w-]+\.vercel\.app$/.test(origin);
+
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || isVercelPreview(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
