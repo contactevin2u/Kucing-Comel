@@ -7,6 +7,7 @@ const AdminShipping = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [trackingInputs, setTrackingInputs] = useState({});
+  const [courierInputs, setCourierInputs] = useState({});
   const [savingTracking, setSavingTracking] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -46,8 +47,16 @@ const AdminShipping = () => {
     }));
   };
 
+  const handleCourierChange = (orderId, value) => {
+    setCourierInputs(prev => ({
+      ...prev,
+      [orderId]: value,
+    }));
+  };
+
   const handleMarkShipped = async (orderId) => {
     const trackingNumber = trackingInputs[orderId];
+    const courierName = courierInputs[orderId] || 'SPX Express';
 
     if (!trackingNumber || trackingNumber.trim() === '') {
       alert('Please enter a tracking number');
@@ -63,7 +72,10 @@ const AdminShipping = () => {
           'Authorization': `Bearer ${getToken()}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ tracking_number: trackingNumber.trim() }),
+        body: JSON.stringify({
+          tracking_number: trackingNumber.trim(),
+          courier_name: courierName,
+        }),
       });
 
       if (!response.ok) {
@@ -78,7 +90,12 @@ const AdminShipping = () => {
         delete newInputs[orderId];
         return newInputs;
       });
-      setSuccessMessage(`Order #${orderId} marked as shipped!`);
+      setCourierInputs(prev => {
+        const newInputs = { ...prev };
+        delete newInputs[orderId];
+        return newInputs;
+      });
+      setSuccessMessage(`Order #${orderId} marked as shipped via ${courierName}!`);
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       alert(`Error: ${err.message}`);
@@ -234,7 +251,25 @@ const AdminShipping = () => {
                     </span>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: 4, minWidth: 200 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 240 }}>
+                      <select
+                        value={courierInputs[order.id] || 'SPX Express'}
+                        onChange={(e) => handleCourierChange(order.id, e.target.value)}
+                        style={{
+                          padding: '8px 10px',
+                          border: '1px solid #ddd',
+                          borderRadius: 6,
+                          fontSize: '0.9rem',
+                          background: '#fff',
+                        }}
+                      >
+                        <option value="SPX Express">SPX Express</option>
+                        <option value="J&T Express">J&T Express</option>
+                        <option value="Pos Laju">Pos Laju</option>
+                        <option value="DHL eCommerce">DHL eCommerce</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      <div style={{ display: 'flex', gap: 4 }}>
                         <input
                           type="text"
                           placeholder="Tracking #"
@@ -264,6 +299,7 @@ const AdminShipping = () => {
                         >
                           {savingTracking[order.id] ? '...' : 'Ship'}
                         </button>
+                      </div>
                     </div>
                   </td>
                 </tr>

@@ -1351,7 +1351,7 @@ const getOrderSpxData = async (req, res, next) => {
 const updateOrderTracking = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { tracking_number } = req.body;
+    const { tracking_number, courier_name = 'SPX Express' } = req.body;
 
     if (!tracking_number || tracking_number.trim() === '') {
       return res.status(400).json({ error: 'Tracking number is required.' });
@@ -1359,14 +1359,14 @@ const updateOrderTracking = async (req, res, next) => {
 
     const updateQuery = isPostgres
       ? `UPDATE orders
-         SET tracking_number = $1, status = 'shipped', updated_at = CURRENT_TIMESTAMP
-         WHERE id = $2
+         SET tracking_number = $1, courier_name = $2, status = 'shipped', updated_at = CURRENT_TIMESTAMP
+         WHERE id = $3
          RETURNING *`
       : `UPDATE orders
-         SET tracking_number = ?, status = 'shipped', updated_at = datetime('now')
+         SET tracking_number = ?, courier_name = ?, status = 'shipped', updated_at = datetime('now')
          WHERE id = ?`;
 
-    const result = await db.query(updateQuery, [tracking_number.trim(), id]);
+    const result = await db.query(updateQuery, [tracking_number.trim(), courier_name, id]);
 
     let updatedOrder;
     if (isPostgres) {
@@ -1391,6 +1391,21 @@ const updateOrderTracking = async (req, res, next) => {
     );
 
     const financials = calculateOrderFinancials(updatedOrder);
+
+    // Send shipping notification email (don't fail the API if email fails)
+    try {
+      const { sendShippingNotification, getOrderDetailsForEmail } = require('../services/emailService');
+      const orderDetails = await getOrderDetailsForEmail(db, id);
+      if (orderDetails && orderDetails.email) {
+        await sendShippingNotification({
+          ...orderDetails,
+          trackingNumber: tracking_number.trim(),
+          courierName: courier_name,
+        });
+      }
+    } catch (emailError) {
+      console.error(`[EMAIL] Failed to send shipping notification for order #${id}:`, emailError.message);
+    }
 
     res.json({
       message: 'Order marked as shipped with tracking number.',
