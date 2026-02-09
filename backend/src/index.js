@@ -33,6 +33,7 @@ const allowedOrigins = [
   getFrontendOrigin(),
   'https://kucing-comel-frontend.onrender.com',
   'https://frontend-aa-alive.vercel.app',
+  'https://kucing-comel.vercel.app',
   'http://localhost:3000',
   'http://localhost:3001'
 ].filter(Boolean);
