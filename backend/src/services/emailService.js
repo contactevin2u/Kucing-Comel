@@ -117,7 +117,7 @@ const sendOrderConfirmation = async (orderData) => {
           <tfoot>
             <tr>
               <td colspan="2" style="padding: 15px 10px; text-align: right; font-weight: bold;">Total:</td>
-              <td style="padding: 15px 10px; text-align: right; font-weight: bold; color: #FF6B6B;">RM ${parseFloat(totalAmount).toFixed(2)}</td>
+              <td style="padding: 15px 10px; text-align: right; font-weight: bold;">RM ${parseFloat(totalAmount).toFixed(2)}</td>
             </tr>
           </tfoot>
         </table>
