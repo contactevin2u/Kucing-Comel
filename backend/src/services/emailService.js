@@ -87,7 +87,7 @@ const sendOrderConfirmation = async (orderData) => {
     </head>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #FF6B6B; margin: 0;">PetPals Hub</h1>
+        <h1 style="color: #000; margin: 0;">PetPals Hub</h1>
         <p style="color: #666; margin: 5px 0;">Your one-stop shop for pet products</p>
       </div>
 
@@ -253,7 +253,7 @@ const sendShippingNotification = async (orderData) => {
     </head>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #FF6B6B; margin: 0;">PetPals Hub</h1>
+        <h1 style="color: #000; margin: 0;">PetPals Hub</h1>
         <p style="color: #666; margin: 5px 0;">Your one-stop shop for pet products</p>
       </div>
 
