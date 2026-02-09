@@ -77,6 +77,16 @@ async function initializeDatabase() {
           console.log('Voucher columns may already exist');
         }
 
+        // Add SPX shipping columns
+        try {
+          await db.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS weight DECIMAL(6,3) DEFAULT 0.5`);
+          await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_postcode VARCHAR(10)`);
+          await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_number VARCHAR(50)`);
+          console.log('SPX shipping columns ensured');
+        } catch (e) {
+          console.log('SPX shipping columns may already exist');
+        }
+
         // Create vouchers table
         try {
           await db.query(`
@@ -253,6 +263,17 @@ async function initializeDatabase() {
         } catch (e) { /* column exists */ }
         try {
           db.db.exec(`ALTER TABLE orders ADD COLUMN voucher_discount REAL DEFAULT 0`);
+        } catch (e) { /* column exists */ }
+
+        // Add SPX shipping columns for SQLite
+        try {
+          db.db.exec(`ALTER TABLE products ADD COLUMN weight DECIMAL(6,3) DEFAULT 0.5`);
+        } catch (e) { /* column exists */ }
+        try {
+          db.db.exec(`ALTER TABLE orders ADD COLUMN shipping_postcode VARCHAR(10)`);
+        } catch (e) { /* column exists */ }
+        try {
+          db.db.exec(`ALTER TABLE orders ADD COLUMN tracking_number VARCHAR(50)`);
         } catch (e) { /* column exists */ }
 
         // Create vouchers table for SQLite
