@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAdminAuth } from '../AdminApp';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -38,13 +38,48 @@ const AdminProducts = () => {
     is_active: true
   });
 
-  useEffect(() => {
-    fetchProducts();
+  const refreshRef = useRef(null);
 
-    // Auto-refresh every 10 seconds so all users see changes
+  const refreshProducts = useCallback(async () => {
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_URL}/api/admin/products`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      setProducts(data.products);
+    } catch {
+      // Silently ignore — next poll will retry
+    }
+  }, [getToken]);
+
+  refreshRef.current = refreshProducts;
+
+  useEffect(() => {
+    // Initial load with spinner
+    const loadInitial = async () => {
+      try {
+        setLoading(true);
+        const token = getToken();
+        const response = await fetch(`${API_URL}/api/admin/products`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch products');
+        const data = await response.json();
+        setProducts(data.products);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadInitial();
+
+    // Auto-refresh every 5 seconds so all users see changes
     const interval = setInterval(() => {
-      refreshProducts();
-    }, 10000);
+      refreshRef.current?.();
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);
@@ -53,42 +88,6 @@ const AdminProducts = () => {
     const cats = [...new Set(products.map(p => p.category).filter(Boolean))];
     setCategories(cats.sort());
   }, [products]);
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const token = getToken();
-      const response = await fetch(`${API_URL}/api/admin/products`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch products');
-
-      const data = await response.json();
-      setProducts(data.products);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Silent refresh — no loading spinner, no error flash
-  const refreshProducts = async () => {
-    try {
-      const token = getToken();
-      const response = await fetch(`${API_URL}/api/admin/products`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (!response.ok) return;
-
-      const data = await response.json();
-      setProducts(data.products);
-    } catch {
-      // Silently ignore — next poll will retry
-    }
-  };
 
   const fetchProductDetail = async (id) => {
     try {
@@ -187,7 +186,7 @@ const AdminProducts = () => {
       }
 
       setShowModal(false);
-      fetchProducts();
+      refreshProducts();
     } catch (err) {
       setFormError(err.message);
     } finally {
@@ -205,7 +204,7 @@ const AdminProducts = () => {
 
       if (!response.ok) throw new Error('Failed to toggle product status');
 
-      fetchProducts();
+      refreshProducts();
     } catch (err) {
       setError(err.message);
     }
@@ -225,7 +224,7 @@ const AdminProducts = () => {
 
       if (!response.ok) throw new Error('Failed to delete product');
 
-      fetchProducts();
+      refreshProducts();
     } catch (err) {
       setError(err.message);
     }
