@@ -31,6 +31,7 @@ const getFrontendOrigin = () => {
 
 const allowedOrigins = [
   getFrontendOrigin(),
+  'https://kucingcomel.my',
   'https://kucing-comel-frontend.onrender.com',
   'https://frontend-aa-alive.vercel.app',
   'https://kucing-comel.vercel.app',
