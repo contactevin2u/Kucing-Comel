@@ -202,7 +202,7 @@ const AdminDashboard = () => {
 
   // Change indicator component
   const ChangeIndicator = ({ value, suffix = '%' }) => {
-    if (value === 0) return <span style={{ color: 'var(--admin-text-muted)', fontSize: '12px' }}>No change</span>;
+    if (value === 0) return <span style={{ color: '#475569', fontSize: '12px' }}>No change</span>;
     const isPositive = value > 0;
     return (
       <span style={{
@@ -220,18 +220,18 @@ const AdminDashboard = () => {
   // Comparison card component
   const ComparisonCard = ({ title, current, previous, currentLabel, previousLabel }) => (
     <div className="admin-card" style={{ padding: '20px' }}>
-      <h3 style={{ margin: '0 0 16px 0', fontSize: '14px', color: 'var(--admin-text-muted)', fontWeight: '500' }}>
+      <h3 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#475569', fontWeight: '500' }}>
         {title}
       </h3>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         <div>
-          <div style={{ fontSize: '11px', color: 'var(--admin-text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '11px', color: '#475569', marginBottom: '4px', textTransform: 'uppercase' }}>
             {currentLabel}
           </div>
           <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--admin-text)' }}>
             {formatCurrency(current.revenue)}
           </div>
-          <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
+          <div style={{ fontSize: '13px', color: '#475569', marginTop: '4px' }}>
             {current.orders} orders
           </div>
           {current.revenueChange !== undefined && (
@@ -241,13 +241,13 @@ const AdminDashboard = () => {
           )}
         </div>
         <div style={{ borderLeft: '1px solid var(--admin-border)', paddingLeft: '16px' }}>
-          <div style={{ fontSize: '11px', color: 'var(--admin-text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '11px', color: '#475569', marginBottom: '4px', textTransform: 'uppercase' }}>
             {previousLabel}
           </div>
-          <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--admin-text-muted)' }}>
+          <div style={{ fontSize: '24px', fontWeight: '700', color: '#475569' }}>
             {formatCurrency(previous.revenue)}
           </div>
-          <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
+          <div style={{ fontSize: '13px', color: '#475569', marginTop: '4px' }}>
             {previous.orders} orders
           </div>
         </div>
@@ -288,7 +288,7 @@ const AdminDashboard = () => {
                 }}
                 title={`${formatPeriodLabel(dateValue, period)}: ${formatCurrency(item.revenue)} (${item.orders} orders)`}
               />
-              <span style={{ fontSize: '9px', color: 'var(--admin-text-muted)', transform: 'rotate(-45deg)', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '9px', color: '#475569', transform: 'rotate(-45deg)', whiteSpace: 'nowrap' }}>
                 {formatShortPeriodLabel(dateValue, period)}
               </span>
             </div>
@@ -483,7 +483,7 @@ const AdminDashboard = () => {
                 padding: '8px 12px',
                 borderRadius: '6px',
                 border: '1px solid var(--admin-border)',
-                background: 'var(--admin-card-bg)',
+                background: '#ffffff',
                 color: 'var(--admin-text)',
                 fontSize: '13px',
                 cursor: 'pointer',
@@ -507,7 +507,7 @@ const AdminDashboard = () => {
                 padding: '8px 12px',
                 borderRadius: '6px',
                 border: '1px solid var(--admin-border)',
-                background: 'var(--admin-card-bg)',
+                background: '#ffffff',
                 color: 'var(--admin-text)',
                 fontSize: '13px',
                 cursor: 'pointer',
@@ -527,18 +527,18 @@ const AdminDashboard = () => {
       {/* Period Comparison Summary */}
       {periodSummary && (
         <div className="admin-card" style={{ marginBottom: '24px', padding: '20px' }}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: '14px', color: 'var(--admin-text-muted)', fontWeight: '500' }}>
+          <h3 style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#475569', fontWeight: '500' }}>
             Period Comparison
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
             <div>
-              <div style={{ fontSize: '11px', color: 'var(--admin-text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '11px', color: '#475569', marginBottom: '4px', textTransform: 'uppercase' }}>
                 {getPeriodTitle()}
               </div>
               <div style={{ fontSize: '28px', fontWeight: '700', color: 'var(--admin-text)' }}>
                 {formatCurrency(periodSummary.current.revenue)}
               </div>
-              <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
+              <div style={{ fontSize: '13px', color: '#475569', marginTop: '4px' }}>
                 {periodSummary.current.orders} orders ({periodSummary.current.paidOrders} paid)
               </div>
               {periodSummary.previous.revenue > 0 && (
@@ -550,13 +550,13 @@ const AdminDashboard = () => {
               )}
             </div>
             <div style={{ borderLeft: '1px solid var(--admin-border)', paddingLeft: '24px' }}>
-              <div style={{ fontSize: '11px', color: 'var(--admin-text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '11px', color: '#475569', marginBottom: '4px', textTransform: 'uppercase' }}>
                 {getPreviousPeriodLabel()}
               </div>
-              <div style={{ fontSize: '28px', fontWeight: '700', color: 'var(--admin-text-muted)' }}>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: '#475569' }}>
                 {formatCurrency(periodSummary.previous.revenue)}
               </div>
-              <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginTop: '4px' }}>
+              <div style={{ fontSize: '13px', color: '#475569', marginTop: '4px' }}>
                 {periodSummary.previous.orders} orders ({periodSummary.previous.paidOrders} paid)
               </div>
             </div>
@@ -571,27 +571,27 @@ const AdminDashboard = () => {
             <h2>{selectedPeriod === 'monthly' ? 'Daily' : 'Monthly'} Breakdown</h2>
           </div>
           <SimpleBarChart data={periodStats} period={selectedPeriod === 'monthly' ? 'daily' : 'monthly'} maxBars={selectedPeriod === 'yearly' ? 12 : 31} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', padding: '16px', background: 'var(--admin-bg)', borderRadius: '8px', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '24px', padding: '16px', background: '#ffffff', borderRadius: '8px', flexWrap: 'wrap', gap: '16px', border: '1px solid #e2e8f0' }}>
             <div>
-              <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>Total Revenue</div>
+              <div style={{ fontSize: '12px', color: '#475569' }}>Total Revenue</div>
               <div style={{ fontSize: '20px', fontWeight: '700' }}>
                 {formatCurrency(periodStats.reduce((sum, d) => sum + d.revenue, 0))}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>Average {selectedPeriod === 'monthly' ? 'Daily' : 'Monthly'}</div>
+              <div style={{ fontSize: '12px', color: '#475569' }}>Average {selectedPeriod === 'monthly' ? 'Daily' : 'Monthly'}</div>
               <div style={{ fontSize: '20px', fontWeight: '700' }}>
                 {formatCurrency(periodStats.reduce((sum, d) => sum + d.revenue, 0) / Math.max(periodStats.length, 1))}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>Total Orders</div>
+              <div style={{ fontSize: '12px', color: '#475569' }}>Total Orders</div>
               <div style={{ fontSize: '20px', fontWeight: '700' }}>
                 {periodStats.reduce((sum, d) => sum + d.orders, 0)}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>Best {selectedPeriod === 'monthly' ? 'Day' : 'Month'}</div>
+              <div style={{ fontSize: '12px', color: '#475569' }}>Best {selectedPeriod === 'monthly' ? 'Day' : 'Month'}</div>
               <div style={{ fontSize: '20px', fontWeight: '700' }}>
                 {formatCurrency(Math.max(...periodStats.map(d => d.revenue), 0))}
               </div>
@@ -678,7 +678,7 @@ const AdminDashboard = () => {
                     <td><strong>#{order.id}</strong></td>
                     <td>
                       <div>{order.customer_name}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>
+                      <div style={{ fontSize: '12px', color: '#475569' }}>
                         {order.customer_email}
                       </div>
                     </td>

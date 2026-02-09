@@ -152,7 +152,7 @@ const AdminDrilldown = () => {
         <Link to="/admin" style={{ color: 'var(--admin-primary)', textDecoration: 'none' }}>
           Dashboard
         </Link>
-        <span style={{ margin: '0 8px', color: 'var(--admin-text-muted)' }}>/</span>
+        <span style={{ margin: '0 8px', color: '#475569' }}>/</span>
         <span style={{ color: 'var(--admin-text)' }}>{config.title}</span>
       </nav>
 
@@ -180,7 +180,7 @@ const AdminDrilldown = () => {
             {metric === 'total_orders' && (
               <>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Total Orders
                   </div>
                   <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--admin-text)' }}>
@@ -188,7 +188,7 @@ const AdminDrilldown = () => {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Paid
                   </div>
                   <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--admin-success)' }}>
@@ -196,7 +196,7 @@ const AdminDrilldown = () => {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Unpaid
                   </div>
                   <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--admin-warning)' }}>
@@ -209,7 +209,7 @@ const AdminDrilldown = () => {
             {metric === 'total_revenue' && (
               <>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Total Revenue
                   </div>
                   <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--admin-success)' }}>
@@ -217,7 +217,7 @@ const AdminDrilldown = () => {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Orders
                   </div>
                   <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--admin-text)' }}>
@@ -225,7 +225,7 @@ const AdminDrilldown = () => {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Avg. Order Value
                   </div>
                   <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--admin-text)' }}>
@@ -238,7 +238,7 @@ const AdminDrilldown = () => {
             {metric === 'net_earnings' && (
               <>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Net Earnings
                   </div>
                   <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--admin-success)' }}>
@@ -246,7 +246,7 @@ const AdminDrilldown = () => {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Total Revenue
                   </div>
                   <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--admin-text)' }}>
@@ -254,7 +254,7 @@ const AdminDrilldown = () => {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Total Fees
                   </div>
                   <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--admin-danger)' }}>
@@ -262,7 +262,7 @@ const AdminDrilldown = () => {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Orders
                   </div>
                   <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--admin-text)' }}>
@@ -275,7 +275,7 @@ const AdminDrilldown = () => {
             {metric === 'total_fees' && (
               <>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Total Fees Paid
                   </div>
                   <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--admin-danger)' }}>
@@ -283,7 +283,7 @@ const AdminDrilldown = () => {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Total Revenue
                   </div>
                   <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--admin-text)' }}>
@@ -291,7 +291,7 @@ const AdminDrilldown = () => {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Fee %
                   </div>
                   <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--admin-text)' }}>
@@ -299,7 +299,7 @@ const AdminDrilldown = () => {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', marginBottom: '4px' }}>
                     Orders
                   </div>
                   <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--admin-text)' }}>
@@ -311,7 +311,7 @@ const AdminDrilldown = () => {
           </div>
 
           {data._meta?.paidOrdersOnly && (
-            <div style={{ marginTop: '16px', padding: '8px 12px', background: 'var(--admin-bg)', borderRadius: '6px', fontSize: '13px', color: 'var(--admin-text-muted)' }}>
+            <div style={{ marginTop: '16px', padding: '8px 12px', background: '#ffffff', borderRadius: '6px', fontSize: '13px', color: '#475569', border: '1px solid #e2e8f0' }}>
               Only paid orders are included in this calculation
             </div>
           )}
@@ -322,7 +322,7 @@ const AdminDrilldown = () => {
       {metric === 'total_orders' && (
         <div className="admin-card" style={{ marginBottom: '24px', padding: '16px' }}>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span style={{ fontSize: '13px', color: 'var(--admin-text-muted)', marginRight: '8px' }}>Filter:</span>
+            <span style={{ fontSize: '13px', color: '#475569', marginRight: '8px' }}>Filter:</span>
             {['', 'paid', 'pending', 'failed'].map((status) => (
               <button
                 key={status || 'all'}
@@ -400,7 +400,7 @@ const AdminDrilldown = () => {
                     <td><strong>#{order.id}</strong></td>
                     <td>
                       <div style={{ fontWeight: '500' }}>{order.customer_name}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>
+                      <div style={{ fontSize: '12px', color: '#475569' }}>
                         {order.customer_email}
                       </div>
                     </td>

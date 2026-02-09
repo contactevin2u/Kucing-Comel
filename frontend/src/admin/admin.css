@@ -13,9 +13,10 @@
   --admin-sidebar: #1e293b;
   --admin-sidebar-hover: #334155;
   --admin-card: #ffffff;
+  --admin-card-bg: #ffffff;
   --admin-border: #e2e8f0;
   --admin-text: #1e293b;
-  --admin-text-muted: #64748b;
+  --admin-text-muted: #475569;
   --admin-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   --admin-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   --admin-radius: 8px;
@@ -562,10 +563,10 @@
 .admin-table th {
   font-size: 12px;
   font-weight: 600;
-  color: var(--admin-text-muted);
+  color: var(--admin-text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: var(--admin-bg);
+  background: #ffffff;
 }
 
 .admin-table td {
@@ -662,7 +663,7 @@
 }
 
 .btn-secondary {
-  background: var(--admin-bg);
+  background: #ffffff;
   color: var(--admin-text);
   border: 1px solid var(--admin-border);
 }
@@ -981,7 +982,7 @@
 .fee-table th {
   font-size: 12px;
   font-weight: 600;
-  color: var(--admin-text-muted);
+  color: var(--admin-text);
   text-transform: uppercase;
 }
 

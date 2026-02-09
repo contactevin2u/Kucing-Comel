@@ -173,7 +173,7 @@ const AdminCustomers = () => {
                         </div>
                         <div>
                           <div style={{ fontWeight: '500' }}>{customer.name}</div>
-                          <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>
+                          <div style={{ fontSize: '12px', color: '#475569' }}>
                             ID: {customer.id}
                           </div>
                         </div>
@@ -181,7 +181,7 @@ const AdminCustomers = () => {
                     </td>
                     <td>
                       <div>{customer.email}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>
+                      <div style={{ fontSize: '12px', color: '#475569' }}>
                         {customer.phone || 'No phone'}
                       </div>
                     </td>

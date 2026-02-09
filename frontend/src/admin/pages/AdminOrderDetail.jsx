@@ -241,7 +241,7 @@ const AdminOrderDetail = () => {
 
             <div className="status-update-section" style={{ flexDirection: 'column', gap: '12px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--admin-text-muted)' }}>
+                <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: '#475569' }}>
                   Order Status
                 </label>
                 <select
@@ -259,7 +259,7 @@ const AdminOrderDetail = () => {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--admin-text-muted)' }}>
+                <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: '#475569' }}>
                   Payment Status
                 </label>
                 <select
@@ -315,7 +315,7 @@ const AdminOrderDetail = () => {
               </div>
 
               <div style={{ margin: '16px 0', paddingTop: '16px', borderTop: '1px dashed var(--admin-border)' }}>
-                <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginBottom: '8px', fontWeight: '600' }}>
+                <div style={{ fontSize: '12px', color: '#475569', marginBottom: '8px', fontWeight: '600' }}>
                   FEES DEDUCTED
                 </div>
               </div>
@@ -353,7 +353,7 @@ const AdminOrderDetail = () => {
           {/* Quick Info */}
           <div className="admin-card order-section">
             <h3>Fee Calculation Details</h3>
-            <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', lineHeight: '1.6' }}>
+            <div style={{ fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
               <p style={{ margin: '0 0 8px 0' }}>
                 <strong>Payment Method:</strong> {financials?.senangPayFeeType}
               </p>

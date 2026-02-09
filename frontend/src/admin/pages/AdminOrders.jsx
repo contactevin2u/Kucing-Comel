@@ -233,7 +233,7 @@ const AdminOrders = () => {
                       <td style={{ whiteSpace: 'nowrap' }}>{formatDate(order.created_at)}</td>
                       <td>
                         <div style={{ fontWeight: '500' }}>{order.customer_name}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>
+                        <div style={{ fontSize: '12px', color: '#475569' }}>
                           {order.customer_email}
                         </div>
                       </td>

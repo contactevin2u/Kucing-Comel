@@ -229,7 +229,7 @@ const AdminVouchers = () => {
 
       <div className="admin-card">
         {vouchers.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--admin-text-muted)' }}>
+          <div style={{ textAlign: 'center', padding: '40px', color: '#1e293b' }}>
             <p>No vouchers created yet.</p>
             <p>Click "Create Voucher" to add your first discount code.</p>
           </div>
@@ -259,7 +259,7 @@ const AdminVouchers = () => {
                         ? `RM ${parseFloat(voucher.discount_amount).toFixed(2)}`
                         : `${voucher.discount_amount}%`}
                       {voucher.discount_type === 'percentage' && voucher.max_discount && (
-                        <span style={{ fontSize: '12px', color: 'var(--admin-text-muted)', display: 'block' }}>
+                        <span style={{ fontSize: '12px', color: '#475569', display: 'block' }}>
                           Max: RM {parseFloat(voucher.max_discount).toFixed(2)}
                         </span>
                       )}
@@ -520,8 +520,8 @@ const AdminVouchers = () => {
         }
 
         .btn-secondary {
-          background: var(--admin-bg);
-          color: var(--admin-text);
+          background: #ffffff;
+          color: #1e293b;
           border: 1px solid var(--admin-border);
           padding: 10px 20px;
           border-radius: 8px;
@@ -534,12 +534,12 @@ const AdminVouchers = () => {
           padding: 6px;
           border-radius: 6px;
           cursor: pointer;
-          color: var(--admin-text-muted);
+          color: #475569;
         }
 
         .btn-icon:hover {
-          background: var(--admin-bg);
-          color: var(--admin-text);
+          background: #f1f5f9;
+          color: #1e293b;
         }
 
         .btn-icon.btn-danger:hover {
@@ -566,9 +566,10 @@ const AdminVouchers = () => {
 
         .admin-table th {
           font-weight: 600;
-          color: var(--admin-text-muted);
+          color: #1e293b;
           font-size: 12px;
           text-transform: uppercase;
+          background: #ffffff;
         }
 
         .status-badge {
@@ -618,7 +619,8 @@ const AdminVouchers = () => {
         }
 
         .modal-content {
-          background: var(--admin-card-bg);
+          background: #ffffff;
+          color: #1e293b;
           border-radius: 12px;
           width: 90%;
           max-width: 500px;
@@ -644,7 +646,7 @@ const AdminVouchers = () => {
           border: none;
           font-size: 24px;
           cursor: pointer;
-          color: var(--admin-text-muted);
+          color: #1e293b;
         }
 
         .form-group {
@@ -665,8 +667,8 @@ const AdminVouchers = () => {
           border: 1px solid var(--admin-border);
           border-radius: 6px;
           font-size: 14px;
-          background: var(--admin-bg);
-          color: var(--admin-text);
+          background: #ffffff;
+          color: #1e293b;
         }
 
         .form-group input:focus,

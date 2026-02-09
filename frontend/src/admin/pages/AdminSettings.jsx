@@ -71,7 +71,7 @@ const AdminSettings = () => {
         {/* SenangPay Fee Configuration */}
         <div className="admin-card settings-section">
           <h3>SenangPay Fee Structure</h3>
-          <p style={{ color: 'var(--admin-text-muted)', fontSize: '14px', marginBottom: '20px' }}>
+          <p style={{ color: '#475569', fontSize: '14px', marginBottom: '20px' }}>
             These are the official SenangPay fees for Malaysia. Fees are automatically calculated for each order.
             To update these rates, edit <code>backend/src/config/fees.js</code>.
           </p>
@@ -92,13 +92,13 @@ const AdminSettings = () => {
                     <td>
                       <strong>{config.name}</strong>
                       <br />
-                      <span style={{ fontSize: '12px', color: 'var(--admin-text-muted)' }}>
+                      <span style={{ fontSize: '12px', color: '#475569' }}>
                         Code: {key}
                       </span>
                     </td>
                     <td>{(config.percentage * 100).toFixed(1)}%</td>
                     <td>RM {config.minimum.toFixed(2)}</td>
-                    <td style={{ fontSize: '13px', color: 'var(--admin-text-muted)' }}>
+                    <td style={{ fontSize: '13px', color: '#475569' }}>
                       Whichever is higher
                     </td>
                   </tr>
@@ -111,27 +111,28 @@ const AdminSettings = () => {
         {/* Default Delivery Fee */}
         <div className="admin-card settings-section">
           <h3>Delivery Fee</h3>
-          <p style={{ color: 'var(--admin-text-muted)', fontSize: '14px', marginBottom: '20px' }}>
+          <p style={{ color: '#475569', fontSize: '14px', marginBottom: '20px' }}>
             Default delivery fee applied to all orders. Can be modified per order in the order details page.
           </p>
 
           <div style={{
-            background: 'var(--admin-bg)',
+            background: '#ffffff',
             padding: '20px',
             borderRadius: '8px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            border: '1px solid #e2e8f0'
           }}>
             <div>
-              <div style={{ fontSize: '14px', color: 'var(--admin-text-muted)', marginBottom: '4px' }}>
+              <div style={{ fontSize: '14px', color: '#475569', marginBottom: '4px' }}>
                 Default Delivery Fee
               </div>
               <div style={{ fontSize: '24px', fontWeight: '700' }}>
                 RM {feeConfig?.defaultDeliveryFee?.toFixed(2)}
               </div>
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--admin-text-muted)', textAlign: 'right' }}>
+            <div style={{ fontSize: '13px', color: '#475569', textAlign: 'right' }}>
               To change, edit<br />
               <code>backend/src/config/fees.js</code>
             </div>
@@ -141,7 +142,7 @@ const AdminSettings = () => {
         {/* Net Earnings Formula */}
         <div className="admin-card settings-section">
           <h3>Net Earnings Calculation</h3>
-          <p style={{ color: 'var(--admin-text-muted)', fontSize: '14px', marginBottom: '20px' }}>
+          <p style={{ color: '#475569', fontSize: '14px', marginBottom: '20px' }}>
             Net earnings are calculated automatically for every order using this formula:
           </p>
 
@@ -170,7 +171,7 @@ const AdminSettings = () => {
         {/* API Information */}
         <div className="admin-card settings-section">
           <h3>API Endpoints</h3>
-          <p style={{ color: 'var(--admin-text-muted)', fontSize: '14px', marginBottom: '20px' }}>
+          <p style={{ color: '#475569', fontSize: '14px', marginBottom: '20px' }}>
             Admin API endpoints for integration:
           </p>
 
@@ -179,9 +180,10 @@ const AdminSettings = () => {
               display: 'grid',
               gridTemplateColumns: '100px 1fr',
               gap: '8px 16px',
-              background: 'var(--admin-bg)',
+              background: '#ffffff',
               padding: '16px',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0'
             }}>
               <strong>GET</strong>
               <code>/api/admin/dashboard</code>
