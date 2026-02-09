@@ -21,6 +21,7 @@ const {
   getShippingOrders,
   getOrderSpxData,
   updateOrderTracking,
+  exportSpxExcel,
 } = require('../controllers/adminController');
 const {
   getAllVouchers,
@@ -49,6 +50,7 @@ router.get('/stats/available-periods', getAvailablePeriods);
 router.get('/orders', getAllOrders);
 router.get('/orders/export', exportOrders);
 router.get('/orders/shipping', getShippingOrders);
+router.get('/orders/export-spx', exportSpxExcel);
 router.get('/orders/:id', getOrderById);
 router.get('/orders/:id/spx-data', getOrderSpxData);
 router.patch('/orders/:id/status', updateOrderStatus);

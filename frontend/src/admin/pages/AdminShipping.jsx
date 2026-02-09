@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAdminAuth } from '../AdminApp';
 
-const EXTENSION_ID = 'YOUR_EXTENSION_ID_HERE'; // Update after installing extension
-const SHOPEE_SELLER_URL = 'https://seller.shopee.com.my/portal/logistics/shipment';
+const EXTENSION_ID = 'meobdkpfhbkklhcnmhdhhfogancdpeem';
+const SHOPEE_SELLER_URL = 'https://spx.com.my/spx-admin/single-order/create';
 
 const AdminShipping = () => {
   const { getToken } = useAdminAuth();
@@ -156,13 +156,55 @@ const AdminShipping = () => {
     <div className="admin-page">
       <div className="page-header">
         <h1>Shipping Management</h1>
-        <button onClick={fetchShippingOrders} className="btn-refresh">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16, marginRight: 8 }}>
-            <path d="M23 4v6h-6M1 20v-6h6" />
-            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
-          </svg>
-          Refresh
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={async () => {
+              try {
+                const response = await fetch(`${API_URL}/api/admin/orders/export-spx`, {
+                  headers: { 'Authorization': `Bearer ${getToken()}` },
+                });
+                if (!response.ok) throw new Error('Export failed');
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `spx_orders_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                setSuccessMessage('SPX Excel exported successfully!');
+                setTimeout(() => setSuccessMessage(''), 3000);
+              } catch (err) {
+                alert('Export failed: ' + err.message);
+              }
+            }}
+            className="btn-export-spx"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: '#FF5722',
+              color: '#fff',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: 6,
+              cursor: 'pointer',
+              fontWeight: 500,
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16, marginRight: 8 }}>
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+            </svg>
+            Export SPX Excel
+          </button>
+          <button onClick={fetchShippingOrders} className="btn-refresh">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16, marginRight: 8 }}>
+              <path d="M23 4v6h-6M1 20v-6h6" />
+              <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+            </svg>
+            Refresh
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -178,13 +220,21 @@ const AdminShipping = () => {
       )}
 
       <div className="info-box" style={{ marginBottom: 20, padding: 15, background: '#e3f2fd', borderRadius: 8, fontSize: '0.9rem' }}>
-        <strong>Workflow:</strong>
-        <ol style={{ margin: '10px 0 0 20px', paddingLeft: 0 }}>
-          <li>Click "Create SPX" to save order data and open Shopee Seller Centre</li>
-          <li>The Chrome extension will auto-fill the shipment form (install extension first)</li>
-          <li>Complete the waybill in Shopee and get the tracking number</li>
-          <li>Enter the tracking number here and click "Mark Shipped"</li>
-        </ol>
+        <strong>Workflow Options:</strong>
+        <div style={{ marginTop: 10 }}>
+          <strong>Option A - Mass Order (Recommended for many orders):</strong>
+          <ol style={{ margin: '5px 0 10px 20px', paddingLeft: 0 }}>
+            <li>Click "Export SPX Excel" to download all orders</li>
+            <li>Go to <a href="https://spx.com.my/spx-admin/mass-order/create" target="_blank" rel="noopener noreferrer">SPX Mass Order</a> and upload the Excel file</li>
+            <li>After SPX processes, download tracking numbers and update orders here</li>
+          </ol>
+          <strong>Option B - Single Order:</strong>
+          <ol style={{ margin: '5px 0 0 20px', paddingLeft: 0 }}>
+            <li>Click "Create SPX" per order to open SPX single order page</li>
+            <li>The Chrome extension will auto-fill phone, name (paste address with Ctrl+V)</li>
+            <li>Enter tracking number here and click "Ship"</li>
+          </ol>
+        </div>
       </div>
 
       {orders.length === 0 ? (

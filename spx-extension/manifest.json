@@ -8,7 +8,7 @@
     "activeTab"
   ],
   "host_permissions": [
-    "https://seller.shopee.com.my/*"
+    "https://spx.com.my/*"
   ],
   "externally_connectable": {
     "matches": [
@@ -23,7 +23,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://seller.shopee.com.my/portal/logistics/*"],
+      "matches": ["https://spx.com.my/spx-admin/*"],
       "js": ["content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"
