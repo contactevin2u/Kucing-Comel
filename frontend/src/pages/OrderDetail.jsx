@@ -236,7 +236,11 @@ const OrderDetail = () => {
           </div>
           <div className="summary-row">
             <span>Shipping</span>
-            <span style={{ color: '#27AE60' }}>FREE</span>
+            {parseFloat(order.delivery_fee || 0) > 0 ? (
+              <span>RM {parseFloat(order.delivery_fee).toFixed(2)}</span>
+            ) : (
+              <span style={{ color: '#27AE60' }}>FREE</span>
+            )}
           </div>
           <div className="summary-row summary-total">
             <span>Total</span>

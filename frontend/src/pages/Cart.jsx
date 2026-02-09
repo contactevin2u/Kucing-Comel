@@ -76,12 +76,22 @@ const Cart = () => {
 
             <div className="summary-row">
               <span>Shipping</span>
-              <span style={{ color: '#27AE60' }}>FREE</span>
+              {parseFloat(cart.total) >= 150 ? (
+                <span style={{ color: '#27AE60' }}>FREE</span>
+              ) : (
+                <span>RM 8.00</span>
+              )}
             </div>
+
+            {parseFloat(cart.total) < 150 && (
+              <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
+                Spend RM {(150 - parseFloat(cart.total)).toFixed(2)} more for free shipping
+              </div>
+            )}
 
             <div className="summary-row summary-total">
               <span>Total</span>
-              <span>RM {cart.total}</span>
+              <span>RM {(parseFloat(cart.total) + (parseFloat(cart.total) >= 150 ? 0 : 8)).toFixed(2)}</span>
             </div>
 
             <button

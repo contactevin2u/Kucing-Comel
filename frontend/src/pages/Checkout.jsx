@@ -65,6 +65,9 @@ const Checkout = () => {
     0
   );
 
+  // Delivery fee: free for RM150+, otherwise RM8
+  const deliveryFee = subtotal >= 150 ? 0 : 8;
+
   // Handle voucher application
   const handleApplyVoucher = async () => {
     if (!voucherCode.trim()) {
@@ -180,14 +183,16 @@ const Checkout = () => {
           ...shippingData,
           guest_email: isAuthenticated ? user?.email : guestEmail,
           items: [{ product_id: buyNowItem.product_id, quantity: buyNowItem.quantity }],
-          voucher_code: voucherApplied?.code || null
+          voucher_code: voucherApplied?.code || null,
+          delivery_fee: deliveryFee
         };
         orderData = await api.createGuestOrder(payload);
       } else if (isAuthenticated) {
         // Authenticated user - use regular order endpoint
         const orderPayload = {
           ...shippingData,
-          voucher_code: voucherApplied?.code || null
+          voucher_code: voucherApplied?.code || null,
+          delivery_fee: deliveryFee
         };
         orderData = await api.createOrder(orderPayload);
       } else {
@@ -196,7 +201,8 @@ const Checkout = () => {
           ...shippingData,
           guest_email: guestEmail,
           items: getCartItemsForOrder(),
-          voucher_code: voucherApplied?.code || null
+          voucher_code: voucherApplied?.code || null,
+          delivery_fee: deliveryFee
         };
         orderData = await api.createGuestOrder(payload);
       }
@@ -357,12 +363,22 @@ const Checkout = () => {
 
       <div className="summary-row">
         <span>Shipping</span>
-        <span style={{ color: '#27AE60' }}>FREE</span>
+        {deliveryFee === 0 ? (
+          <span style={{ color: '#27AE60' }}>FREE</span>
+        ) : (
+          <span>RM {deliveryFee.toFixed(2)}</span>
+        )}
       </div>
+
+      {deliveryFee > 0 && (
+        <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
+          Spend RM {(150 - subtotal).toFixed(2)} more for free shipping
+        </div>
+      )}
 
       <div className="summary-row summary-total">
         <span>Total</span>
-        <span>RM {(subtotal - voucherDiscount).toFixed(2)}</span>
+        <span>RM {(subtotal - voucherDiscount + deliveryFee).toFixed(2)}</span>
       </div>
     </div>
   );
@@ -724,7 +740,7 @@ const Checkout = () => {
                   }}
                   disabled={loading || !policyAgreed}
                 >
-                  {loading ? 'Processing...' : `Pay RM ${(subtotal - voucherDiscount).toFixed(2)} with SenangPay`}
+                  {loading ? 'Processing...' : `Pay RM ${(subtotal - voucherDiscount + deliveryFee).toFixed(2)} with SenangPay`}
                 </button>
 
                 <p style={{ marginTop: '20px', fontSize: '0.85rem', color: '#95A5A6', textAlign: 'center' }}>

@@ -93,7 +93,7 @@ const getGuestOrderById = async (req, res, next) => {
 
 const createOrder = async (req, res, next) => {
   try {
-    const { shipping_name, shipping_address, shipping_phone, shipping_postcode, voucher_code, voucher_discount } = req.body;
+    const { shipping_name, shipping_address, shipping_phone, shipping_postcode, voucher_code, voucher_discount, delivery_fee } = req.body;
 
     if (!shipping_name || !shipping_address || !shipping_phone) {
       return res.status(400).json({ error: 'Shipping details are required.' });
@@ -193,11 +193,14 @@ const createOrder = async (req, res, next) => {
 
     const totalAmount = subtotal - appliedVoucherDiscount;
 
+    // Calculate delivery fee: free for RM150+, otherwise RM8
+    const appliedDeliveryFee = delivery_fee !== undefined ? parseFloat(delivery_fee) : (subtotal >= 150 ? 0 : 8);
+
     // Create order
     const orderResult = await db.query(
-      `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone, shipping_postcode, voucher_code, voucher_discount)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-      [req.user.id, totalAmount, shipping_name, shipping_address, shipping_phone, shipping_postcode || null, appliedVoucherCode, appliedVoucherDiscount]
+      `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone, shipping_postcode, voucher_code, voucher_discount, delivery_fee)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+      [req.user.id, totalAmount, shipping_name, shipping_address, shipping_phone, shipping_postcode || null, appliedVoucherCode, appliedVoucherDiscount, appliedDeliveryFee]
     );
     const orderId = orderResult.rows[0].id;
 
@@ -248,7 +251,8 @@ const createGuestOrder = async (req, res, next) => {
       shipping_postcode,
       guest_email,
       items, // Array of { product_id, quantity, variant_id? }
-      voucher_code
+      voucher_code,
+      delivery_fee
     } = req.body;
 
     // Validate required fields
@@ -372,11 +376,14 @@ const createGuestOrder = async (req, res, next) => {
 
     const totalAmount = subtotal - appliedVoucherDiscount;
 
+    // Calculate delivery fee: free for RM150+, otherwise RM8
+    const appliedDeliveryFee = delivery_fee !== undefined ? parseFloat(delivery_fee) : (subtotal >= 150 ? 0 : 8);
+
     // Create order (user_id is NULL for guest)
     const orderResult = await db.query(
-      `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone, shipping_postcode, guest_email, voucher_code, voucher_discount)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
-      [null, totalAmount, shipping_name, shipping_address, shipping_phone, shipping_postcode || null, guest_email.toLowerCase(), appliedVoucherCode, appliedVoucherDiscount]
+      `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone, shipping_postcode, guest_email, voucher_code, voucher_discount, delivery_fee)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+      [null, totalAmount, shipping_name, shipping_address, shipping_phone, shipping_postcode || null, guest_email.toLowerCase(), appliedVoucherCode, appliedVoucherDiscount, appliedDeliveryFee]
     );
     const orderId = orderResult.rows[0].id;
 

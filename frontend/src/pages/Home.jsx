@@ -129,7 +129,7 @@ const Home = () => {
 
             {/* Free Shipping Card */}
             <div className="promo-card teal">
-              <h3>Enjoy FREE shipping when you spend RM100 & above</h3>
+              <h3>Enjoy FREE shipping when you spend RM150 & above</h3>
               <p className="promo-subtext">Buy more, save more with free shipping</p>
               <button onClick={() => productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="btn btn-white btn-sm">BUY NOW</button>
             </div>
