@@ -280,8 +280,7 @@ const updateVariant = async (req, res, next) => {
         price = COALESCE($2, price),
         member_price = $3,
         stock = COALESCE($4, stock),
-        is_active = COALESCE($5, is_active),
-        updated_at = CURRENT_TIMESTAMP
+        is_active = COALESCE($5, is_active)
        WHERE id = $6 AND product_id = $7
        RETURNING *`,
       [
