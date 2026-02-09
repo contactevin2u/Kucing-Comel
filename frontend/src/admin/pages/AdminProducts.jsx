@@ -326,8 +326,8 @@ const AdminProducts = () => {
               padding: '8px 12px',
               borderRadius: '6px',
               border: '1px solid var(--admin-border)',
-              background: 'var(--admin-bg)',
-              color: 'var(--admin-text)',
+              background: '#ffffff',
+              color: '#0f172a',
               fontSize: '14px'
             }}
           >
@@ -493,8 +493,8 @@ const AdminProducts = () => {
                     border: '1px solid var(--admin-border)',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    background: 'var(--admin-bg)',
-                    color: 'var(--admin-text)',
+                    background: '#ffffff',
+                    color: '#0f172a',
                     resize: 'vertical',
                     fontFamily: 'inherit'
                   }}
@@ -691,7 +691,7 @@ const AdminProducts = () => {
                     border: '1px solid var(--admin-primary)',
                     borderRadius: '6px',
                     marginTop: '8px',
-                    background: 'var(--admin-bg)'
+                    background: '#f8fafc'
                   }}>
                     <div className="form-group" style={{ marginBottom: '10px' }}>
                       <label style={{ fontSize: '13px' }}>Variant Name *</label>
@@ -851,6 +851,7 @@ const AdminProducts = () => {
         .admin-table {
           width: 100%;
           border-collapse: collapse;
+          background: #ffffff;
         }
 
         .admin-table th,
@@ -858,13 +859,15 @@ const AdminProducts = () => {
           padding: 12px;
           text-align: left;
           border-bottom: 1px solid var(--admin-border);
+          color: #0f172a;
         }
 
         .admin-table th {
           font-weight: 600;
-          color: #1e293b;
+          color: #0f172a;
           font-size: 12px;
           text-transform: uppercase;
+          background: #ffffff;
         }
 
         .status-badge {
@@ -899,13 +902,14 @@ const AdminProducts = () => {
         }
 
         .modal-content {
-          background: var(--admin-card-bg);
+          background: #ffffff;
           border-radius: 12px;
           width: 90%;
           max-width: 500px;
           max-height: 90vh;
           overflow-y: auto;
           padding: 24px;
+          color: #0f172a;
         }
 
         .modal-header {
@@ -937,6 +941,7 @@ const AdminProducts = () => {
           margin-bottom: 6px;
           font-weight: 500;
           font-size: 14px;
+          color: #0f172a;
         }
 
         .form-group input,
@@ -946,8 +951,8 @@ const AdminProducts = () => {
           border: 1px solid var(--admin-border);
           border-radius: 6px;
           font-size: 14px;
-          background: var(--admin-bg);
-          color: var(--admin-text);
+          background: #ffffff;
+          color: #0f172a;
         }
 
         .form-group input:focus,
