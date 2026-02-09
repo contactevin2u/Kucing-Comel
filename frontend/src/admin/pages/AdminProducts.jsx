@@ -40,6 +40,13 @@ const AdminProducts = () => {
 
   useEffect(() => {
     fetchProducts();
+
+    // Auto-refresh every 10 seconds so all users see changes
+    const interval = setInterval(() => {
+      refreshProducts();
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -63,6 +70,23 @@ const AdminProducts = () => {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Silent refresh — no loading spinner, no error flash
+  const refreshProducts = async () => {
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_URL}/api/admin/products`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      setProducts(data.products);
+    } catch {
+      // Silently ignore — next poll will retry
     }
   };
 
