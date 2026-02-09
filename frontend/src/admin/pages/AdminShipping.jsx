@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAdminAuth } from '../AdminApp';
 
-const EXTENSION_ID = 'meobdkpfhbkklhcnmhdhhfogancdpeem';
-const SHOPEE_SELLER_URL = 'https://spx.com.my/spx-admin/single-order/create';
-
 const AdminShipping = () => {
   const { getToken } = useAdminAuth();
   const [orders, setOrders] = useState([]);
@@ -40,59 +37,6 @@ const AdminShipping = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCreateSpx = async (order) => {
-    try {
-      // Fetch SPX data for the order
-      const response = await fetch(`${API_URL}/api/admin/orders/${order.id}/spx-data`, {
-        headers: {
-          'Authorization': `Bearer ${getToken()}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch SPX data');
-      }
-
-      const data = await response.json();
-      const spxData = data.spxData;
-
-      // Try to send to Chrome extension first
-      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
-        try {
-          chrome.runtime.sendMessage(
-            EXTENSION_ID,
-            { type: 'SPX_ORDER_DATA', data: spxData },
-            (response) => {
-              if (chrome.runtime.lastError) {
-                // Extension not available, fallback to localStorage
-                saveToLocalStorage(spxData);
-              } else if (response && response.success) {
-                setSuccessMessage(`Order #${order.id} data sent to extension`);
-                setTimeout(() => setSuccessMessage(''), 3000);
-              }
-            }
-          );
-        } catch {
-          saveToLocalStorage(spxData);
-        }
-      } else {
-        // Fallback to localStorage for development
-        saveToLocalStorage(spxData);
-      }
-
-      // Open Shopee Seller Centre
-      window.open(SHOPEE_SELLER_URL, '_blank');
-    } catch (err) {
-      alert(`Error: ${err.message}`);
-    }
-  };
-
-  const saveToLocalStorage = (spxData) => {
-    localStorage.setItem('spx_order_data', JSON.stringify(spxData));
-    setSuccessMessage(`Order #${spxData.orderId} data saved. Open Shopee Seller Centre to auto-fill.`);
-    setTimeout(() => setSuccessMessage(''), 5000);
   };
 
   const handleTrackingChange = (orderId, value) => {
@@ -220,21 +164,12 @@ const AdminShipping = () => {
       )}
 
       <div className="info-box" style={{ marginBottom: 20, padding: 15, background: '#e3f2fd', borderRadius: 8, fontSize: '0.9rem' }}>
-        <strong>Workflow Options:</strong>
-        <div style={{ marginTop: 10 }}>
-          <strong>Option A - Mass Order (Recommended for many orders):</strong>
-          <ol style={{ margin: '5px 0 10px 20px', paddingLeft: 0 }}>
-            <li>Click "Export SPX Excel" to download all orders</li>
-            <li>Go to <a href="https://spx.com.my/spx-admin/mass-order/create" target="_blank" rel="noopener noreferrer">SPX Mass Order</a> and upload the Excel file</li>
-            <li>After SPX processes, download tracking numbers and update orders here</li>
-          </ol>
-          <strong>Option B - Single Order:</strong>
-          <ol style={{ margin: '5px 0 0 20px', paddingLeft: 0 }}>
-            <li>Click "Create SPX" per order to open SPX single order page</li>
-            <li>The Chrome extension will auto-fill phone, name (paste address with Ctrl+V)</li>
-            <li>Enter tracking number here and click "Ship"</li>
-          </ol>
-        </div>
+        <strong>Workflow:</strong>
+        <ol style={{ margin: '5px 0 0 20px', paddingLeft: 0 }}>
+          <li>Click "Export SPX Excel" to download all orders</li>
+          <li>Go to <a href="https://spx.com.my/spx-admin/mass-order/create" target="_blank" rel="noopener noreferrer">SPX Mass Order</a> and upload the Excel file</li>
+          <li>After SPX processes, enter tracking numbers below and click "Ship"</li>
+        </ol>
       </div>
 
       {orders.length === 0 ? (
@@ -299,31 +234,7 @@ const AdminShipping = () => {
                     </span>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 200 }}>
-                      <button
-                        onClick={() => handleCreateSpx(order)}
-                        className="btn-spx"
-                        style={{
-                          background: '#FF5722',
-                          color: '#fff',
-                          border: 'none',
-                          padding: '8px 16px',
-                          borderRadius: 6,
-                          cursor: 'pointer',
-                          fontWeight: 500,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 6
-                        }}
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}>
-                          <path d="M5 12h14M12 5l7 7-7 7" />
-                        </svg>
-                        Create SPX
-                      </button>
-
-                      <div style={{ display: 'flex', gap: 4 }}>
+                    <div style={{ display: 'flex', gap: 4, minWidth: 200 }}>
                         <input
                           type="text"
                           placeholder="Tracking #"
@@ -353,7 +264,6 @@ const AdminShipping = () => {
                         >
                           {savingTracking[order.id] ? '...' : 'Ship'}
                         </button>
-                      </div>
                     </div>
                   </td>
                 </tr>
@@ -376,9 +286,6 @@ const AdminShipping = () => {
         }
         .btn-refresh:hover {
           background: #f5f5f5;
-        }
-        .btn-spx:hover {
-          background: #E64A19 !important;
         }
         .admin-table {
           width: 100%;
