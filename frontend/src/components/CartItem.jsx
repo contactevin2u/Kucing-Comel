@@ -1,6 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { api } from '../services/api';
+
+const getImageUrl = (url) => {
+  if (!url) return 'https://via.placeholder.com/100x100?text=No+Image';
+  if (url.startsWith('http')) return url;
+  return `${api.getApiUrl()}/api/product-images${encodeURI(url)}`;
+};
 
 const CartItem = ({ item }) => {
   const { updateQuantity, removeItem } = useCart();
@@ -23,7 +30,7 @@ const CartItem = ({ item }) => {
   return (
     <div className="cart-item">
       <img
-        src={item.image_url || 'https://via.placeholder.com/100x100?text=No+Image'}
+        src={getImageUrl(item.image_url)}
         alt={item.name}
         className="cart-item-image"
       />

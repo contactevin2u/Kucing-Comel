@@ -3,6 +3,12 @@ import { useAdminAuth } from '../AdminApp';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
+const getImageUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  return `${API_URL}/api/product-images${encodeURI(url)}`;
+};
+
 const AdminProducts = () => {
   const { getToken } = useAdminAuth();
   const [products, setProducts] = useState([]);
@@ -392,7 +398,7 @@ const AdminProducts = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {product.image_url && (
                           <img
-                            src={product.image_url}
+                            src={getImageUrl(product.image_url)}
                             alt={product.name}
                             style={{
                               width: '40px',
