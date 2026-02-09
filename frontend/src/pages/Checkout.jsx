@@ -54,9 +54,17 @@ const Checkout = () => {
     fetchConfig();
   }, []);
 
+  // SPX shipping rate calculation
+  const calculateShipping = (weightKg) => {
+    if (weightKg <= 0) return 6.89;
+    const w = Math.ceil(weightKg);
+    if (w <= 2) return 6.89;
+    return 9.00 + (w - 3) * 1.00;
+  };
+
   // Get items to checkout (either buyNow item or cart items)
   const checkoutItems = buyNowMode && buyNowItem
-    ? [{ id: buyNowItem.product_id, name: buyNowItem.name, price: buyNowItem.price, quantity: buyNowItem.quantity }]
+    ? [{ id: buyNowItem.product_id, name: buyNowItem.name, price: buyNowItem.price, quantity: buyNowItem.quantity, weight: buyNowItem.weight || 0 }]
     : cart.items;
 
   // Calculate subtotal
@@ -65,8 +73,13 @@ const Checkout = () => {
     0
   );
 
-  // Delivery fee: free for RM150+, otherwise RM8
-  const deliveryFee = subtotal >= 150 ? 0 : 8;
+  // Calculate total weight
+  const totalWeight = checkoutItems.reduce(
+    (sum, item) => sum + (parseFloat(item.weight) || 0) * item.quantity, 0
+  );
+
+  // Delivery fee: free for RM150+, otherwise SPX weight-based rate
+  const deliveryFee = subtotal >= 150 ? 0 : calculateShipping(totalWeight);
 
   // Handle voucher application
   const handleApplyVoucher = async () => {
@@ -362,7 +375,7 @@ const Checkout = () => {
       )}
 
       <div className="summary-row">
-        <span>Shipping</span>
+        <span>Shipping ({Math.ceil(totalWeight) || 1}kg)</span>
         {deliveryFee === 0 ? (
           <span style={{ color: '#27AE60' }}>FREE</span>
         ) : (
@@ -370,7 +383,7 @@ const Checkout = () => {
         )}
       </div>
 
-      {deliveryFee > 0 && (
+      {deliveryFee > 0 && subtotal < 150 && (
         <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
           Spend RM {(150 - subtotal).toFixed(2)} more for free shipping
         </div>

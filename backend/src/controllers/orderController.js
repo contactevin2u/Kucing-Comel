@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const { incrementVoucherUsage } = require('./voucherController');
+const { calculateDeliveryFee } = require('../config/fees');
 
 const getOrders = async (req, res, next) => {
   try {
@@ -108,7 +109,7 @@ const createOrder = async (req, res, next) => {
     const cartId = cartResult.rows[0].id;
 
     const itemsResult = await db.query(
-      `SELECT ci.id, ci.quantity, p.id as product_id, p.name, p.price, p.stock
+      `SELECT ci.id, ci.quantity, p.id as product_id, p.name, p.price, p.stock, p.weight
        FROM cart_items ci
        JOIN products p ON ci.product_id = p.id
        WHERE ci.cart_id = $1 AND p.is_active = true`,
@@ -131,6 +132,11 @@ const createOrder = async (req, res, next) => {
     const subtotal = itemsResult.rows.reduce(
       (sum, item) => sum + parseFloat(item.price) * item.quantity,
       0
+    );
+
+    // Calculate total weight for shipping
+    const totalWeight = itemsResult.rows.reduce(
+      (sum, item) => sum + (parseFloat(item.weight) || 0) * item.quantity, 0
     );
 
     // Validate and apply voucher if provided
@@ -193,8 +199,8 @@ const createOrder = async (req, res, next) => {
 
     const totalAmount = subtotal - appliedVoucherDiscount;
 
-    // Calculate delivery fee: free for RM150+, otherwise RM8
-    const appliedDeliveryFee = delivery_fee !== undefined ? parseFloat(delivery_fee) : (subtotal >= 150 ? 0 : 8);
+    // Calculate delivery fee from weight using SPX rates
+    const appliedDeliveryFee = calculateDeliveryFee(totalWeight, subtotal);
 
     // Create order
     const orderResult = await db.query(
@@ -279,7 +285,7 @@ const createGuestOrder = async (req, res, next) => {
     const placeholders = productIds.map((_, i) => `$${i + 1}`).join(',');
 
     const productsResult = await db.query(
-      `SELECT id, name, price, stock, is_active FROM products WHERE id IN (${placeholders})`,
+      `SELECT id, name, price, stock, is_active, weight FROM products WHERE id IN (${placeholders})`,
       productIds
     );
 
@@ -311,13 +317,19 @@ const createGuestOrder = async (req, res, next) => {
         product_id: product.id,
         name: product.name,
         price: parseFloat(product.price),
-        quantity: item.quantity
+        quantity: item.quantity,
+        weight: parseFloat(product.weight) || 0
       });
     }
 
     const subtotal = orderItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
+    );
+
+    // Calculate total weight for shipping
+    const totalWeight = orderItems.reduce(
+      (sum, item) => sum + item.weight * item.quantity, 0
     );
 
     // Validate and apply voucher if provided
@@ -376,8 +388,8 @@ const createGuestOrder = async (req, res, next) => {
 
     const totalAmount = subtotal - appliedVoucherDiscount;
 
-    // Calculate delivery fee: free for RM150+, otherwise RM8
-    const appliedDeliveryFee = delivery_fee !== undefined ? parseFloat(delivery_fee) : (subtotal >= 150 ? 0 : 8);
+    // Calculate delivery fee from weight using SPX rates
+    const appliedDeliveryFee = calculateDeliveryFee(totalWeight, subtotal);
 
     // Create order (user_id is NULL for guest)
     const orderResult = await db.query(

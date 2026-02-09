@@ -59,6 +59,31 @@ const SENANGPAY_FEES = {
 // Default delivery fee (in RM)
 const DEFAULT_DELIVERY_FEE = 8.00;
 
+// Free shipping threshold (in RM)
+const FREE_SHIPPING_THRESHOLD = 150;
+
+// SPX Express shipping rates for West Malaysia (Including SST)
+// 0-2 kg: RM 6.89
+// 3+ kg:  RM 9.00 + (kg - 3) * RM 1.00 per additional kg
+function calculateSpxShipping(totalWeightKg) {
+  if (totalWeightKg <= 0) return 6.89; // Minimum rate if weight unknown
+  const weight = Math.ceil(totalWeightKg);
+  if (weight <= 2) return 6.89;
+  return 9.00 + (weight - 3) * 1.00;
+}
+
+/**
+ * Calculate delivery fee based on total weight and subtotal
+ * Free shipping for orders >= RM150
+ * @param {number} totalWeightKg - Total weight in kg
+ * @param {number} subtotal - Order subtotal in RM
+ * @returns {number} - Delivery fee in RM
+ */
+function calculateDeliveryFee(totalWeightKg, subtotal) {
+  if (subtotal >= FREE_SHIPPING_THRESHOLD) return 0;
+  return calculateSpxShipping(totalWeightKg);
+}
+
 // State-based delivery fees (optional - for future use)
 const STATE_DELIVERY_FEES = {
   'Selangor': 8.00,
@@ -178,8 +203,11 @@ function calculateOrderFinancials(order) {
 module.exports = {
   SENANGPAY_FEES,
   DEFAULT_DELIVERY_FEE,
+  FREE_SHIPPING_THRESHOLD,
   STATE_DELIVERY_FEES,
   calculateSenangPayFee,
+  calculateSpxShipping,
+  calculateDeliveryFee,
   getDeliveryFee,
   mapPaymentMethodToFeeType,
   calculateOrderFinancials,

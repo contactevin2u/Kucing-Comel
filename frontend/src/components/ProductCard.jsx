@@ -59,7 +59,8 @@ const ProductCard = ({ product }) => {
           name: product.name,
           price: parseFloat(product.price),
           quantity: 1,
-          image_url: product.image_url
+          image_url: product.image_url,
+          weight: parseFloat(product.weight) || 0
         }
       }
     });

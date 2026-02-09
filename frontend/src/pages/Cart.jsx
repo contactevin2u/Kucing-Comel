@@ -35,6 +35,20 @@ const Cart = () => {
     );
   }
 
+  // SPX shipping rate calculation
+  const calculateShipping = (weightKg) => {
+    if (weightKg <= 0) return 6.89;
+    const w = Math.ceil(weightKg);
+    if (w <= 2) return 6.89;
+    return 9.00 + (w - 3) * 1.00;
+  };
+
+  const subtotal = parseFloat(cart.total);
+  const totalWeight = cart.items.reduce(
+    (sum, item) => sum + (parseFloat(item.weight) || 0) * item.quantity, 0
+  );
+  const deliveryFee = subtotal >= 150 ? 0 : calculateShipping(totalWeight);
+
   return (
     <div className="cart-page">
       <div className="container">
@@ -75,23 +89,23 @@ const Cart = () => {
             </div>
 
             <div className="summary-row">
-              <span>Shipping</span>
-              {parseFloat(cart.total) >= 150 ? (
+              <span>Shipping ({Math.ceil(totalWeight) || 1}kg)</span>
+              {deliveryFee === 0 ? (
                 <span style={{ color: '#27AE60' }}>FREE</span>
               ) : (
-                <span>RM 8.00</span>
+                <span>RM {deliveryFee.toFixed(2)}</span>
               )}
             </div>
 
-            {parseFloat(cart.total) < 150 && (
+            {deliveryFee > 0 && subtotal < 150 && (
               <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
-                Spend RM {(150 - parseFloat(cart.total)).toFixed(2)} more for free shipping
+                Spend RM {(150 - subtotal).toFixed(2)} more for free shipping
               </div>
             )}
 
             <div className="summary-row summary-total">
               <span>Total</span>
-              <span>RM {(parseFloat(cart.total) + (parseFloat(cart.total) >= 150 ? 0 : 8)).toFixed(2)}</span>
+              <span>RM {(subtotal + deliveryFee).toFixed(2)}</span>
             </div>
 
             <button

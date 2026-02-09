@@ -13,7 +13,7 @@ const getCart = async (req, res, next) => {
 
     const itemsResult = await db.query(
       `SELECT ci.id, ci.quantity, ci.variant_id,
-              p.id as product_id, p.name, p.price, p.member_price, p.image_url, p.stock,
+              p.id as product_id, p.name, p.price, p.member_price, p.image_url, p.stock, p.weight,
               pv.variant_name, pv.price as variant_price, pv.member_price as variant_member_price, pv.stock as variant_stock
        FROM cart_items ci
        JOIN products p ON ci.product_id = p.id
@@ -40,7 +40,8 @@ const getCart = async (req, res, next) => {
         price: memberPrice || price, // Use member price if available (user is logged in)
         original_price: price,
         image_url: item.image_url,
-        stock: stock
+        stock: stock,
+        weight: parseFloat(item.weight) || 0
       };
     });
 
@@ -257,7 +258,7 @@ async function getCartData(userId) {
 
   const itemsResult = await db.query(
     `SELECT ci.id, ci.quantity, ci.variant_id,
-            p.id as product_id, p.name, p.price, p.member_price, p.image_url, p.stock,
+            p.id as product_id, p.name, p.price, p.member_price, p.image_url, p.stock, p.weight,
             pv.variant_name, pv.price as variant_price, pv.member_price as variant_member_price, pv.stock as variant_stock
      FROM cart_items ci
      JOIN products p ON ci.product_id = p.id
@@ -283,7 +284,8 @@ async function getCartData(userId) {
       price: memberPrice || price,
       original_price: price,
       image_url: item.image_url,
-      stock: stock
+      stock: stock,
+      weight: parseFloat(item.weight) || 0
     };
   });
 
