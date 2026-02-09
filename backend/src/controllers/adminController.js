@@ -1496,7 +1496,7 @@ const exportSpxExcel = async (req, res, next) => {
         '',                                                 // Height
         itemNames.join(', '),                               // Item Name
         totalQuantity,                                      // Item Quantity
-        `#${order.id}`,                                     // Customer Reference No.
+        `${new Date().toISOString().slice(2,10).replace(/-/g,'')}${order.id}`, // Customer Reference No. (YYMMDDorderId)
         'N',                                                // COD Collection (N = prepaid)
         0,                                                  // COD Amount
         'Sender Pay',                                       // Payment Method
