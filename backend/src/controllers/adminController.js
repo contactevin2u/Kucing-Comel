@@ -1405,6 +1405,125 @@ const updateOrderTracking = async (req, res, next) => {
   }
 };
 
+/**
+ * Export shipping orders to SPX Excel format
+ */
+const exportSpxExcel = async (req, res, next) => {
+  try {
+    const XLSX = require('xlsx');
+
+    // Get orders ready for shipping (paid, not shipped)
+    const ordersQuery = isPostgres
+      ? `SELECT o.*, u.name as customer_name, u.email as customer_email
+         FROM orders o
+         LEFT JOIN users u ON o.user_id = u.id
+         WHERE o.payment_status = 'paid' AND o.status != 'shipped' AND o.status != 'delivered'
+         ORDER BY o.created_at DESC`
+      : `SELECT o.*, u.name as customer_name, u.email as customer_email
+         FROM orders o
+         LEFT JOIN users u ON o.user_id = u.id
+         WHERE o.payment_status = 'paid' AND o.status != 'shipped' AND o.status != 'delivered'
+         ORDER BY o.created_at DESC`;
+
+    const ordersResult = await db.query(ordersQuery);
+    const orders = ordersResult.rows;
+
+    // Build Excel data
+    const excelData = [];
+
+    // Header row (matching SPX template exactly)
+    excelData.push([
+      '*Recipient Name',
+      '*Recipient Phone',
+      '*Detail Address',
+      'Postal Code',
+      '*Parcel Weight (KG)',
+      'Parcel Length (CM)',
+      'Parcel Width (CM)',
+      'Parcel Height (CM)',
+      '*Item Name',
+      'Item Quantity',
+      'Customer Reference No.',
+      '*COD Collection(Y/N )',
+      'COD Amount',
+      '*Payment Method',
+      'Delivery Instruction',
+      '*Parcel Value (Max 1000 MYR)'
+    ]);
+
+    // Data rows
+    for (const order of orders) {
+      // Get order items for weight and item name
+      const itemsResult = await db.query(
+        isPostgres
+          ? `SELECT oi.*, p.name as product_name, p.weight as product_weight
+             FROM order_items oi
+             LEFT JOIN products p ON oi.product_id = p.id
+             WHERE oi.order_id = $1`
+          : `SELECT oi.*, p.name as product_name, p.weight as product_weight
+             FROM order_items oi
+             LEFT JOIN products p ON oi.product_id = p.id
+             WHERE oi.order_id = ?`,
+        [order.id]
+      );
+
+      // Calculate total weight
+      let totalWeight = 0;
+      const itemNames = [];
+      let totalQuantity = 0;
+
+      for (const item of itemsResult.rows) {
+        const weight = parseFloat(item.product_weight) || 0.5;
+        totalWeight += weight * item.quantity;
+        itemNames.push(item.product_name || 'Product');
+        totalQuantity += item.quantity;
+      }
+
+      // Format phone (remove +60, 60, or leading 0)
+      let phone = (order.shipping_phone || '').replace(/[-\s]/g, '');
+      if (phone.startsWith('+60')) phone = phone.substring(3);
+      else if (phone.startsWith('60')) phone = phone.substring(2);
+      if (!phone.startsWith('0')) phone = '0' + phone;
+
+      excelData.push([
+        order.shipping_name || order.customer_name || '',  // Recipient Name
+        phone,                                              // Recipient Phone
+        order.shipping_address || '',                       // Detail Address
+        order.shipping_postcode || '',                      // Postal Code
+        Math.max(0.5, Math.round(totalWeight * 100) / 100), // Parcel Weight (min 0.5kg)
+        '',                                                 // Length
+        '',                                                 // Width
+        '',                                                 // Height
+        itemNames.join(', '),                               // Item Name
+        totalQuantity,                                      // Item Quantity
+        `#${order.id}`,                                     // Customer Reference No.
+        'N',                                                // COD Collection (N = prepaid)
+        0,                                                  // COD Amount
+        'Sender Pay',                                       // Payment Method
+        '',                                                 // Delivery Instruction
+        Math.min(200, parseFloat(order.total_amount) || 50)   // Parcel Value (cap at 200)
+      ]);
+    }
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+    XLSX.utils.book_append_sheet(wb, ws, 'Mass Order Creation');
+
+    // Generate buffer
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+
+    // Send file
+    const filename = `spx_orders_${new Date().toISOString().split('T')[0]}.xlsx`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(buffer);
+
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getDashboardSummary,
   getDailyStats,
@@ -1425,4 +1544,5 @@ module.exports = {
   getShippingOrders,
   getOrderSpxData,
   updateOrderTracking,
+  exportSpxExcel,
 };
