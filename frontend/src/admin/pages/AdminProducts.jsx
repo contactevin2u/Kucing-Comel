@@ -343,7 +343,7 @@ const AdminProducts = () => {
 
       <div className="admin-card">
         {filteredProducts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--admin-text-muted)' }}>
+          <div style={{ textAlign: 'center', padding: '40px', color: '#1e293b' }}>
             <p>No products found.</p>
             <p>Click "Add Product" to create your first product.</p>
           </div>
@@ -625,7 +625,7 @@ const AdminProducts = () => {
                 </div>
 
                 {variants.length === 0 && !showVariantForm && (
-                  <p style={{ color: 'var(--admin-text-muted)', fontSize: '14px' }}>
+                  <p style={{ color: '#475569', fontSize: '14px' }}>
                     No variants. Add variants for different sizes, flavors, etc.
                   </p>
                 )}
@@ -644,7 +644,7 @@ const AdminProducts = () => {
                   }}>
                     <div>
                       <strong style={{ fontSize: '14px' }}>{variant.variant_name}</strong>
-                      <div style={{ fontSize: '12px', color: 'var(--admin-text-muted)', marginTop: '2px' }}>
+                      <div style={{ fontSize: '12px', color: '#334155', marginTop: '2px' }}>
                         RM {parseFloat(variant.price).toFixed(2)}
                         {variant.member_price && ` / Member: RM ${parseFloat(variant.member_price).toFixed(2)}`}
                         {' | '}
@@ -830,7 +830,7 @@ const AdminProducts = () => {
           padding: 6px;
           border-radius: 6px;
           cursor: pointer;
-          color: var(--admin-text-muted);
+          color: #334155;
         }
 
         .btn-icon:hover {
@@ -862,7 +862,7 @@ const AdminProducts = () => {
 
         .admin-table th {
           font-weight: 600;
-          color: var(--admin-text-muted);
+          color: #1e293b;
           font-size: 12px;
           text-transform: uppercase;
         }
@@ -882,7 +882,7 @@ const AdminProducts = () => {
 
         .status-inactive {
           background: #f3f4f6;
-          color: #6b7280;
+          color: #374151;
         }
 
         .modal-overlay {
@@ -925,7 +925,7 @@ const AdminProducts = () => {
           border: none;
           font-size: 24px;
           cursor: pointer;
-          color: var(--admin-text-muted);
+          color: #1e293b;
         }
 
         .form-group {
