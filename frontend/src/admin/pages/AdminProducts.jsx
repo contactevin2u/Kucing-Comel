@@ -589,7 +589,7 @@ const AdminProducts = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="prod-weight">Weight (g)</label>
+                  <label htmlFor="prod-weight">Weight (kg)</label>
                   <input
                     type="number"
                     id="prod-weight"
