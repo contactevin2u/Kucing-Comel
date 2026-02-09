@@ -31,6 +31,17 @@ const {
   deleteVoucher,
   toggleVoucherStatus,
 } = require('../controllers/voucherController');
+const {
+  getAdminProducts,
+  getAdminProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  toggleProductStatus,
+  createVariant,
+  updateVariant,
+  deleteVariant,
+} = require('../controllers/productAdminController');
 
 // All admin routes require admin authentication
 router.use(adminAuth);
@@ -70,5 +81,16 @@ router.post('/vouchers', createVoucher);
 router.put('/vouchers/:id', updateVoucher);
 router.delete('/vouchers/:id', deleteVoucher);
 router.patch('/vouchers/:id/toggle', toggleVoucherStatus);
+
+// Products
+router.get('/products', getAdminProducts);
+router.get('/products/:id', getAdminProductById);
+router.post('/products', createProduct);
+router.put('/products/:id', updateProduct);
+router.delete('/products/:id', deleteProduct);
+router.patch('/products/:id/toggle', toggleProductStatus);
+router.post('/products/:id/variants', createVariant);
+router.put('/products/:id/variants/:variantId', updateVariant);
+router.delete('/products/:id/variants/:variantId', deleteVariant);
 
 module.exports = router;
