@@ -124,7 +124,19 @@ async function initializeDatabase() {
 
         // Update discount_type CHECK constraint to include free_shipping
         try {
-          await db.query(`ALTER TABLE vouchers DROP CONSTRAINT IF EXISTS vouchers_discount_type_check`);
+          // Find and drop any existing CHECK constraint on discount_type
+          const constraintResult = await db.query(`
+            SELECT con.conname
+            FROM pg_constraint con
+            JOIN pg_class rel ON rel.oid = con.conrelid
+            WHERE rel.relname = 'vouchers'
+              AND con.contype = 'c'
+              AND pg_get_constraintdef(con.oid) LIKE '%discount_type%'
+          `);
+          for (const row of constraintResult.rows) {
+            await db.query(`ALTER TABLE vouchers DROP CONSTRAINT "${row.conname}"`);
+            console.log(`Dropped constraint: ${row.conname}`);
+          }
           await db.query(`ALTER TABLE vouchers ADD CONSTRAINT vouchers_discount_type_check CHECK (discount_type IN ('fixed', 'percentage', 'free_shipping'))`);
           console.log('discount_type constraint updated for free_shipping');
         } catch (e) {
