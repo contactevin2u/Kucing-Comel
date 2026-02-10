@@ -2161,20 +2161,17 @@ img {
   .promo-grid,
   .promo-grid-2 {
     gap: 8px;
-    grid-template-columns: 1fr 1fr;
-    max-width: 100%;
   }
 
   .promo-card {
     min-height: auto;
-    padding: 10px 12px;
+    padding: 8px 12px;
     border-radius: 10px;
   }
 
   .promo-card h3 {
-    font-size: 0.8rem;
-    margin-bottom: 4px;
-    line-height: 1.3;
+    font-size: 1rem;
+    margin: 0 0 4px;
   }
 
   .promo-subtext {
