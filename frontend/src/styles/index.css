@@ -1974,6 +1974,45 @@ img {
 }
 
 @media (max-width: 768px) {
+  .navbar {
+    padding: 12px 0;
+  }
+
+  .navbar .container {
+    padding: 0 12px;
+  }
+
+  .logo {
+    font-size: 1.3rem;
+    gap: 6px;
+  }
+
+  .logo span {
+    font-size: 1.5rem;
+  }
+
+  .nav-right {
+    gap: 10px;
+  }
+
+  .nav-right a {
+    font-size: 0.85rem;
+  }
+
+  .nav-icons {
+    gap: 8px;
+    margin-left: 8px;
+  }
+
+  .nav-icon {
+    padding: 6px;
+  }
+
+  .nav-right .btn-sm {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
   .hero-content h1 {
     font-size: 2.5rem;
   }
