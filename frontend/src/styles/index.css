@@ -788,6 +788,8 @@ img {
   box-shadow: var(--shadow);
   transition: transform 0.3s, box-shadow 0.3s;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .product-card:hover {
@@ -898,7 +900,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 15px;
+  margin-top: 12px;
 }
 
 .product-price {
