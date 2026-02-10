@@ -2165,22 +2165,21 @@ img {
 
   .promo-card {
     min-height: auto;
-    padding: 12px 14px;
+    padding: 10px 14px;
   }
 
   .promo-card h3 {
-    font-size: 0.85rem;
+    font-size: 1rem;
     margin-bottom: 4px;
   }
 
   .promo-subtext {
-    font-size: 0.7rem;
-    margin-bottom: 6px;
+    display: none;
   }
 
   .promo-card .btn-sm {
     padding: 5px 12px;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
   }
 
   .products-section {
