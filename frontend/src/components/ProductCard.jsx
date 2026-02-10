@@ -173,7 +173,7 @@ const ProductCard = ({ product }) => {
         .product-actions {
           display: flex;
           gap: 8px;
-          padding: 12px 18px 18px;
+          padding: 10px 18px 18px;
           margin-top: auto;
         }
 
