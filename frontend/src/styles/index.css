@@ -2155,32 +2155,32 @@ img {
   }
 
   .promo-section {
-    padding: 0 0 15px;
+    padding: 0 0 10px;
   }
 
   .promo-grid,
   .promo-grid-2 {
-    gap: 10px;
+    gap: 8px;
   }
 
   .promo-card {
     min-height: auto;
-    padding: 16px;
+    padding: 12px 14px;
   }
 
   .promo-card h3 {
-    font-size: 1rem;
-    margin-bottom: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
   }
 
   .promo-subtext {
-    font-size: 0.8rem;
-    margin-bottom: 10px;
+    font-size: 0.7rem;
+    margin-bottom: 6px;
   }
 
   .promo-card .btn-sm {
-    padding: 6px 14px;
-    font-size: 0.75rem;
+    padding: 5px 12px;
+    font-size: 0.7rem;
   }
 
   .products-section {
