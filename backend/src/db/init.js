@@ -94,7 +94,7 @@ async function initializeDatabase() {
             CREATE TABLE IF NOT EXISTS vouchers (
               id SERIAL PRIMARY KEY,
               code VARCHAR(50) NOT NULL UNIQUE,
-              discount_type VARCHAR(20) NOT NULL CHECK (discount_type IN ('fixed', 'percentage')),
+              discount_type VARCHAR(20) NOT NULL CHECK (discount_type IN ('fixed', 'percentage', 'free_shipping')),
               discount_amount DECIMAL(10, 2) NOT NULL,
               max_discount DECIMAL(10, 2),
               min_order_amount DECIMAL(10, 2),
@@ -120,6 +120,15 @@ async function initializeDatabase() {
           console.log('once_per_user column ensured');
         } catch (e) {
           console.log('once_per_user column may already exist');
+        }
+
+        // Update discount_type CHECK constraint to include free_shipping
+        try {
+          await db.query(`ALTER TABLE vouchers DROP CONSTRAINT IF EXISTS vouchers_discount_type_check`);
+          await db.query(`ALTER TABLE vouchers ADD CONSTRAINT vouchers_discount_type_check CHECK (discount_type IN ('fixed', 'percentage', 'free_shipping'))`);
+          console.log('discount_type constraint updated for free_shipping');
+        } catch (e) {
+          console.log('discount_type constraint update skipped:', e.message);
         }
 
         // Create voucher_usage table (track per-user usage)
@@ -286,7 +295,7 @@ async function initializeDatabase() {
             CREATE TABLE IF NOT EXISTS vouchers (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               code TEXT NOT NULL UNIQUE,
-              discount_type TEXT NOT NULL CHECK (discount_type IN ('fixed', 'percentage')),
+              discount_type TEXT NOT NULL CHECK (discount_type IN ('fixed', 'percentage', 'free_shipping')),
               discount_amount REAL NOT NULL,
               max_discount REAL,
               min_order_amount REAL,
