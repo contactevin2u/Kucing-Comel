@@ -12,27 +12,35 @@ const HeroCarousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+  const intervalRef = useRef(null);
+
+  const resetAutoSlide = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % images.length);
+    }, 4000);
+  }, []);
 
   // Auto-slide every 4 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % images.length);
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, []);
+    resetAutoSlide();
+    return () => clearInterval(intervalRef.current);
+  }, [resetAutoSlide]);
 
   const goToSlide = (index) => {
     setCurrentSlide(index);
+    resetAutoSlide();
   };
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % images.length);
-  }, []);
+    resetAutoSlide();
+  }, [resetAutoSlide]);
 
   const prevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
-  }, []);
+    resetAutoSlide();
+  }, [resetAutoSlide]);
 
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
