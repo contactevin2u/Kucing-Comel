@@ -540,7 +540,7 @@ img {
 
 /* ==================== CATEGORIES SECTION ==================== */
 .categories-section {
-  padding: 70px 0;
+  padding: 50px 0;
   background: var(--white);
 }
 
@@ -645,7 +645,7 @@ img {
 
 /* ==================== PROMO CARDS ==================== */
 .promo-section {
-  padding: 30px 0 70px;
+  padding: 0 0 50px;
 }
 
 .promo-grid {
@@ -711,7 +711,7 @@ img {
 
 /* ==================== PRODUCTS SECTION ==================== */
 .products-section {
-  padding: 60px 0;
+  padding: 50px 0;
   background: var(--light);
 }
 
