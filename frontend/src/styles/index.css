@@ -836,10 +836,10 @@ img {
 
 .product-image-wrapper {
   position: relative;
-  padding: 20px 20px 2px;
+  padding: 20px 20px 0;
   background: var(--light);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   height: 220px;
 }
