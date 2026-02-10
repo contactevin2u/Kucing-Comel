@@ -109,7 +109,7 @@ const Navbar = () => {
         <div className="container">
           {/* Logo */}
           <Link to="/" className="logo">
-            <span>🐱</span> Kucing Comel
+            <span>🐱</span>
           </Link>
 
           {/* Right Navigation */}
@@ -163,7 +163,7 @@ const Navbar = () => {
                   </Link>
                 </div>
                 <Link to="/login">Login</Link>
-                <Link to="/register" className="btn btn-primary btn-sm">
+                <Link to="/register" className="btn btn-primary btn-sm" style={{ whiteSpace: 'nowrap' }}>
                   Sign Up
                 </Link>
               </>
