@@ -836,7 +836,7 @@ img {
 
 .product-image-wrapper {
   position: relative;
-  padding: 20px 20px 10px;
+  padding: 20px 20px 2px;
   background: var(--light);
   display: flex;
   align-items: center;
@@ -1998,11 +1998,11 @@ img {
 
   .product-image-wrapper {
     height: 180px;
-    padding: 15px;
+    padding: 15px 15px 2px;
   }
 
   .product-info {
-    padding: 15px 14px 18px;
+    padding: 10px 14px 0;
   }
 
   .product-name {
@@ -2101,11 +2101,11 @@ img {
 
   .product-image-wrapper {
     height: 200px;
-    padding: 20px;
+    padding: 20px 20px 2px;
   }
 
   .product-info {
-    padding: 18px 16px 20px;
+    padding: 10px 16px 0;
   }
 
   .product-name {
