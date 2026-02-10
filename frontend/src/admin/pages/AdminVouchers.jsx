@@ -101,7 +101,7 @@ const AdminVouchers = () => {
       const payload = {
         code: formData.code,
         discount_type: formData.discount_type,
-        discount_amount: isFreeShipping ? 0 : parseFloat(formData.discount_amount),
+        discount_amount: isFreeShipping ? (parseFloat(formData.discount_amount) || 0) : parseFloat(formData.discount_amount),
         max_discount: isFreeShipping ? null : (formData.max_discount ? parseFloat(formData.max_discount) : null),
         min_order_amount: formData.min_order_amount ? parseFloat(formData.min_order_amount) : null,
         start_date: formData.start_date || null,
@@ -257,7 +257,9 @@ const AdminVouchers = () => {
                     </td>
                     <td>
                       {voucher.discount_type === 'free_shipping'
-                        ? 'Free Shipping'
+                        ? (parseFloat(voucher.discount_amount) > 0
+                          ? `RM ${parseFloat(voucher.discount_amount).toFixed(2)} off Shipping`
+                          : 'Free Shipping')
                         : voucher.discount_type === 'fixed'
                           ? `RM ${parseFloat(voucher.discount_amount).toFixed(2)}`
                           : `${voucher.discount_amount}%`}
@@ -368,7 +370,25 @@ const AdminVouchers = () => {
                   </select>
                 </div>
 
-                {formData.discount_type !== 'free_shipping' && (
+                {formData.discount_type === 'free_shipping' ? (
+                <div className="form-group">
+                  <label htmlFor="discount_amount">
+                    Shipping Discount (RM) - Optional
+                  </label>
+                  <input
+                    type="number"
+                    id="discount_amount"
+                    value={formData.discount_amount}
+                    onChange={(e) => setFormData({ ...formData, discount_amount: e.target.value })}
+                    placeholder="0"
+                    min="0"
+                    step="0.01"
+                  />
+                  <small style={{ color: 'var(--admin-text)' }}>
+                    Leave empty or 0 for fully free shipping. Enter an amount (e.g. 5) for RM5 off shipping.
+                  </small>
+                </div>
+                ) : (
                 <div className="form-group">
                   <label htmlFor="discount_amount">
                     Discount Amount *

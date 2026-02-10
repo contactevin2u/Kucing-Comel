@@ -164,6 +164,10 @@ const createVoucher = async (req, res, next) => {
       return res.status(400).json({ error: 'Discount type must be "fixed", "percentage", or "free_shipping".' });
     }
 
+    if (discount_type === 'free_shipping' && discount_amount !== undefined && discount_amount < 0) {
+      return res.status(400).json({ error: 'Shipping discount amount cannot be negative.' });
+    }
+
     if (discount_type !== 'free_shipping' && (discount_amount === undefined || discount_amount <= 0)) {
       return res.status(400).json({ error: 'Discount amount must be greater than 0.' });
     }

@@ -82,9 +82,12 @@ const Checkout = () => {
   // Delivery fee: free for RM150+, otherwise SPX weight-based rate
   const deliveryFee = subtotal >= 150 ? 0 : calculateShipping(totalWeight);
 
-  // Effective delivery fee (zeroed when free_shipping voucher applied)
+  // Effective delivery fee (reduced/zeroed when free_shipping voucher applied)
   const isFreeShippingVoucher = voucherDiscountType === 'free_shipping';
-  const effectiveDeliveryFee = isFreeShippingVoucher ? 0 : deliveryFee;
+  const shippingDiscountAmount = isFreeShippingVoucher ? (parseFloat(voucherApplied?.discount_amount) || 0) : 0;
+  const effectiveDeliveryFee = isFreeShippingVoucher
+    ? (shippingDiscountAmount === 0 ? 0 : Math.max(0, deliveryFee - shippingDiscountAmount))
+    : deliveryFee;
 
   // Handle voucher application
   const handleApplyVoucher = async () => {
@@ -311,7 +314,9 @@ const Checkout = () => {
                 {voucherApplied.code}
               </span>
               <span style={{ marginLeft: '10px', color: '#4CAF50', fontSize: '0.85rem' }}>
-                {isFreeShippingVoucher ? 'Free Shipping' : `-RM ${voucherDiscount.toFixed(2)}`}
+                {isFreeShippingVoucher
+                  ? (effectiveDeliveryFee === 0 ? 'Free Shipping' : `-RM ${shippingDiscountAmount.toFixed(2)} shipping`)
+                  : `-RM ${voucherDiscount.toFixed(2)}`}
               </span>
             </div>
             <button
@@ -383,12 +388,21 @@ const Checkout = () => {
 
       <div className="summary-row">
         <span>Shipping ({Math.ceil(totalWeight) || 1}kg)</span>
-        {isFreeShippingVoucher ? (
+        {isFreeShippingVoucher && effectiveDeliveryFee === 0 ? (
+          <span style={{ color: '#27AE60' }}>
+            {deliveryFee > 0 && (
+              <span style={{ textDecoration: 'line-through', color: '#999', marginRight: '6px' }}>
+                RM {deliveryFee.toFixed(2)}
+              </span>
+            )}
+            FREE
+          </span>
+        ) : isFreeShippingVoucher && effectiveDeliveryFee < deliveryFee ? (
           <span style={{ color: '#27AE60' }}>
             <span style={{ textDecoration: 'line-through', color: '#999', marginRight: '6px' }}>
               RM {deliveryFee.toFixed(2)}
             </span>
-            FREE
+            RM {effectiveDeliveryFee.toFixed(2)}
           </span>
         ) : effectiveDeliveryFee === 0 ? (
           <span style={{ color: '#27AE60' }}>FREE</span>

@@ -206,9 +206,15 @@ const createOrder = async (req, res, next) => {
     // Calculate delivery fee from weight using SPX rates
     let appliedDeliveryFee = calculateDeliveryFee(totalWeight, subtotal);
 
-    // Free shipping voucher overrides delivery fee
+    // Shipping discount voucher: discount_amount = RM off shipping (0 = fully free)
     if (appliedVoucherType === 'free_shipping') {
-      appliedDeliveryFee = 0;
+      const voucherRow = (await db.query('SELECT discount_amount FROM vouchers WHERE id = $1', [voucherId])).rows[0];
+      const shippingDiscount = parseFloat(voucherRow?.discount_amount) || 0;
+      if (shippingDiscount === 0) {
+        appliedDeliveryFee = 0;
+      } else {
+        appliedDeliveryFee = Math.max(0, appliedDeliveryFee - shippingDiscount);
+      }
     }
 
     // Create order
@@ -404,9 +410,15 @@ const createGuestOrder = async (req, res, next) => {
     // Calculate delivery fee from weight using SPX rates
     let appliedDeliveryFee = calculateDeliveryFee(totalWeight, subtotal);
 
-    // Free shipping voucher overrides delivery fee
+    // Shipping discount voucher: discount_amount = RM off shipping (0 = fully free)
     if (appliedVoucherType === 'free_shipping') {
-      appliedDeliveryFee = 0;
+      const voucherRow = (await db.query('SELECT discount_amount FROM vouchers WHERE id = $1', [voucherId])).rows[0];
+      const shippingDiscount = parseFloat(voucherRow?.discount_amount) || 0;
+      if (shippingDiscount === 0) {
+        appliedDeliveryFee = 0;
+      } else {
+        appliedDeliveryFee = Math.max(0, appliedDeliveryFee - shippingDiscount);
+      }
     }
 
     // Create order (user_id is NULL for guest)
