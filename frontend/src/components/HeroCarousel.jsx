@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 // Import all images from carousel folder using require.context
 const importAll = (r) => r.keys().map((key) => ({
@@ -10,6 +10,8 @@ const images = importAll(require.context('../assets/carousel', false, /\.(png|jp
 
 const HeroCarousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   // Auto-slide every 4 seconds
   useEffect(() => {
@@ -24,12 +26,31 @@ const HeroCarousel = () => {
     setCurrentSlide(index);
   };
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % images.length);
+  }, []);
+
+  const prevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
+  }, []);
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        nextSlide();
+      } else {
+        prevSlide();
+      }
+    }
   };
 
   if (images.length === 0) {
@@ -37,7 +58,12 @@ const HeroCarousel = () => {
   }
 
   return (
-    <div className="hero-carousel">
+    <div
+      className="hero-carousel"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Slides */}
       <div className="carousel-container">
         {images.map((image, index) => (
@@ -54,7 +80,7 @@ const HeroCarousel = () => {
         ))}
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Navigation Arrows - hidden on mobile via CSS */}
       <button className="carousel-btn carousel-btn-prev" onClick={prevSlide}>
         ‹
       </button>
