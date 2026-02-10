@@ -66,7 +66,9 @@ const validateVoucher = async (req, res, next) => {
 
     // Calculate discount
     let discountAmount = 0;
-    if (voucher.discount_type === 'fixed') {
+    if (voucher.discount_type === 'free_shipping') {
+      discountAmount = 0; // No subtotal discount — frontend/order handles zeroing delivery fee
+    } else if (voucher.discount_type === 'fixed') {
       discountAmount = parseFloat(voucher.discount_amount);
     } else if (voucher.discount_type === 'percentage') {
       discountAmount = (orderSubtotal * parseFloat(voucher.discount_amount)) / 100;
@@ -154,15 +156,15 @@ const createVoucher = async (req, res, next) => {
     } = req.body;
 
     // Validate required fields
-    if (!code || !discount_type || discount_amount === undefined) {
-      return res.status(400).json({ error: 'Code, discount type, and discount amount are required.' });
+    if (!code || !discount_type) {
+      return res.status(400).json({ error: 'Code and discount type are required.' });
     }
 
-    if (!['fixed', 'percentage'].includes(discount_type)) {
-      return res.status(400).json({ error: 'Discount type must be "fixed" or "percentage".' });
+    if (!['fixed', 'percentage', 'free_shipping'].includes(discount_type)) {
+      return res.status(400).json({ error: 'Discount type must be "fixed", "percentage", or "free_shipping".' });
     }
 
-    if (discount_amount <= 0) {
+    if (discount_type !== 'free_shipping' && (discount_amount === undefined || discount_amount <= 0)) {
       return res.status(400).json({ error: 'Discount amount must be greater than 0.' });
     }
 
@@ -249,15 +251,16 @@ const updateVoucher = async (req, res, next) => {
     }
 
     // Validate discount type and amount
-    if (discount_type && !['fixed', 'percentage'].includes(discount_type)) {
-      return res.status(400).json({ error: 'Discount type must be "fixed" or "percentage".' });
-    }
-
-    if (discount_amount !== undefined && discount_amount <= 0) {
-      return res.status(400).json({ error: 'Discount amount must be greater than 0.' });
+    if (discount_type && !['fixed', 'percentage', 'free_shipping'].includes(discount_type)) {
+      return res.status(400).json({ error: 'Discount type must be "fixed", "percentage", or "free_shipping".' });
     }
 
     const finalDiscountType = discount_type || existingResult.rows[0].discount_type;
+
+    if (finalDiscountType !== 'free_shipping' && discount_amount !== undefined && discount_amount <= 0) {
+      return res.status(400).json({ error: 'Discount amount must be greater than 0.' });
+    }
+
     if (finalDiscountType === 'percentage' && discount_amount > 100) {
       return res.status(400).json({ error: 'Percentage discount cannot exceed 100%.' });
     }

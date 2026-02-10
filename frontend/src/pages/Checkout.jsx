@@ -31,6 +31,7 @@ const Checkout = () => {
   const [voucherCode, setVoucherCode] = useState('');
   const [voucherApplied, setVoucherApplied] = useState(null);
   const [voucherDiscount, setVoucherDiscount] = useState(0);
+  const [voucherDiscountType, setVoucherDiscountType] = useState(null);
   const [voucherLoading, setVoucherLoading] = useState(false);
   const [voucherError, setVoucherError] = useState('');
 
@@ -81,6 +82,10 @@ const Checkout = () => {
   // Delivery fee: free for RM150+, otherwise SPX weight-based rate
   const deliveryFee = subtotal >= 150 ? 0 : calculateShipping(totalWeight);
 
+  // Effective delivery fee (zeroed when free_shipping voucher applied)
+  const isFreeShippingVoucher = voucherDiscountType === 'free_shipping';
+  const effectiveDeliveryFee = isFreeShippingVoucher ? 0 : deliveryFee;
+
   // Handle voucher application
   const handleApplyVoucher = async () => {
     if (!voucherCode.trim()) {
@@ -108,6 +113,7 @@ const Checkout = () => {
 
       setVoucherApplied(data.voucher);
       setVoucherDiscount(data.calculated_discount);
+      setVoucherDiscountType(data.voucher.discount_type);
       setVoucherError('');
     } catch (err) {
       setVoucherError(err.message);
@@ -122,6 +128,7 @@ const Checkout = () => {
     setVoucherCode('');
     setVoucherApplied(null);
     setVoucherDiscount(0);
+    setVoucherDiscountType(null);
     setVoucherError('');
   };
 
@@ -304,7 +311,7 @@ const Checkout = () => {
                 {voucherApplied.code}
               </span>
               <span style={{ marginLeft: '10px', color: '#4CAF50', fontSize: '0.85rem' }}>
-                -RM {voucherDiscount.toFixed(2)}
+                {isFreeShippingVoucher ? 'Free Shipping' : `-RM ${voucherDiscount.toFixed(2)}`}
               </span>
             </div>
             <button
@@ -376,14 +383,21 @@ const Checkout = () => {
 
       <div className="summary-row">
         <span>Shipping ({Math.ceil(totalWeight) || 1}kg)</span>
-        {deliveryFee === 0 ? (
+        {isFreeShippingVoucher ? (
+          <span style={{ color: '#27AE60' }}>
+            <span style={{ textDecoration: 'line-through', color: '#999', marginRight: '6px' }}>
+              RM {deliveryFee.toFixed(2)}
+            </span>
+            FREE
+          </span>
+        ) : effectiveDeliveryFee === 0 ? (
           <span style={{ color: '#27AE60' }}>FREE</span>
         ) : (
-          <span>RM {deliveryFee.toFixed(2)}</span>
+          <span>RM {effectiveDeliveryFee.toFixed(2)}</span>
         )}
       </div>
 
-      {deliveryFee > 0 && subtotal < 150 && (
+      {!isFreeShippingVoucher && deliveryFee > 0 && subtotal < 150 && (
         <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
           Spend RM {(150 - subtotal).toFixed(2)} more for free shipping
         </div>
@@ -391,7 +405,7 @@ const Checkout = () => {
 
       <div className="summary-row summary-total">
         <span>Total</span>
-        <span>RM {(subtotal - voucherDiscount + deliveryFee).toFixed(2)}</span>
+        <span>RM {(subtotal - voucherDiscount + effectiveDeliveryFee).toFixed(2)}</span>
       </div>
     </div>
   );
@@ -753,7 +767,7 @@ const Checkout = () => {
                   }}
                   disabled={loading || !policyAgreed}
                 >
-                  {loading ? 'Processing...' : `Pay RM ${(subtotal - voucherDiscount + deliveryFee).toFixed(2)} with SenangPay`}
+                  {loading ? 'Processing...' : `Pay RM ${(subtotal - voucherDiscount + effectiveDeliveryFee).toFixed(2)} with SenangPay`}
                 </button>
 
                 <p style={{ marginTop: '20px', fontSize: '0.85rem', color: '#95A5A6', textAlign: 'center' }}>

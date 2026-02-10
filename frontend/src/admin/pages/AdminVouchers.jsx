@@ -97,11 +97,12 @@ const AdminVouchers = () => {
 
       const method = editingVoucher ? 'PUT' : 'POST';
 
+      const isFreeShipping = formData.discount_type === 'free_shipping';
       const payload = {
         code: formData.code,
         discount_type: formData.discount_type,
-        discount_amount: parseFloat(formData.discount_amount),
-        max_discount: formData.max_discount ? parseFloat(formData.max_discount) : null,
+        discount_amount: isFreeShipping ? 0 : parseFloat(formData.discount_amount),
+        max_discount: isFreeShipping ? null : (formData.max_discount ? parseFloat(formData.max_discount) : null),
         min_order_amount: formData.min_order_amount ? parseFloat(formData.min_order_amount) : null,
         start_date: formData.start_date || null,
         expiry_date: formData.expiry_date || null,
@@ -255,9 +256,11 @@ const AdminVouchers = () => {
                       <strong style={{ fontFamily: 'monospace', fontSize: '14px' }}>{voucher.code}</strong>
                     </td>
                     <td>
-                      {voucher.discount_type === 'fixed'
-                        ? `RM ${parseFloat(voucher.discount_amount).toFixed(2)}`
-                        : `${voucher.discount_amount}%`}
+                      {voucher.discount_type === 'free_shipping'
+                        ? 'Free Shipping'
+                        : voucher.discount_type === 'fixed'
+                          ? `RM ${parseFloat(voucher.discount_amount).toFixed(2)}`
+                          : `${voucher.discount_amount}%`}
                       {voucher.discount_type === 'percentage' && voucher.max_discount && (
                         <span style={{ fontSize: '12px', color: '#475569', display: 'block' }}>
                           Max: RM {parseFloat(voucher.max_discount).toFixed(2)}
@@ -361,9 +364,11 @@ const AdminVouchers = () => {
                   >
                     <option value="fixed">Fixed Amount (RM)</option>
                     <option value="percentage">Percentage (%)</option>
+                    <option value="free_shipping">Free Shipping</option>
                   </select>
                 </div>
 
+                {formData.discount_type !== 'free_shipping' && (
                 <div className="form-group">
                   <label htmlFor="discount_amount">
                     Discount Amount *
@@ -381,6 +386,7 @@ const AdminVouchers = () => {
                     required
                   />
                 </div>
+                )}
               </div>
 
               {formData.discount_type === 'percentage' && (

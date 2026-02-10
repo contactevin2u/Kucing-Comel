@@ -143,6 +143,7 @@ const createOrder = async (req, res, next) => {
     let appliedVoucherCode = null;
     let appliedVoucherDiscount = 0;
     let voucherId = null;
+    let appliedVoucherType = null;
 
     // Get user email for voucher tracking
     const userEmailResult = await db.query('SELECT email FROM users WHERE id = $1', [req.user.id]);
@@ -177,7 +178,9 @@ const createOrder = async (req, res, next) => {
             (!voucher.min_order_amount || subtotal >= parseFloat(voucher.min_order_amount))) {
 
           // Calculate discount
-          if (voucher.discount_type === 'fixed') {
+          if (voucher.discount_type === 'free_shipping') {
+            appliedVoucherDiscount = 0; // No subtotal discount — delivery fee zeroed below
+          } else if (voucher.discount_type === 'fixed') {
             appliedVoucherDiscount = parseFloat(voucher.discount_amount);
           } else {
             appliedVoucherDiscount = (subtotal * parseFloat(voucher.discount_amount)) / 100;
@@ -193,6 +196,7 @@ const createOrder = async (req, res, next) => {
 
           appliedVoucherCode = voucher.code;
           voucherId = voucher.id;
+          appliedVoucherType = voucher.discount_type;
         }
       }
     }
@@ -200,7 +204,12 @@ const createOrder = async (req, res, next) => {
     const totalAmount = subtotal - appliedVoucherDiscount;
 
     // Calculate delivery fee from weight using SPX rates
-    const appliedDeliveryFee = calculateDeliveryFee(totalWeight, subtotal);
+    let appliedDeliveryFee = calculateDeliveryFee(totalWeight, subtotal);
+
+    // Free shipping voucher overrides delivery fee
+    if (appliedVoucherType === 'free_shipping') {
+      appliedDeliveryFee = 0;
+    }
 
     // Create order
     const orderResult = await db.query(
@@ -336,6 +345,7 @@ const createGuestOrder = async (req, res, next) => {
     let appliedVoucherCode = null;
     let appliedVoucherDiscount = 0;
     let voucherId = null;
+    let appliedVoucherType = null;
 
     if (voucher_code) {
       const voucherResult = await db.query(
@@ -366,7 +376,9 @@ const createGuestOrder = async (req, res, next) => {
             (!voucher.min_order_amount || subtotal >= parseFloat(voucher.min_order_amount))) {
 
           // Calculate discount
-          if (voucher.discount_type === 'fixed') {
+          if (voucher.discount_type === 'free_shipping') {
+            appliedVoucherDiscount = 0; // No subtotal discount — delivery fee zeroed below
+          } else if (voucher.discount_type === 'fixed') {
             appliedVoucherDiscount = parseFloat(voucher.discount_amount);
           } else {
             appliedVoucherDiscount = (subtotal * parseFloat(voucher.discount_amount)) / 100;
@@ -382,6 +394,7 @@ const createGuestOrder = async (req, res, next) => {
 
           appliedVoucherCode = voucher.code;
           voucherId = voucher.id;
+          appliedVoucherType = voucher.discount_type;
         }
       }
     }
@@ -389,7 +402,12 @@ const createGuestOrder = async (req, res, next) => {
     const totalAmount = subtotal - appliedVoucherDiscount;
 
     // Calculate delivery fee from weight using SPX rates
-    const appliedDeliveryFee = calculateDeliveryFee(totalWeight, subtotal);
+    let appliedDeliveryFee = calculateDeliveryFee(totalWeight, subtotal);
+
+    // Free shipping voucher overrides delivery fee
+    if (appliedVoucherType === 'free_shipping') {
+      appliedDeliveryFee = 0;
+    }
 
     // Create order (user_id is NULL for guest)
     const orderResult = await db.query(
