@@ -2165,13 +2165,13 @@ img {
 
   .promo-card {
     min-height: auto;
-    padding: 8px 12px;
+    padding: 14px 16px;
     border-radius: 10px;
   }
 
   .promo-card h3 {
     font-size: 1rem;
-    margin: 0 0 4px;
+    margin: 0 0 8px;
   }
 
   .promo-subtext {
