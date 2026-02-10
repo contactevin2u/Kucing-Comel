@@ -273,8 +273,8 @@ const Checkout = () => {
     }
   };
 
-  // Order Summary Component (reusable)
-  const OrderSummary = ({ className }) => (
+  // Order Summary (render function, not a component, to preserve input focus)
+  const renderOrderSummary = (className) => (
     <div className={`cart-summary ${className || ''}`}>
       <h3>Order Summary</h3>
 
@@ -592,7 +592,7 @@ const Checkout = () => {
               </div>
 
               {/* Order Summary - Mobile Only (between shipping and payment) */}
-              <OrderSummary className="order-summary-mobile" />
+              {renderOrderSummary("order-summary-mobile")}
 
               {/* Payment Section */}
               <div className="form-section" style={{ marginTop: '30px' }}>
@@ -792,7 +792,7 @@ const Checkout = () => {
           </div>
 
           {/* Order Summary - Desktop Only (sticky sidebar) */}
-          <OrderSummary className="order-summary-desktop" />
+          {renderOrderSummary("order-summary-desktop")}
         </div>
       </div>
     </div>
