@@ -193,7 +193,7 @@ const createVoucher = async (req, res, next) => {
       [
         code.trim().toUpperCase(),
         discount_type,
-        discount_amount,
+        discount_type === 'free_shipping' ? (discount_amount || 0) : discount_amount,
         max_discount || null,
         min_order_amount || null,
         start_date || null,
