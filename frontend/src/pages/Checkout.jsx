@@ -338,7 +338,7 @@ const Checkout = () => {
             <input
               type="text"
               value={voucherCode}
-              onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+              onChange={(e) => setVoucherCode(e.target.value)}
               placeholder="Enter code"
               style={{
                 flex: 1,
