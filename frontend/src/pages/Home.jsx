@@ -142,9 +142,9 @@ const Home = () => {
         <div className="container">
           <div className="products-header">
             <h2>{getPageTitle()}</h2>
-            <Link to="/" className="view-all" onClick={() => setActiveFilter('')}>
+            <a href="#" className="view-all" onClick={(e) => { e.preventDefault(); setActiveFilter(''); productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>
               View All →
-            </Link>
+            </a>
           </div>
 
           {/* Product Type Filters */}
