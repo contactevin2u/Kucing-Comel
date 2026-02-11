@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import HeroCarousel from '../components/HeroCarousel';
+import catIcon from '../assets/cat-icon.webp';
 
 // Main animal categories
 const animalCategories = [
-  { name: 'cat', image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200', label: 'CATS' },
+  { name: 'cat', image: catIcon, label: 'CATS' },
   { name: 'dog', image: 'https://as1.ftcdn.net/v2/jpg/00/88/34/58/1000_F_88345863_tdpJPVC3pY1L5US7skyHJVcLuRb7LNT5.jpg', label: 'DOGS', imageClass: 'custom-position' },
 ];
 
