@@ -109,8 +109,9 @@ img {
   gap: 8px;
 }
 
-.logo span {
-  font-size: 2rem;
+.logo-img {
+  height: 45px;
+  width: auto;
 }
 
 .nav-right {
@@ -1864,6 +1865,11 @@ img {
   gap: 8px;
 }
 
+.footer-logo-img {
+  height: 35px;
+  width: auto;
+}
+
 .footer-section p {
   color: var(--light-gray);
   line-height: 1.8;
@@ -1987,8 +1993,8 @@ img {
     gap: 6px;
   }
 
-  .logo span {
-    font-size: 1.5rem;
+  .logo-img {
+    height: 35px;
   }
 
   .nav-right {

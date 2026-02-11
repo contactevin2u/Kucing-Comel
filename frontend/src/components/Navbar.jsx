@@ -109,7 +109,7 @@ const Navbar = () => {
         <div className="container">
           {/* Logo */}
           <Link to="/" className="logo">
-            <span>🐱</span>
+            <img src="/lilien-logo.png" alt="Lilien" className="logo-img" />
           </Link>
 
           {/* Right Navigation */}
