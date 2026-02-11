@@ -61,6 +61,16 @@ const HeroCarousel = () => {
     }
   };
 
+  const handleSlideClick = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    if (clickX < rect.width / 2) {
+      prevSlide();
+    } else {
+      nextSlide();
+    }
+  };
+
   if (images.length === 0) {
     return null;
   }
@@ -73,7 +83,7 @@ const HeroCarousel = () => {
       onTouchEnd={handleTouchEnd}
     >
       {/* Slides */}
-      <div className="carousel-container">
+      <div className="carousel-container" onClick={handleSlideClick} style={{ cursor: 'pointer' }}>
         {images.map((image, index) => (
           <div
             key={index}
@@ -87,14 +97,6 @@ const HeroCarousel = () => {
           </div>
         ))}
       </div>
-
-      {/* Navigation Arrows - hidden on mobile via CSS */}
-      <button className="carousel-btn carousel-btn-prev" onClick={prevSlide}>
-        ‹
-      </button>
-      <button className="carousel-btn carousel-btn-next" onClick={nextSlide}>
-        ›
-      </button>
 
       {/* Dots */}
       <div className="carousel-dots">
