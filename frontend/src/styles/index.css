@@ -87,7 +87,7 @@ img {
 /* ==================== NAVBAR ==================== */
 .navbar {
   background: var(--white);
-  padding: 18px 0;
+  padding: 8px 0;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -110,7 +110,7 @@ img {
 }
 
 .logo-img {
-  height: 45px;
+  height: 75px;
   width: auto;
 }
 
@@ -1981,7 +1981,7 @@ img {
 
 @media (max-width: 768px) {
   .navbar {
-    padding: 12px 0;
+    padding: 4px 0;
   }
 
   .navbar .container {
@@ -1994,7 +1994,7 @@ img {
   }
 
   .logo-img {
-    height: 35px;
+    height: 55px;
   }
 
   .nav-right {
