@@ -5,33 +5,33 @@
 }
 
 :root {
-  /* Primary Colors from Reference */
-  --teal: #00BFB3;
-  --teal-dark: #00A89D;
-  --coral: #FF7B54;
-  --coral-dark: #E86A45;
-  --yellow: #FFD166;
-  --yellow-dark: #FFC233;
-  --pink: #FFB6C1;
-  --pink-dark: #FF9EAA;
-  --mint: #E8F8F5;
+  /* Pastel Macaron Palette */
+  --teal: #B4A0D4;
+  --teal-dark: #A28EC4;
+  --coral: #7CB8D4;
+  --coral-dark: #6AA5C2;
+  --yellow: #F5D78E;
+  --yellow-dark: #EBCA70;
+  --pink: #C4A8D8;
+  --pink-dark: #B494CA;
+  --mint: #FFF0F3;
 
   /* Neutrals */
   --dark: #2D3436;
   --gray: #636E72;
-  --light-gray: #B2BEC3;
-  --light: #F8F9FA;
+  --light-gray: #C8BFB6;
+  --light: #FFF8F3;
   --white: #FFFFFF;
 
   /* Status */
-  --success: #00B894;
-  --warning: #FDCB6E;
-  --danger: #E74C3C;
+  --success: #8CD4B4;
+  --warning: #F5D78E;
+  --danger: #E88A8A;
 
   /* Effects */
-  --shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
-  --shadow-colored: 0 8px 25px rgba(0, 191, 179, 0.25);
+  --shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.1);
+  --shadow-colored: 0 8px 25px rgba(180, 160, 212, 0.25);
   --radius: 16px;
   --radius-sm: 10px;
   --radius-lg: 24px;
@@ -404,7 +404,7 @@ img {
 .btn-primary:hover {
   background: var(--teal-dark);
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0, 191, 179, 0.35);
+  box-shadow: 0 12px 30px rgba(180, 160, 212, 0.35);
 }
 
 .btn-secondary {
@@ -474,17 +474,17 @@ img {
 
 .hero-bg-left {
   flex: 1;
-  background: linear-gradient(135deg, var(--teal) 0%, #20E3B2 100%);
+  background: linear-gradient(135deg, var(--teal) 0%, #CFC0E8 100%);
 }
 
 .hero-bg-right {
   flex: 0.8;
-  background: linear-gradient(135deg, var(--coral) 0%, #FF9A76 100%);
+  background: linear-gradient(135deg, var(--coral) 0%, #A0D0E8 100%);
 }
 
 .hero-bg-accent {
   flex: 0.3;
-  background: linear-gradient(135deg, var(--pink) 0%, #FFC4D0 100%);
+  background: linear-gradient(135deg, var(--pink) 0%, #D8C4E8 100%);
 }
 
 .hero .container {
@@ -625,7 +625,7 @@ img {
 
 .category-item:hover .category-icon {
   border-color: var(--teal);
-  box-shadow: 0 8px 25px rgba(0, 191, 179, 0.3);
+  box-shadow: 0 8px 25px rgba(180, 160, 212, 0.3);
 }
 
 .category-item.active .category-icon {
@@ -679,17 +679,17 @@ img {
 }
 
 .promo-card.teal {
-  background: linear-gradient(135deg, var(--teal) 0%, #20E3B2 100%);
+  background: linear-gradient(135deg, #F4A89A 0%, #F7C8A0 100%);
   color: white;
 }
 
 .promo-card.yellow {
-  background: linear-gradient(135deg, var(--yellow) 0%, #FFE066 100%);
+  background: linear-gradient(135deg, var(--yellow) 0%, #F9E8B0 100%);
   color: var(--dark);
 }
 
 .promo-card.coral {
-  background: linear-gradient(135deg, var(--coral) 0%, #FF9A76 100%);
+  background: linear-gradient(135deg, var(--coral) 0%, #A0D0E8 100%);
   color: white;
 }
 
@@ -764,12 +764,12 @@ img {
 
 .filter-btn:hover {
   color: var(--teal);
-  background: rgba(0, 191, 179, 0.1);
+  background: rgba(180, 160, 212, 0.1);
 }
 
 .filter-btn.active {
   color: var(--teal);
-  background: rgba(0, 191, 179, 0.15);
+  background: rgba(180, 160, 212, 0.15);
   font-weight: 600;
 }
 
@@ -1605,7 +1605,7 @@ img {
 
 .gallery-thumbnail.active {
   border-color: var(--teal);
-  box-shadow: 0 0 0 2px rgba(0, 191, 179, 0.2);
+  box-shadow: 0 0 0 2px rgba(180, 160, 212, 0.2);
 }
 
 .gallery-thumbnail img {
@@ -1745,7 +1745,7 @@ img {
 .variant-dropdown:focus {
   outline: none;
   border-color: var(--teal);
-  box-shadow: 0 0 0 3px rgba(0, 191, 179, 0.15);
+  box-shadow: 0 0 0 3px rgba(180, 160, 212, 0.15);
 }
 
 /* Variant Error State */
@@ -1786,7 +1786,7 @@ img {
 
 /* Member Price Hint for Non-logged in users */
 .member-price-hint {
-  background: linear-gradient(135deg, var(--mint), #FFF5E6);
+  background: linear-gradient(135deg, var(--mint), #FFF8F3);
   border: 1px solid var(--teal);
   border-radius: var(--radius-sm);
   padding: 12px 18px;
@@ -1838,7 +1838,7 @@ img {
 
 /* ==================== FOOTER ==================== */
 .footer {
-  background: var(--dark);
+  background: #3D3555;
   color: var(--white);
   padding: 60px 0 30px;
 }
@@ -1858,15 +1858,15 @@ img {
 .footer-logo {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--teal);
+  color: #FFFFFF;
   margin-bottom: 15px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .footer-logo-img {
-  height: 35px;
+  height: 90px;
   width: auto;
 }
 

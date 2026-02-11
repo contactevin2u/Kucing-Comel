@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import { Heart } from 'lucide-react';
 
 const getImageUrl = (url) => {
   if (!url) return 'https://via.placeholder.com/300x200?text=No+Image';
@@ -109,7 +110,7 @@ const ProductCard = ({ product }) => {
         disabled={wishlistLoading}
         style={{ color: isWishlisted ? '#FF7B54' : '#B2BEC3' }}
       >
-        {isWishlisted ? '♥' : '♡'}
+        {isWishlisted ? <Heart size={20} strokeWidth={1.5} fill="currentColor" /> : <Heart size={20} strokeWidth={1.5} />}
       </button>
 
       <Link to={`/product/${product.id}`}>
@@ -213,14 +214,14 @@ const ProductCard = ({ product }) => {
         }
 
         .btn-buy {
-          background: linear-gradient(135deg, #FF6B6B 0%, #ee5a5a 100%);
+          background: linear-gradient(135deg, #E891A8 0%, #D97E96 100%);
           color: #fff;
         }
 
         .btn-buy:hover:not(:disabled) {
-          background: linear-gradient(135deg, #ff5252 0%, #e04848 100%);
+          background: linear-gradient(135deg, #D97E96 0%, #CC6D86 100%);
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+          box-shadow: 0 4px 12px rgba(232, 145, 168, 0.4);
         }
 
         .btn-buy:active:not(:disabled) {

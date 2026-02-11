@@ -1,4 +1,5 @@
 import React from 'react';
+import { Mail, Phone, MapPin } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -8,27 +9,27 @@ const Footer = () => {
           {/* About Section */}
           <div className="footer-section">
             <div className="footer-logo">
-              <img src="/lilien-logo-footer.png" alt="Lilien" className="footer-logo-img" /> Lilien Official Store
+              <img src="/lilien-logo-footer.png" alt="Lilien" className="footer-logo-img" /> <span style={{ alignSelf: 'flex-end', paddingBottom: '14px' }}>Lilien Official Store</span>
             </div>
             <p>
-              Your one-stop shop for all cat products. We provide premium quality
-              items for your beloved feline friends with love and care.
+              Your one-stop shop for all pet products. We provide premium quality
+              items for your beloved companions with love and care.
             </p>
           </div>
 
           {/* Contact */}
-          <div className="footer-section">
-            <h4>Contact Us</h4>
-            <p>📧 hello@kucingcomel.com</p>
-            <p>📞 +60 12-345-6789</p>
-            <p>📍 Kuala Lumpur, Malaysia</p>
+          <div className="footer-section" style={{ paddingTop: '45px' }}>
+            <h4 style={{ paddingLeft: '24px' }}>Contact Us</h4>
+            <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Mail size={16} strokeWidth={1.5} /> petpalshubsb@gmail.com</p>
+            <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Phone size={16} strokeWidth={1.5} style={{ marginTop: '-4px' }} /> 01128799638</p>
+            <p style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}><MapPin size={16} strokeWidth={1.5} style={{ flexShrink: 0, marginTop: '5px' }} /> 1, Jalan Perusahaan 4, Kawasan Industri Batu Caves, 68100 Batu Caves, Selangor</p>
           </div>
 
           {/* ============================================================
              Required for SenangPay approval - Policy links must be
              publicly visible in footer on all pages
              ============================================================ */}
-          <div className="footer-section">
+          <div className="footer-section" style={{ paddingTop: '45px' }}>
             <h4>Legal</h4>
             <a
               href="http://app.senangpay.my/policy/5501769075421851"
@@ -62,7 +63,7 @@ const Footer = () => {
         </div>
 
         <div className="footer-bottom">
-          <p>© 2024 Lilien Official Store. All rights reserved.</p>
+          <p>© 2026 Lilien Official Store. All rights reserved.</p>
         </div>
       </div>
     </footer>
