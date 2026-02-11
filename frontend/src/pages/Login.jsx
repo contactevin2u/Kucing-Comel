@@ -39,7 +39,7 @@ const Login = () => {
   return (
     <div className="auth-page">
       <div className="auth-form">
-        <h2>Welcome Back 🐱</h2>
+        <h2>Welcome Back</h2>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
