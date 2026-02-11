@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import HeroCarousel from '../components/HeroCarousel';
-import catIcon from '../assets/cat-icon.webp';
+import catIcon from '../assets/cat-icon.png';
 
 // Main animal categories
 const animalCategories = [
