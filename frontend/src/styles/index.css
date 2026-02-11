@@ -2143,10 +2143,6 @@ img {
     font-size: 2rem;
   }
 
-  .hero-carousel {
-    height: 160px;
-  }
-
   .carousel-btn {
     display: none;
   }
@@ -2378,7 +2374,28 @@ img {
 
 @media (max-width: 768px) {
   .hero-carousel {
-    height: 200px;
+    height: auto;
+    border-radius: 0;
+  }
+
+  .carousel-container {
+    position: relative;
+  }
+
+  .carousel-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .carousel-slide.active {
+    position: relative;
+  }
+
+  .carousel-slide img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
   }
 
   .carousel-btn {
