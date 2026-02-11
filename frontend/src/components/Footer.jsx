@@ -20,9 +20,9 @@ const Footer = () => {
           {/* Contact */}
           <div className="footer-section" style={{ paddingTop: '45px' }}>
             <h4 style={{ paddingLeft: '24px' }}>Contact Us</h4>
-            <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Mail size={16} strokeWidth={1.5} /> petpalshubsb@gmail.com</p>
-            <p style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Phone size={16} strokeWidth={1.5} style={{ marginTop: '-4px' }} /> 01128799638</p>
-            <p style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}><MapPin size={16} strokeWidth={1.5} style={{ flexShrink: 0, marginTop: '5px' }} /> 1, Jalan Perusahaan 4, Kawasan Industri Batu Caves, 68100 Batu Caves, Selangor</p>
+            <a href="mailto:petpalshubsb@gmail.com" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Mail size={16} strokeWidth={1.5} /> petpalshubsb@gmail.com</a>
+            <a href="tel:+6001128799638" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Phone size={16} strokeWidth={1.5} style={{ marginTop: '-4px' }} /> 01128799638</a>
+            <a href="https://maps.google.com/?q=1,+Jalan+Perusahaan+4,+Kawasan+Industri+Batu+Caves,+68100+Batu+Caves,+Selangor" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}><MapPin size={16} strokeWidth={1.5} style={{ flexShrink: 0, marginTop: '5px' }} /> 1, Jalan Perusahaan 4, Kawasan Industri Batu Caves, 68100 Batu Caves, Selangor</a>
           </div>
 
           {/* ============================================================
