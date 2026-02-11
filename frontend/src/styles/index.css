@@ -470,7 +470,7 @@ img {
   }
 
   .hero-area .promo-section {
-    padding: 35px 0 10px;
+    padding: 25px 0 10px;
   }
 }
 
@@ -2184,7 +2184,7 @@ img {
 
   .promo-grid,
   .promo-grid-2 {
-    gap: 8px;
+    gap: 14px;
   }
 
   .promo-card {
