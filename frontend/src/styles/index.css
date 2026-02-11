@@ -2120,10 +2120,15 @@ img {
   .footer-section p,
   .footer-section a {
     text-align: center;
+    justify-content: center;
   }
 
   .footer-section a {
     margin-bottom: 6px;
+  }
+
+  .footer-section h4 {
+    padding-left: 0 !important;
   }
 
   .footer-bottom {
