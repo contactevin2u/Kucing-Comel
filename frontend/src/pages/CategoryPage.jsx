@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import ProductCard from '../components/ProductCard';
 
-const categoryConfig = {
+// Static config for known categories (for backwards-compatible URLs)
+const staticCategoryConfig = {
   food: { label: 'Food', dbValue: 'Food' },
   litter: { label: 'Litter', dbValue: 'Litter' },
   supplements: { label: 'Supplements', dbValue: 'Supplements & Medications' },
@@ -19,13 +20,38 @@ const CategoryPage = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [config, setConfig] = useState(staticCategoryConfig[category] || null);
 
-  const config = categoryConfig[category];
+  // For dynamic categories, resolve the DB value from the API
+  useEffect(() => {
+    if (staticCategoryConfig[category]) {
+      setConfig(staticCategoryConfig[category]);
+      return;
+    }
+    // Try to resolve dynamic category from API
+    const resolveCategory = async () => {
+      try {
+        const data = await api.getCategories();
+        if (data.categories) {
+          const match = data.categories.find(c => {
+            const route = c.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            return route === category;
+          });
+          if (match) {
+            setConfig({ label: match, dbValue: match });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to resolve category:', error);
+      }
+    };
+    resolveCategory();
+  }, [category]);
 
   useEffect(() => {
     if (!config) return;
     fetchProducts();
-  }, [category, petType]);
+  }, [config, petType]);
 
   const fetchProducts = async () => {
     setLoading(true);

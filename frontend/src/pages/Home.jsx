@@ -10,21 +10,48 @@ const animalCategories = [
   { name: 'dog', image: 'https://as1.ftcdn.net/v2/jpg/00/88/34/58/1000_F_88345863_tdpJPVC3pY1L5US7skyHJVcLuRb7LNT5.jpg', label: 'DOGS', imageClass: 'custom-position' },
 ];
 
-// Product type filters
-const productFilters = [
-  { name: 'Food', label: 'Food', route: 'food' },
-  { name: 'Litter', label: 'Litter', route: 'litter' },
-  { name: 'Supplements & Medications', label: 'Supplements', route: 'supplements' },
-];
+// Map category names to URL-friendly routes and short labels
+const getCategoryRoute = (name) => {
+  const lower = name.toLowerCase();
+  if (lower === 'food') return 'food';
+  if (lower === 'litter') return 'litter';
+  if (lower.includes('supplement')) return 'supplements';
+  return lower.replace(/[^a-z0-9]+/g, '-');
+};
+
+const getCategoryLabel = (name) => {
+  if (name === 'Supplements & Medications') return 'Supplements';
+  return name;
+};
 
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('');
   const [activePetType, setActivePetType] = useState('');
+  const [productFilters, setProductFilters] = useState([]);
   const productsRef = useRef(null);
   const categoriesRef = useRef(null);
   const navigate = useNavigate();
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await api.getCategories();
+        if (data.categories) {
+          setProductFilters(data.categories.map(name => ({
+            name,
+            label: getCategoryLabel(name),
+            route: getCategoryRoute(name),
+          })));
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     fetchProducts();
@@ -77,7 +104,7 @@ const Home = () => {
   const getPageTitle = () => {
     const petLabel = activePetType === 'cat' ? 'Cat' : activePetType === 'dog' ? 'Dog' : '';
     if (activeFilter) {
-      const filterLabel = activeFilter === 'Supplements & Medications' ? 'Supplements' : activeFilter;
+      const filterLabel = getCategoryLabel(activeFilter);
       return petLabel ? `${petLabel} ${filterLabel}` : filterLabel;
     }
     if (petLabel) {
@@ -162,28 +189,32 @@ const Home = () => {
           </div>
 
           {/* Pet type sub-filters when a category is active */}
-          {activeFilter && (
-            <div className="product-filters" style={{ marginTop: '-15px' }}>
-              <button
-                className={`filter-btn ${!activePetType ? 'active' : ''}`}
-                onClick={() => navigate(`/${productFilters.find(f => f.name === activeFilter)?.route}`)}
-              >
-                View All {activeFilter === 'Supplements & Medications' ? 'Supplements' : activeFilter}
-              </button>
-              <button
-                className={`filter-btn ${activePetType === 'cat' ? 'active' : ''}`}
-                onClick={() => navigate(`/${productFilters.find(f => f.name === activeFilter)?.route}/cat`)}
-              >
-                Cat {activeFilter === 'Supplements & Medications' ? 'Supplements' : activeFilter}
-              </button>
-              <button
-                className={`filter-btn ${activePetType === 'dog' ? 'active' : ''}`}
-                onClick={() => navigate(`/${productFilters.find(f => f.name === activeFilter)?.route}/dog`)}
-              >
-                Dog {activeFilter === 'Supplements & Medications' ? 'Supplements' : activeFilter}
-              </button>
-            </div>
-          )}
+          {activeFilter && (() => {
+            const activeRoute = productFilters.find(f => f.name === activeFilter)?.route;
+            const activeLabel = getCategoryLabel(activeFilter);
+            return (
+              <div className="product-filters" style={{ marginTop: '-15px' }}>
+                <button
+                  className={`filter-btn ${!activePetType ? 'active' : ''}`}
+                  onClick={() => navigate(`/${activeRoute}`)}
+                >
+                  View All {activeLabel}
+                </button>
+                <button
+                  className={`filter-btn ${activePetType === 'cat' ? 'active' : ''}`}
+                  onClick={() => navigate(`/${activeRoute}/cat`)}
+                >
+                  Cat {activeLabel}
+                </button>
+                <button
+                  className={`filter-btn ${activePetType === 'dog' ? 'active' : ''}`}
+                  onClick={() => navigate(`/${activeRoute}/dog`)}
+                >
+                  Dog {activeLabel}
+                </button>
+              </div>
+            );
+          })()}
 
           {loading ? (
             <div className="loading">

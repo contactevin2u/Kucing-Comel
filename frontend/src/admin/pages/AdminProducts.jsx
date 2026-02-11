@@ -29,7 +29,9 @@ const AdminProducts = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [petTypeFilter, setPetTypeFilter] = useState('');
   const [categories, setCategories] = useState([]);
+  const [showNewCategory, setShowNewCategory] = useState(false);
   const [variants, setVariants] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
@@ -151,6 +153,7 @@ const AdminProducts = () => {
     setProductImages([]);
     setPendingImages([]);
     setShowManualUrl(false);
+    setShowNewCategory(false);
     setVariants([]);
     setShowVariantForm(false);
     setEditingVariant(null);
@@ -174,6 +177,7 @@ const AdminProducts = () => {
     });
     setPendingImages([]);
     setShowManualUrl(!!(product.image_url && !product.has_db_image && parseInt(product.image_count) === 0));
+    setShowNewCategory(false);
     setShowVariantForm(false);
     setEditingVariant(null);
     setFormError('');
@@ -490,9 +494,11 @@ const AdminProducts = () => {
     }
   };
 
-  const filteredProducts = categoryFilter
-    ? products.filter(p => p.category === categoryFilter)
-    : products;
+  const filteredProducts = products.filter(p => {
+    if (categoryFilter && p.category !== categoryFilter) return false;
+    if (petTypeFilter && p.pet_type !== petTypeFilter) return false;
+    return true;
+  });
 
   if (loading) {
     return (
@@ -518,30 +524,46 @@ const AdminProducts = () => {
 
       {error && <div className="alert alert-error">{error}</div>}
 
-      {/* Category filter */}
-      {categories.length > 0 && (
-        <div style={{ marginBottom: '16px' }}>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '6px',
-              border: '1px solid var(--admin-border)',
-              background: '#ffffff',
-              color: '#0f172a',
-              fontSize: '14px'
-            }}
-          >
-            <option value="">All Categories ({products.length})</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>
-                {cat} ({products.filter(p => p.category === cat).length})
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          style={{
+            padding: '8px 12px',
+            borderRadius: '6px',
+            border: '1px solid var(--admin-border)',
+            background: '#ffffff',
+            color: '#0f172a',
+            fontSize: '14px'
+          }}
+        >
+          <option value="">All Categories ({products.length})</option>
+          {categories.map(cat => (
+            <option key={cat} value={cat}>
+              {cat} ({products.filter(p => p.category === cat).length})
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={petTypeFilter}
+          onChange={(e) => setPetTypeFilter(e.target.value)}
+          style={{
+            padding: '8px 12px',
+            borderRadius: '6px',
+            border: '1px solid var(--admin-border)',
+            background: '#ffffff',
+            color: '#0f172a',
+            fontSize: '14px'
+          }}
+        >
+          <option value="">All Pet Types</option>
+          <option value="cat">Cat ({products.filter(p => p.pet_type === 'cat').length})</option>
+          <option value="dog">Dog ({products.filter(p => p.pet_type === 'dog').length})</option>
+          <option value="both">Both ({products.filter(p => p.pet_type === 'both').length})</option>
+        </select>
+      </div>
 
       <div className="admin-card">
         {filteredProducts.length === 0 ? (
@@ -855,19 +877,49 @@ const AdminProducts = () => {
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="prod-category">Category</label>
-                  <input
-                    type="text"
-                    id="prod-category"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    placeholder="e.g., Cat Food"
-                    list="category-suggestions"
-                  />
-                  <datalist id="category-suggestions">
-                    {categories.map(cat => (
-                      <option key={cat} value={cat} />
-                    ))}
-                  </datalist>
+                  {showNewCategory ? (
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <input
+                        type="text"
+                        id="prod-category"
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        placeholder="New category name"
+                        autoFocus
+                        style={{ flex: 1 }}
+                      />
+                      <button
+                        type="button"
+                        style={{
+                          background: 'none', border: '1px solid var(--admin-border)',
+                          borderRadius: '6px', padding: '0 10px', cursor: 'pointer',
+                          color: '#64748b', fontSize: '13px'
+                        }}
+                        onClick={() => setShowNewCategory(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <select
+                      id="prod-category"
+                      value={formData.category}
+                      onChange={(e) => {
+                        if (e.target.value === '__new__') {
+                          setFormData({ ...formData, category: '' });
+                          setShowNewCategory(true);
+                        } else {
+                          setFormData({ ...formData, category: e.target.value });
+                        }
+                      }}
+                    >
+                      <option value="">-- Select Category --</option>
+                      {categories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                      <option value="__new__">+ Add New Category...</option>
+                    </select>
+                  )}
                 </div>
 
                 <div className="form-group">
