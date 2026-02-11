@@ -2114,6 +2114,12 @@ img {
 
   .footer-logo {
     margin-bottom: 8px;
+    justify-content: center;
+  }
+
+  .footer-section p,
+  .footer-section a {
+    text-align: center;
   }
 
   .footer-section a {
