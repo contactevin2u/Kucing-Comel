@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import TopBanner from './components/TopBanner';
 import Navbar from './components/Navbar';
@@ -17,6 +17,15 @@ import OrderSuccess from './pages/OrderSuccess';
 import MockPayment from './pages/MockPayment';
 import CategoryPage from './pages/CategoryPage';
 import AdminApp from './admin/AdminApp';
+
+// Scroll to top on route change
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
 
 // Layout wrapper for pages with header/footer
 const MainLayout = ({ children }) => (
@@ -49,6 +58,7 @@ function App() {
 
   return (
     <MainLayout>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/product/:id" element={<ProductDetail />} />
