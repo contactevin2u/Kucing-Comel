@@ -7,7 +7,7 @@ import ProductCard from '../components/ProductCard';
 const staticCategoryConfig = {
   food: { label: 'Food', dbValue: 'Food' },
   litter: { label: 'Litter', dbValue: 'Litter' },
-  supplements: { label: 'Supplements', dbValue: 'Supplements & Medications' },
+  supplements: { label: 'Supplements', dbValue: 'Supplement' },
 };
 
 const petTypeLabels = {
