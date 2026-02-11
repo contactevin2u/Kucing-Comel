@@ -2,13 +2,14 @@ const db = require('../config/database');
 
 // Helper function to format product based on user authentication
 const formatProduct = (product, isMember) => {
+  const hasDbImage = product.has_db_image === true || product.has_db_image === 1;
   if (isMember) {
-    // Logged-in member: show member price as main price, original price for reference
     return {
       id: product.id,
       name: product.name,
       description: product.description,
       image_url: product.image_url,
+      has_db_image: hasDbImage,
       category: product.category,
       pet_type: product.pet_type,
       stock: product.stock,
@@ -17,12 +18,12 @@ const formatProduct = (product, isMember) => {
       isMember: true
     };
   } else {
-    // Guest: show only normal price, no member price exposed
     return {
       id: product.id,
       name: product.name,
       description: product.description,
       image_url: product.image_url,
+      has_db_image: hasDbImage,
       category: product.category,
       pet_type: product.pet_type,
       stock: product.stock,
@@ -57,7 +58,7 @@ const getAllProducts = async (req, res, next) => {
     const { category, petType, search, sort, limit = 50, offset = 0 } = req.query;
     const isMember = !!req.user;
 
-    let query = 'SELECT * FROM products WHERE is_active = true';
+    let query = 'SELECT id, name, description, price, member_price, image_url, image_mime, category, pet_type, stock, weight, is_active, created_at, updated_at, (image_data IS NOT NULL) AS has_db_image FROM products WHERE is_active = true';
     const params = [];
     let paramCount = 0;
 
@@ -122,7 +123,10 @@ const getProductById = async (req, res, next) => {
     const { id } = req.params;
     const isMember = !!req.user;
 
-    const result = await db.query('SELECT * FROM products WHERE id = $1 AND is_active = true', [id]);
+    const result = await db.query(
+      'SELECT id, name, description, price, member_price, image_url, image_mime, category, pet_type, stock, weight, is_active, created_at, updated_at, (image_data IS NOT NULL) AS has_db_image FROM products WHERE id = $1 AND is_active = true',
+      [id]
+    );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Product not found.' });

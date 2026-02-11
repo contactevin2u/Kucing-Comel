@@ -5,14 +5,24 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import ImageGallery from '../components/ImageGallery';
 
-const getImageUrl = (url) => {
+const getImageUrl = (urlOrProduct) => {
+  // If called with a product object (for fallback image)
+  if (urlOrProduct && typeof urlOrProduct === 'object') {
+    if (urlOrProduct.has_db_image) {
+      return `${api.getApiUrl()}/api/product-images/db/${urlOrProduct.id}`;
+    }
+    const url = urlOrProduct.image_url;
+    if (!url) return 'https://via.placeholder.com/500x400?text=No+Image';
+    if (url.startsWith('http')) return url;
+    return `${api.getApiUrl()}/api/product-images${encodeURI(url)}`;
+  }
+  // Called with a URL string (for gallery images)
+  const url = urlOrProduct;
   if (!url) return 'https://via.placeholder.com/500x400?text=No+Image';
   if (url.startsWith('http')) return url;
-  // Handle API-served images (already encoded by backend)
   if (url.startsWith('/api/')) {
     return `${api.getApiUrl()}${url}`;
   }
-  // Backend serves product images from /api/product-images
   return `${api.getApiUrl()}/api/product-images${encodeURI(url)}`;
 };
 
@@ -297,7 +307,7 @@ const ProductDetail = () => {
           <div className="product-detail-gallery">
             <ImageGallery
               images={galleryImages}
-              fallbackImage={getImageUrl(product.image_url)}
+              fallbackImage={getImageUrl(product)}
               isLoading={imagesLoading}
             />
           </div>

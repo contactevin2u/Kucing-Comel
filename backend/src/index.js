@@ -55,11 +55,40 @@ app.use(cors({
 
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), handleWebhook);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // Serve static product images from Products folder
 const productsPath = path.join(__dirname, '..', '..', 'Products');
+app.use('/api/product-images/db', async (req, res, next) => {
+  // Serve DB-stored images: /api/product-images/db/:id
+  const idMatch = req.path.match(/^\/(\d+)$/);
+  if (!idMatch) return next();
+
+  try {
+    const result = await db.query(
+      'SELECT image_data, image_mime FROM products WHERE id = $1',
+      [idMatch[1]]
+    );
+
+    if (result.rows.length === 0 || !result.rows[0].image_data) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+
+    const { image_data, image_mime } = result.rows[0];
+    const buffer = Buffer.from(image_data, 'base64');
+
+    res.set({
+      'Content-Type': image_mime || 'image/jpeg',
+      'Content-Length': buffer.length,
+      'Cache-Control': 'public, max-age=86400'
+    });
+    res.send(buffer);
+  } catch (error) {
+    console.error('Error serving DB image:', error.message);
+    res.status(500).json({ error: 'Failed to serve image' });
+  }
+});
 app.use('/api/product-images', express.static(productsPath));
 
 // Root welcome route

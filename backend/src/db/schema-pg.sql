@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS products (
     price DECIMAL(10, 2) NOT NULL,
     member_price DECIMAL(10, 2),
     image_url VARCHAR(500),
+    image_data TEXT,
+    image_mime VARCHAR(50),
     category VARCHAR(100),
     pet_type VARCHAR(20),
     stock INTEGER DEFAULT 0,

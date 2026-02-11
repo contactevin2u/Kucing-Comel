@@ -6,7 +6,9 @@ const db = require('../config/database');
 const getAdminProducts = async (req, res, next) => {
   try {
     const result = await db.query(
-      `SELECT p.*,
+      `SELECT p.id, p.name, p.description, p.price, p.member_price, p.image_url, p.image_mime,
+        p.category, p.pet_type, p.stock, p.weight, p.is_active, p.created_at, p.updated_at,
+        (p.image_data IS NOT NULL) AS has_db_image,
         (SELECT COUNT(*) FROM product_variants pv WHERE pv.product_id = p.id) AS variant_count,
         (SELECT COALESCE(SUM(pv.stock), 0) FROM product_variants pv WHERE pv.product_id = p.id AND pv.is_active = true) AS variant_stock
        FROM products p
@@ -27,7 +29,10 @@ const getAdminProductById = async (req, res, next) => {
     const { id } = req.params;
 
     const result = await db.query(
-      `SELECT * FROM products WHERE id = $1`,
+      `SELECT id, name, description, price, member_price, image_url, image_mime,
+        category, pet_type, stock, weight, is_active, created_at, updated_at,
+        (image_data IS NOT NULL) AS has_db_image
+       FROM products WHERE id = $1`,
       [id]
     );
 
@@ -56,7 +61,8 @@ const createProduct = async (req, res, next) => {
   try {
     const {
       name, description, price, member_price,
-      image_url, category, pet_type, stock, weight, is_active
+      image_url, image_data, image_mime,
+      category, pet_type, stock, weight, is_active
     } = req.body;
 
     if (!name || price === undefined) {
@@ -67,16 +73,23 @@ const createProduct = async (req, res, next) => {
       return res.status(400).json({ error: 'Price must be 0 or greater.' });
     }
 
+    // If uploading image data, clear image_url; otherwise use provided URL
+    const finalImageUrl = image_data ? null : (image_url || null);
+    const finalImageData = image_data || null;
+    const finalImageMime = image_data ? (image_mime || 'image/jpeg') : null;
+
     const result = await db.query(
-      `INSERT INTO products (name, description, price, member_price, image_url, category, pet_type, stock, weight, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       RETURNING *`,
+      `INSERT INTO products (name, description, price, member_price, image_url, image_data, image_mime, category, pet_type, stock, weight, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       RETURNING id, name, description, price, member_price, image_url, image_mime, category, pet_type, stock, weight, is_active, created_at, updated_at`,
       [
         name.trim(),
         description || null,
         parseFloat(price),
         member_price ? parseFloat(member_price) : null,
-        image_url || null,
+        finalImageUrl,
+        finalImageData,
+        finalImageMime,
         category || null,
         pet_type || null,
         parseInt(stock) || 0,
@@ -85,9 +98,12 @@ const createProduct = async (req, res, next) => {
       ]
     );
 
+    const product = result.rows[0];
+    product.has_db_image = !!finalImageData;
+
     res.status(201).json({
       message: 'Product created successfully.',
-      product: result.rows[0]
+      product
     });
   } catch (error) {
     next(error);
@@ -102,16 +118,42 @@ const updateProduct = async (req, res, next) => {
     const { id } = req.params;
     const {
       name, description, price, member_price,
-      image_url, category, pet_type, stock, weight, is_active
+      image_url, image_data, image_mime,
+      category, pet_type, stock, weight, is_active
     } = req.body;
 
     const existing = await db.query(
-      `SELECT * FROM products WHERE id = $1`,
+      `SELECT id, name, description, price, member_price, image_url, image_mime,
+        category, pet_type, stock, weight, is_active
+       FROM products WHERE id = $1`,
       [id]
     );
 
     if (existing.rows.length === 0) {
       return res.status(404).json({ error: 'Product not found.' });
+    }
+
+    // Determine image fields
+    let finalImageUrl, finalImageMime;
+    let updateImageData = false;
+    let finalImageData = null;
+
+    if (image_data) {
+      // New upload — store base64, clear URL
+      finalImageUrl = null;
+      finalImageData = image_data;
+      finalImageMime = image_mime || 'image/jpeg';
+      updateImageData = true;
+    } else if (image_url !== undefined) {
+      // Manual URL provided — clear DB image
+      finalImageUrl = image_url || null;
+      finalImageData = null;
+      finalImageMime = null;
+      updateImageData = true;
+    } else {
+      // No image change
+      finalImageUrl = existing.rows[0].image_url;
+      finalImageMime = existing.rows[0].image_mime;
     }
 
     const result = await db.query(
@@ -121,20 +163,22 @@ const updateProduct = async (req, res, next) => {
         price = COALESCE($3, price),
         member_price = $4,
         image_url = $5,
-        category = $6,
-        pet_type = $7,
-        stock = COALESCE($8, stock),
-        weight = $9,
-        is_active = COALESCE($10, is_active),
+        image_mime = $6,
+        category = $7,
+        pet_type = $8,
+        stock = COALESCE($9, stock),
+        weight = $10,
+        is_active = COALESCE($11, is_active),
         updated_at = CURRENT_TIMESTAMP
-       WHERE id = $11
-       RETURNING *`,
+       WHERE id = $12
+       RETURNING id, name, description, price, member_price, image_url, image_mime, category, pet_type, stock, weight, is_active, created_at, updated_at`,
       [
         name ? name.trim() : null,
         description !== undefined ? description : existing.rows[0].description,
         price !== undefined ? parseFloat(price) : null,
         member_price !== undefined ? (member_price ? parseFloat(member_price) : null) : existing.rows[0].member_price,
-        image_url !== undefined ? image_url : existing.rows[0].image_url,
+        finalImageUrl,
+        finalImageMime,
         category !== undefined ? category : existing.rows[0].category,
         pet_type !== undefined ? pet_type : existing.rows[0].pet_type,
         stock !== undefined ? parseInt(stock) : null,
@@ -144,9 +188,20 @@ const updateProduct = async (req, res, next) => {
       ]
     );
 
+    // Update image_data separately (keeps id as last param for SQLite compat)
+    if (updateImageData) {
+      await db.query(
+        `UPDATE products SET image_data = $1 WHERE id = $2`,
+        [finalImageData, id]
+      );
+    }
+
+    const product = result.rows[0];
+    product.has_db_image = updateImageData ? !!finalImageData : !!existing.rows[0].image_mime;
+
     res.json({
       message: 'Product updated successfully.',
-      product: result.rows[0]
+      product
     });
   } catch (error) {
     next(error);

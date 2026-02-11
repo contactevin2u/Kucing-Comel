@@ -3,7 +3,13 @@ import { useAdminAuth } from '../AdminApp';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-const getImageUrl = (url) => {
+const getImageUrl = (product) => {
+  if (!product) return null;
+  // DB-stored image
+  if (product.has_db_image) {
+    return `${API_URL}/api/product-images/db/${product.id}`;
+  }
+  const url = product.image_url;
   if (!url) return null;
   if (url.startsWith('http')) return url;
   return `${API_URL}/api/product-images${encodeURI(url)}`;
@@ -33,6 +39,13 @@ const AdminProducts = () => {
   });
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Image upload state
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [showManualUrl, setShowManualUrl] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Variant form state
   const [showVariantForm, setShowVariantForm] = useState(false);
@@ -126,6 +139,9 @@ const AdminProducts = () => {
       weight: '',
       is_active: true
     });
+    setImageFile(null);
+    setImagePreview(null);
+    setShowManualUrl(false);
     setVariants([]);
     setShowVariantForm(false);
     setEditingVariant(null);
@@ -147,11 +163,46 @@ const AdminProducts = () => {
       weight: product.weight || '',
       is_active: product.is_active
     });
+    setImageFile(null);
+    setImagePreview(getImageUrl(product));
+    setShowManualUrl(!!(product.image_url && !product.has_db_image));
     setShowVariantForm(false);
     setEditingVariant(null);
     setFormError('');
     setShowModal(true);
     await fetchProductDetail(product.id);
+  };
+
+  const handleImageFile = (file) => {
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setFormError('Only JPEG, PNG, GIF, and WebP images are allowed.');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setFormError('Image must be smaller than 2MB.');
+      return;
+    }
+
+    setFormError('');
+    setImageFile(file);
+    setFormData(prev => ({ ...prev, image_url: '' }));
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = async (e) => {
@@ -172,13 +223,31 @@ const AdminProducts = () => {
         description: formData.description || null,
         price: parseFloat(formData.price),
         member_price: formData.member_price ? parseFloat(formData.member_price) : null,
-        image_url: formData.image_url || null,
         category: formData.category || null,
         pet_type: formData.pet_type || null,
         stock: parseInt(formData.stock) || 0,
         weight: formData.weight ? parseFloat(formData.weight) : null,
         is_active: formData.is_active
       };
+
+      // If a file was uploaded, convert to base64
+      if (imageFile) {
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            // Strip the data:image/...;base64, prefix
+            const base64String = reader.result.split(',')[1];
+            resolve(base64String);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(imageFile);
+        });
+        payload.image_data = base64;
+        payload.image_mime = imageFile.type;
+      } else {
+        // Use manual URL if provided
+        payload.image_url = formData.image_url || null;
+      }
 
       const response = await fetch(url, {
         method,
@@ -401,9 +470,9 @@ const AdminProducts = () => {
                   <tr key={product.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        {product.image_url && (
+                        {(product.image_url || product.has_db_image) && (
                           <img
-                            src={getImageUrl(product.image_url)}
+                            src={getImageUrl(product)}
                             alt={product.name}
                             style={{
                               width: '40px',
@@ -566,14 +635,75 @@ const AdminProducts = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="prod-image">Image URL</label>
-                <input
-                  type="text"
-                  id="prod-image"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  placeholder="https://..."
-                />
+                <label>Product Image</label>
+                {/* Upload Zone */}
+                <div
+                  className={`upload-zone ${dragOver ? 'drag-over' : ''}`}
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragOver(false);
+                    const file = e.dataTransfer.files[0];
+                    if (file) handleImageFile(file);
+                  }}
+                >
+                  {imagePreview ? (
+                    <div className="upload-preview">
+                      <img src={imagePreview} alt="Preview" />
+                      <button
+                        type="button"
+                        className="upload-remove"
+                        onClick={(e) => { e.stopPropagation(); handleRemoveImage(); }}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="upload-placeholder">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="32" height="32">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                        <polyline points="17,8 12,3 7,8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                      </svg>
+                      <span>Click or drag image here</span>
+                      <span style={{ fontSize: '11px', color: '#94a3b8' }}>JPEG, PNG, GIF, WebP (max 2MB)</span>
+                    </div>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    style={{ display: 'none' }}
+                    onChange={(e) => handleImageFile(e.target.files[0])}
+                  />
+                </div>
+
+                {/* Manual URL toggle */}
+                <button
+                  type="button"
+                  style={{
+                    background: 'none', border: 'none', color: '#6366f1',
+                    fontSize: '12px', cursor: 'pointer', padding: '6px 0', marginTop: '4px'
+                  }}
+                  onClick={() => setShowManualUrl(!showManualUrl)}
+                >
+                  {showManualUrl ? 'Hide URL input' : 'Or enter image URL manually'}
+                </button>
+                {showManualUrl && (
+                  <input
+                    type="text"
+                    id="prod-image"
+                    value={formData.image_url}
+                    onChange={(e) => {
+                      setFormData({ ...formData, image_url: e.target.value });
+                      if (e.target.value) { setImageFile(null); setImagePreview(null); }
+                    }}
+                    placeholder="/path/to/image.jpg or https://..."
+                    style={{ marginTop: '6px' }}
+                  />
+                )}
               </div>
 
               <div className="form-row">
@@ -1045,6 +1175,61 @@ const AdminProducts = () => {
           background: #fee2e2;
           color: #dc2626;
           border: 1px solid #fecaca;
+        }
+
+        .upload-zone {
+          border: 2px dashed var(--admin-border);
+          border-radius: 8px;
+          padding: 16px;
+          text-align: center;
+          cursor: pointer;
+          transition: border-color 0.2s, background 0.2s;
+          background: #fafbfc;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.drag-over {
+          border-color: var(--admin-primary);
+          background: #f0f0ff;
+        }
+
+        .upload-placeholder {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          color: #64748b;
+          font-size: 13px;
+        }
+
+        .upload-preview {
+          position: relative;
+          display: inline-block;
+        }
+
+        .upload-preview img {
+          max-height: 140px;
+          max-width: 100%;
+          border-radius: 6px;
+          object-fit: contain;
+        }
+
+        .upload-remove {
+          position: absolute;
+          top: -8px;
+          right: -8px;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: #dc2626;
+          color: white;
+          border: 2px solid white;
+          font-size: 14px;
+          line-height: 1;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
       `}</style>
     </div>

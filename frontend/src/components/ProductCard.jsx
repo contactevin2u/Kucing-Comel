@@ -5,10 +5,15 @@ import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { Heart } from 'lucide-react';
 
-const getImageUrl = (url) => {
+const getImageUrl = (product) => {
+  if (!product) return 'https://via.placeholder.com/300x200?text=No+Image';
+  // DB-stored image
+  if (product.has_db_image) {
+    return `${api.getApiUrl()}/api/product-images/db/${product.id}`;
+  }
+  const url = product.image_url;
   if (!url) return 'https://via.placeholder.com/300x200?text=No+Image';
   if (url.startsWith('http')) return url;
-  // Backend serves images from /api/product-images - encode URL for spaces/special chars
   return `${api.getApiUrl()}/api/product-images${encodeURI(url)}`;
 };
 
@@ -117,7 +122,7 @@ const ProductCard = ({ product }) => {
         {/* Product Image */}
         <div className="product-image-wrapper">
           <img
-            src={getImageUrl(product.image_url)}
+            src={getImageUrl(product)}
             alt={product.name}
             className="product-image"
           />
