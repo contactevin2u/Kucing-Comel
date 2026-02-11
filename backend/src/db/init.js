@@ -77,6 +77,15 @@ async function initializeDatabase() {
           console.log('Voucher columns may already exist');
         }
 
+        // Add image upload columns for DB-stored images
+        try {
+          await db.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS image_data TEXT`);
+          await db.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS image_mime VARCHAR(50)`);
+          console.log('Image upload columns ensured');
+        } catch (e) {
+          console.log('Image upload columns may already exist');
+        }
+
         // Add SPX shipping columns
         try {
           await db.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS weight DECIMAL(6,3) DEFAULT 0.5`);
@@ -285,6 +294,14 @@ async function initializeDatabase() {
         } catch (e) { /* column exists */ }
         try {
           db.db.exec(`ALTER TABLE orders ADD COLUMN voucher_discount REAL DEFAULT 0`);
+        } catch (e) { /* column exists */ }
+
+        // Add image upload columns for SQLite
+        try {
+          db.db.exec(`ALTER TABLE products ADD COLUMN image_data TEXT`);
+        } catch (e) { /* column exists */ }
+        try {
+          db.db.exec(`ALTER TABLE products ADD COLUMN image_mime TEXT`);
         } catch (e) { /* column exists */ }
 
         // Add SPX shipping columns for SQLite
