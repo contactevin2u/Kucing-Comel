@@ -15,6 +15,7 @@ import Wishlist from './pages/Wishlist';
 import Profile from './pages/Profile';
 import OrderSuccess from './pages/OrderSuccess';
 import MockPayment from './pages/MockPayment';
+import CategoryPage from './pages/CategoryPage';
 import AdminApp from './admin/AdminApp';
 
 // Layout wrapper for pages with header/footer
@@ -60,6 +61,8 @@ function App() {
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/order-success" element={<OrderSuccess />} />
+        <Route path="/:category" element={<CategoryPage />} />
+        <Route path="/:category/:petType" element={<CategoryPage />} />
       </Routes>
     </MainLayout>
   );

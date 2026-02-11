@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS products (
     member_price DECIMAL(10, 2),
     image_url VARCHAR(500),
     category VARCHAR(100),
+    pet_type VARCHAR(20),
     stock INTEGER DEFAULT 0,
     weight DECIMAL(6, 3) DEFAULT 0.5,
     is_active BOOLEAN DEFAULT true,
@@ -98,6 +99,7 @@ CREATE TABLE IF NOT EXISTS product_variants (
 
 -- Indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
+CREATE INDEX IF NOT EXISTS idx_products_pet_type ON products(pet_type);
 CREATE INDEX IF NOT EXISTS idx_products_active ON products(is_active);
 CREATE INDEX IF NOT EXISTS idx_product_variants_product ON product_variants(product_id);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);

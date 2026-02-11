@@ -1,45 +1,43 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import HeroCarousel from '../components/HeroCarousel';
 
 // Main animal categories
 const animalCategories = [
-  { name: 'Cats', image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200', label: 'CATS' },
-  { name: 'Dogs', image: 'https://as1.ftcdn.net/v2/jpg/00/88/34/58/1000_F_88345863_tdpJPVC3pY1L5US7skyHJVcLuRb7LNT5.jpg', label: 'DOGS', imageClass: 'custom-position' },
+  { name: 'cat', image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200', label: 'CATS' },
+  { name: 'dog', image: 'https://as1.ftcdn.net/v2/jpg/00/88/34/58/1000_F_88345863_tdpJPVC3pY1L5US7skyHJVcLuRb7LNT5.jpg', label: 'DOGS', imageClass: 'custom-position' },
 ];
 
 // Product type filters
 const productFilters = [
-  { name: 'Food', label: 'Food' },
-  { name: 'Litter', label: 'Litter' },
-  { name: 'Supplements & Medications', label: 'Supplements' },
+  { name: 'Food', label: 'Food', route: 'food' },
+  { name: 'Litter', label: 'Litter', route: 'litter' },
+  { name: 'Supplements & Medications', label: 'Supplements', route: 'supplements' },
 ];
 
 const Home = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('');
+  const [activePetType, setActivePetType] = useState('');
   const productsRef = useRef(null);
   const navigate = useNavigate();
 
-  const currentCategory = searchParams.get('category') || '';
-
   useEffect(() => {
     fetchProducts();
-  }, [currentCategory, activeFilter]);
+  }, [activeFilter, activePetType]);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const params = {};
-      // Use activeFilter for product type filtering
       if (activeFilter) {
         params.category = activeFilter;
-      } else if (currentCategory) {
-        params.category = currentCategory;
+      }
+      if (activePetType) {
+        params.petType = activePetType;
       }
       const data = await api.getProducts(params);
       setProducts(data.products);
@@ -50,16 +48,13 @@ const Home = () => {
     }
   };
 
-  const handleAnimalCategoryClick = (category) => {
-    // For now, Cats shows all products, Dogs shows empty (no dog products yet)
-    if (category === 'Cats') {
-      searchParams.delete('category');
-      setActiveFilter('');
+  const handleAnimalCategoryClick = (petType) => {
+    if (activePetType === petType) {
+      // Toggle off - show all
+      setActivePetType('');
     } else {
-      searchParams.set('category', category);
-      setActiveFilter('');
+      setActivePetType(petType);
     }
-    setSearchParams(searchParams);
 
     setTimeout(() => {
       productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -67,23 +62,21 @@ const Home = () => {
   };
 
   const handleFilterClick = (filterName) => {
-    // Toggle filter - if same filter clicked, clear it
     if (activeFilter === filterName) {
       setActiveFilter('');
     } else {
       setActiveFilter(filterName);
     }
-    // Clear URL category when using filters
-    searchParams.delete('category');
-    setSearchParams(searchParams);
   };
 
   const getPageTitle = () => {
+    const petLabel = activePetType === 'cat' ? 'Cat' : activePetType === 'dog' ? 'Dog' : '';
     if (activeFilter) {
-      return activeFilter === 'Supplements & Medications' ? 'Supplements' : activeFilter;
+      const filterLabel = activeFilter === 'Supplements & Medications' ? 'Supplements' : activeFilter;
+      return petLabel ? `${petLabel} ${filterLabel}` : filterLabel;
     }
-    if (currentCategory) {
-      return currentCategory;
+    if (petLabel) {
+      return `${petLabel} Products`;
     }
     return 'All Products';
   };
@@ -102,7 +95,7 @@ const Home = () => {
               {animalCategories.map((cat) => (
                 <div
                   key={cat.name}
-                  className={`category-item ${currentCategory === cat.name || (cat.name === 'Cats' && !currentCategory && !activeFilter) ? 'active' : ''}`}
+                  className={`category-item ${activePetType === cat.name ? 'active' : ''}`}
                   onClick={() => handleAnimalCategoryClick(cat.name)}
                 >
                   <div className="category-icon">
@@ -142,7 +135,7 @@ const Home = () => {
         <div className="container">
           <div className="products-header">
             <h2>{getPageTitle()}</h2>
-            <a href="#" className="view-all" onClick={(e) => { e.preventDefault(); setActiveFilter(''); productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}>
+            <a href="#" className="view-all" onClick={(e) => { e.preventDefault(); setActiveFilter(''); setActivePetType(''); }}>
               View All →
             </a>
           </div>
@@ -159,6 +152,30 @@ const Home = () => {
               </button>
             ))}
           </div>
+
+          {/* Pet type sub-filters when a category is active */}
+          {activeFilter && (
+            <div className="product-filters" style={{ marginTop: '-15px' }}>
+              <button
+                className={`filter-btn ${!activePetType ? 'active' : ''}`}
+                onClick={() => navigate(`/${productFilters.find(f => f.name === activeFilter)?.route}`)}
+              >
+                View All {activeFilter === 'Supplements & Medications' ? 'Supplements' : activeFilter}
+              </button>
+              <button
+                className={`filter-btn ${activePetType === 'cat' ? 'active' : ''}`}
+                onClick={() => navigate(`/${productFilters.find(f => f.name === activeFilter)?.route}/cat`)}
+              >
+                Cat {activeFilter === 'Supplements & Medications' ? 'Supplements' : activeFilter}
+              </button>
+              <button
+                className={`filter-btn ${activePetType === 'dog' ? 'active' : ''}`}
+                onClick={() => navigate(`/${productFilters.find(f => f.name === activeFilter)?.route}/dog`)}
+              >
+                Dog {activeFilter === 'Supplements & Medications' ? 'Supplements' : activeFilter}
+              </button>
+            </div>
+          )}
 
           {loading ? (
             <div className="loading">

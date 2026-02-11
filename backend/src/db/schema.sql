@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS products (
     member_price REAL,
     image_url TEXT,
     category TEXT,
+    pet_type TEXT,
     stock INTEGER DEFAULT 0,
     is_active INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -89,6 +90,7 @@ CREATE TABLE IF NOT EXISTS product_variants (
 
 -- Indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
+CREATE INDEX IF NOT EXISTS idx_products_pet_type ON products(pet_type);
 CREATE INDEX IF NOT EXISTS idx_products_active ON products(is_active);
 CREATE INDEX IF NOT EXISTS idx_product_variants_product ON product_variants(product_id);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);

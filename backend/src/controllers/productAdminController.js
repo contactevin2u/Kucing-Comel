@@ -56,7 +56,7 @@ const createProduct = async (req, res, next) => {
   try {
     const {
       name, description, price, member_price,
-      image_url, category, stock, weight, is_active
+      image_url, category, pet_type, stock, weight, is_active
     } = req.body;
 
     if (!name || price === undefined) {
@@ -68,8 +68,8 @@ const createProduct = async (req, res, next) => {
     }
 
     const result = await db.query(
-      `INSERT INTO products (name, description, price, member_price, image_url, category, stock, weight, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO products (name, description, price, member_price, image_url, category, pet_type, stock, weight, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
       [
         name.trim(),
@@ -78,6 +78,7 @@ const createProduct = async (req, res, next) => {
         member_price ? parseFloat(member_price) : null,
         image_url || null,
         category || null,
+        pet_type || null,
         parseInt(stock) || 0,
         weight ? parseFloat(weight) : null,
         is_active !== false
@@ -101,7 +102,7 @@ const updateProduct = async (req, res, next) => {
     const { id } = req.params;
     const {
       name, description, price, member_price,
-      image_url, category, stock, weight, is_active
+      image_url, category, pet_type, stock, weight, is_active
     } = req.body;
 
     const existing = await db.query(
@@ -121,11 +122,12 @@ const updateProduct = async (req, res, next) => {
         member_price = $4,
         image_url = $5,
         category = $6,
-        stock = COALESCE($7, stock),
-        weight = $8,
-        is_active = COALESCE($9, is_active),
+        pet_type = $7,
+        stock = COALESCE($8, stock),
+        weight = $9,
+        is_active = COALESCE($10, is_active),
         updated_at = CURRENT_TIMESTAMP
-       WHERE id = $10
+       WHERE id = $11
        RETURNING *`,
       [
         name ? name.trim() : null,
@@ -134,6 +136,7 @@ const updateProduct = async (req, res, next) => {
         member_price !== undefined ? (member_price ? parseFloat(member_price) : null) : existing.rows[0].member_price,
         image_url !== undefined ? image_url : existing.rows[0].image_url,
         category !== undefined ? category : existing.rows[0].category,
+        pet_type !== undefined ? pet_type : existing.rows[0].pet_type,
         stock !== undefined ? parseInt(stock) : null,
         weight !== undefined ? (weight ? parseFloat(weight) : null) : existing.rows[0].weight,
         is_active !== undefined ? is_active : null,

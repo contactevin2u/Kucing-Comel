@@ -1,7 +1,7 @@
 -- Kucing Comel Sample Data (PostgreSQL)
 
 -- 6L Litter - one product per scent
-INSERT INTO products (name, description, price, member_price, image_url, category, stock) VALUES
+INSERT INTO products (name, description, price, member_price, image_url, category, pet_type, stock) VALUES
 ('Lilien Premium Super Clumping Cat Litter 6L - Charcoal', 'Lilien Premium Tofu Cat Litter – Charcoal is ideal for strong odor control. Infused with charcoal properties, it helps absorb moisture and neutralize unpleasant smells, making it suitable for multi-cat households or enclosed spaces.
 
 <strong>Why Choose Lilien Tofu Cat Litter?</strong>
@@ -26,7 +26,7 @@ Made from natural, biodegradable materials. Non-toxic and safe for cats. Flushab
 
 <strong>Important Notes</strong>
 - Store in a cool, dry place.
-- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Charcoal/1.jfif', 'Litter', 80),
+- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Charcoal/1.jfif', 'Litter', 'cat', 80),
 ('Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Give your cat a cleaner and fresher litter experience with Lilien Premium Tofu Cat Litter – Fresh Milk. This plant-based, eco-friendly litter is designed for strong absorption, fast clumping, and effective odor control, helping to keep your home fresh every day. The Fresh Milk scent offers a light and comforting fragrance suitable for sensitive cats.
 
 <strong>Why Choose Lilien Tofu Cat Litter?</strong>
@@ -51,7 +51,7 @@ Made from natural, non-toxic, biodegradable ingredients. Safe for cats and envir
 
 <strong>Important Notes</strong>
 - Store in a cool, dry place.
-- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/1.jfif', 'Litter', 60),
+- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/1.jfif', 'Litter', 'cat', 60),
 ('Lilien Premium Super Clumping Cat Litter 6L - Lavender', 'Lilien Premium Tofu Cat Litter – Lavender is formulated to provide excellent absorption, fast clumping, and reliable odor control. The gentle Lavender scent helps maintain a calm and pleasant litter area while remaining soft and comfortable on your cat''s paws.
 
 <strong>Why Choose Lilien Tofu Cat Litter?</strong>
@@ -76,7 +76,7 @@ Plant-based, biodegradable, and non-toxic. Safe for daily use and can be flushed
 
 <strong>Important Notes</strong>
 - Store in a cool, dry place.
-- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Lavender/1.jfif', 'Litter', 60),
+- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 8.00, 7.20, '/Lilien Premium Super Clumping Cat Litter 6L/Lavender/1.jfif', 'Litter', 'cat', 60),
 ('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Charcoal', 'Lilien Premium Tofu Cat Litter – Charcoal is ideal for strong odor control. Infused with charcoal properties, it helps absorb moisture and neutralize unpleasant smells, making it suitable for multi-cat households or enclosed spaces.
 
 <strong>Why Choose Lilien Tofu Cat Litter?</strong>
@@ -101,7 +101,7 @@ Made from natural, biodegradable materials. Non-toxic and safe for cats. Flushab
 
 <strong>Important Notes</strong>
 - Store in a cool, dry place.
-- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 75.00, 67.50, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Charcoal/1.jfif', 'Litter', 20),
+- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 75.00, 67.50, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Charcoal/1.jfif', 'Litter', 'cat', 20),
 ('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Fresh Milk', 'Give your cat a cleaner and fresher litter experience with Lilien Premium Tofu Cat Litter – Fresh Milk. This plant-based, eco-friendly litter is designed for strong absorption, fast clumping, and effective odor control, helping to keep your home fresh every day. The Fresh Milk scent offers a light and comforting fragrance suitable for sensitive cats.
 
 <strong>Why Choose Lilien Tofu Cat Litter?</strong>
@@ -126,7 +126,7 @@ Made from natural, non-toxic, biodegradable ingredients. Safe for cats and envir
 
 <strong>Important Notes</strong>
 - Store in a cool, dry place.
-- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 75.00, 67.50, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/1.jfif', 'Litter', 15),
+- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 75.00, 67.50, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Fresh Milk/1.jfif', 'Litter', 'cat', 15),
 ('[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L - Lavender', 'Lilien Premium Tofu Cat Litter – Lavender is formulated to provide excellent absorption, fast clumping, and reliable odor control. The gentle Lavender scent helps maintain a calm and pleasant litter area while remaining soft and comfortable on your cat''s paws.
 
 <strong>Why Choose Lilien Tofu Cat Litter?</strong>
@@ -151,8 +151,8 @@ Plant-based, biodegradable, and non-toxic. Safe for daily use and can be flushed
 
 <strong>Important Notes</strong>
 - Store in a cool, dry place.
-- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 75.00, 67.50, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Lavender/1.jfif', 'Litter', 15),
-('Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats in 3 delicious flavours! Perfect for training, bonding, or just spoiling your beloved cat. Made with real ingredients.', 42.00, 37.80, '/products/creamy-treats.jpg', 'Food', 300)
+- Vacuum packaging may cause minor air leakage, which does not affect product quality.', 75.00, 67.50, '/[1 CARTON] Lilien Premium Super Clumping Cat Litter 6L/Lavender/1.jfif', 'Litter', 'cat', 15),
+('Lilien Creamy Cat Treats - 3 Flavours Box', 'Irresistible creamy cat treats in 3 delicious flavours! Perfect for training, bonding, or just spoiling your beloved cat. Made with real ingredients.', 42.00, 37.80, '/products/creamy-treats.jpg', 'Food', 'cat', 300)
 ON CONFLICT DO NOTHING;
 
 -- Creamy Treats Flavour Variants (only treats have variants now)

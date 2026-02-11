@@ -26,6 +26,7 @@ const AdminProducts = () => {
     member_price: '',
     image_url: '',
     category: '',
+    pet_type: 'cat',
     stock: '',
     weight: '',
     is_active: true
@@ -120,6 +121,7 @@ const AdminProducts = () => {
       member_price: '',
       image_url: '',
       category: '',
+      pet_type: 'cat',
       stock: '0',
       weight: '',
       is_active: true
@@ -140,6 +142,7 @@ const AdminProducts = () => {
       member_price: product.member_price || '',
       image_url: product.image_url || '',
       category: product.category || '',
+      pet_type: product.pet_type || 'cat',
       stock: product.stock,
       weight: product.weight || '',
       is_active: product.is_active
@@ -171,6 +174,7 @@ const AdminProducts = () => {
         member_price: formData.member_price ? parseFloat(formData.member_price) : null,
         image_url: formData.image_url || null,
         category: formData.category || null,
+        pet_type: formData.pet_type || null,
         stock: parseInt(formData.stock) || 0,
         weight: formData.weight ? parseFloat(formData.weight) : null,
         is_active: formData.is_active
@@ -383,6 +387,7 @@ const AdminProducts = () => {
                 <tr>
                   <th>Product</th>
                   <th>Category</th>
+                  <th>Pet Type</th>
                   <th>Price</th>
                   <th>Member Price</th>
                   <th>Stock</th>
@@ -413,6 +418,7 @@ const AdminProducts = () => {
                       </div>
                     </td>
                     <td>{product.category || '-'}</td>
+                    <td style={{ textTransform: 'capitalize' }}>{product.pet_type || '-'}</td>
                     <td>RM {parseFloat(product.price).toFixed(2)}</td>
                     <td>
                       {product.member_price
@@ -589,17 +595,30 @@ const AdminProducts = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="prod-weight">Weight (kg)</label>
-                  <input
-                    type="number"
-                    id="prod-weight"
-                    value={formData.weight}
-                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                    placeholder="Optional"
-                    min="0"
-                    step="0.01"
-                  />
+                  <label htmlFor="prod-pet-type">Pet Type</label>
+                  <select
+                    id="prod-pet-type"
+                    value={formData.pet_type}
+                    onChange={(e) => setFormData({ ...formData, pet_type: e.target.value })}
+                  >
+                    <option value="cat">Cat</option>
+                    <option value="dog">Dog</option>
+                    <option value="both">Both</option>
+                  </select>
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="prod-weight">Weight (kg)</label>
+                <input
+                  type="number"
+                  id="prod-weight"
+                  value={formData.weight}
+                  onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                  placeholder="Optional"
+                  min="0"
+                  step="0.01"
+                />
               </div>
 
               <div className="form-row">

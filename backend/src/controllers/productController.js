@@ -10,6 +10,7 @@ const formatProduct = (product, isMember) => {
       description: product.description,
       image_url: product.image_url,
       category: product.category,
+      pet_type: product.pet_type,
       stock: product.stock,
       price: product.member_price || product.price,
       originalPrice: product.price,
@@ -23,6 +24,7 @@ const formatProduct = (product, isMember) => {
       description: product.description,
       image_url: product.image_url,
       category: product.category,
+      pet_type: product.pet_type,
       stock: product.stock,
       price: product.price,
       isMember: false
@@ -52,7 +54,7 @@ const formatVariant = (variant, isMember) => {
 
 const getAllProducts = async (req, res, next) => {
   try {
-    const { category, search, sort, limit = 50, offset = 0 } = req.query;
+    const { category, petType, search, sort, limit = 50, offset = 0 } = req.query;
     const isMember = !!req.user;
 
     let query = 'SELECT * FROM products WHERE is_active = true';
@@ -63,6 +65,12 @@ const getAllProducts = async (req, res, next) => {
       paramCount++;
       query += ` AND category = $${paramCount}`;
       params.push(category);
+    }
+
+    if (petType) {
+      paramCount++;
+      query += ` AND pet_type = $${paramCount}`;
+      params.push(petType);
     }
 
     if (search) {
