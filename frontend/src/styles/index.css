@@ -634,6 +634,10 @@ img {
   object-fit: cover;
 }
 
+.category-icon img:not(.custom-position) {
+  transform: scale(1.3);
+}
+
 .category-icon img.custom-position {
   width: 140%;
   height: 140%;
