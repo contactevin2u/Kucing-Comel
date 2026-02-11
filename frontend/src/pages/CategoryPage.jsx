@@ -131,8 +131,8 @@ const CategoryPage = () => {
           </div>
         ) : products.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: '#636E72' }}>
-            <h3>No products found</h3>
-            <p>Try a different filter</p>
+            <h3>Coming soon!</h3>
+            <p>Check out our other products in the meantime.</p>
           </div>
         ) : (
           <div className="products-grid">
