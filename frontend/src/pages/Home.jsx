@@ -23,6 +23,7 @@ const Home = () => {
   const [activeFilter, setActiveFilter] = useState('');
   const [activePetType, setActivePetType] = useState('');
   const productsRef = useRef(null);
+  const categoriesRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -57,7 +58,11 @@ const Home = () => {
     }
 
     setTimeout(() => {
-      productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const el = categoriesRef.current;
+      if (el) {
+        const y = el.getBoundingClientRect().top + window.scrollY - 65;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
     }, 100);
   };
 
@@ -110,7 +115,7 @@ const Home = () => {
       </section>
 
       {/* Categories Section - Cats & Dogs */}
-      <section className="categories-section">
+      <section className="categories-section" ref={categoriesRef}>
         <div className="container">
           <h2 className="section-title">Shop by category</h2>
           <div className="categories-slider">
