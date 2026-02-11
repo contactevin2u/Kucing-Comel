@@ -8,7 +8,7 @@ const Footer = () => {
           {/* About Section */}
           <div className="footer-section">
             <div className="footer-logo">
-              <img src="/lilien-logo.png" alt="Lilien" className="footer-logo-img" /> Lilien
+              <img src="/lilien-logo-footer.png" alt="Lilien" className="footer-logo-img" /> Lilien Official Store
             </div>
             <p>
               Your one-stop shop for all cat products. We provide premium quality
@@ -62,7 +62,7 @@ const Footer = () => {
         </div>
 
         <div className="footer-bottom">
-          <p>© 2024 Kucing Comel. All rights reserved. Made with ❤️ for cats</p>
+          <p>© 2024 Lilien Official Store. All rights reserved.</p>
         </div>
       </div>
     </footer>
