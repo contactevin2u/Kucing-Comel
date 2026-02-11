@@ -213,6 +213,42 @@ async function initializeDatabase() {
           console.log('Addresses table may already exist');
         }
 
+        // Create product_images table for multi-image upload
+        try {
+          await db.query(`
+            CREATE TABLE IF NOT EXISTS product_images (
+              id SERIAL PRIMARY KEY,
+              product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+              image_data TEXT NOT NULL,
+              image_mime VARCHAR(50) NOT NULL,
+              sort_order INTEGER DEFAULT 0,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_product_images_product ON product_images(product_id);
+          `);
+          console.log('product_images table ensured');
+
+          // Migrate existing image_data from products table into product_images
+          const productsWithImages = await db.query(
+            `SELECT id, image_data, image_mime FROM products WHERE image_data IS NOT NULL`
+          );
+          for (const p of productsWithImages.rows) {
+            const alreadyMigrated = await db.query(
+              `SELECT id FROM product_images WHERE product_id = $1 LIMIT 1`,
+              [p.id]
+            );
+            if (alreadyMigrated.rows.length === 0) {
+              await db.query(
+                `INSERT INTO product_images (product_id, image_data, image_mime, sort_order) VALUES ($1, $2, $3, 0)`,
+                [p.id, p.image_data, p.image_mime || 'image/jpeg']
+              );
+              console.log(`Migrated image for product ${p.id} to product_images`);
+            }
+          }
+        } catch (e) {
+          console.log('product_images table setup:', e.message);
+        }
+
         if (!variantsTableCheck.rows[0].exists) {
           console.log('Creating product_variants table...');
           await db.query(`
@@ -401,6 +437,42 @@ async function initializeDatabase() {
           `);
           console.log('Addresses table ensured');
         } catch (e) { /* table exists */ }
+
+        // Create product_images table for multi-image upload (SQLite)
+        try {
+          db.db.exec(`
+            CREATE TABLE IF NOT EXISTS product_images (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+              image_data TEXT NOT NULL,
+              image_mime TEXT NOT NULL,
+              sort_order INTEGER DEFAULT 0,
+              created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_product_images_product ON product_images(product_id);
+          `);
+          console.log('product_images table ensured (SQLite)');
+
+          // Migrate existing image_data from products table
+          const productsWithImages = db.query(
+            `SELECT id, image_data, image_mime FROM products WHERE image_data IS NOT NULL`
+          );
+          for (const p of productsWithImages.rows) {
+            const alreadyMigrated = db.query(
+              `SELECT id FROM product_images WHERE product_id = ? LIMIT 1`,
+              [p.id]
+            );
+            if (alreadyMigrated.rows.length === 0) {
+              db.query(
+                `INSERT INTO product_images (product_id, image_data, image_mime, sort_order) VALUES (?, ?, ?, 0)`,
+                [p.id, p.image_data, p.image_mime || 'image/jpeg']
+              );
+              console.log(`Migrated image for product ${p.id} to product_images (SQLite)`);
+            }
+          }
+        } catch (e) {
+          console.log('product_images table setup (SQLite):', e.message);
+        }
 
         // Check if product_variants table exists
         const variantsCheck = db.query(`

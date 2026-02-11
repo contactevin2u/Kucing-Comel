@@ -61,15 +61,35 @@ app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 // Serve static product images from Products folder
 const productsPath = path.join(__dirname, '..', '..', 'Products');
 app.use('/api/product-images/db', async (req, res, next) => {
-  // Serve DB-stored images: /api/product-images/db/:id
+  // Serve image by image ID from product_images table: /api/product-images/db/:imageId
   const idMatch = req.path.match(/^\/(\d+)$/);
-  if (!idMatch) return next();
+  // Serve primary image by product ID: /api/product-images/db/product/:productId
+  const productMatch = req.path.match(/^\/product\/(\d+)$/);
+
+  if (!idMatch && !productMatch) return next();
 
   try {
-    const result = await db.query(
-      'SELECT image_data, image_mime FROM products WHERE id = $1',
-      [idMatch[1]]
-    );
+    let result;
+    if (productMatch) {
+      // Get primary image (lowest sort_order) for a product
+      result = await db.query(
+        'SELECT image_data, image_mime FROM product_images WHERE product_id = $1 ORDER BY sort_order ASC LIMIT 1',
+        [productMatch[1]]
+      );
+      // Fallback to old products.image_data if no product_images rows
+      if (result.rows.length === 0) {
+        result = await db.query(
+          'SELECT image_data, image_mime FROM products WHERE id = $1',
+          [productMatch[1]]
+        );
+      }
+    } else {
+      // Get specific image by its ID
+      result = await db.query(
+        'SELECT image_data, image_mime FROM product_images WHERE id = $1',
+        [idMatch[1]]
+      );
+    }
 
     if (result.rows.length === 0 || !result.rows[0].image_data) {
       return res.status(404).json({ error: 'Image not found' });

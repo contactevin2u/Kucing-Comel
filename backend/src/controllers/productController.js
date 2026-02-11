@@ -3,30 +3,30 @@ const db = require('../config/database');
 // Helper function to format product based on user authentication
 const formatProduct = (product, isMember) => {
   const hasDbImage = product.has_db_image === true || product.has_db_image === 1;
+  const imageCount = parseInt(product.image_count) || 0;
+  const primaryImageId = product.primary_image_id || null;
+  const base = {
+    id: product.id,
+    name: product.name,
+    description: product.description,
+    image_url: product.image_url,
+    has_db_image: hasDbImage || imageCount > 0,
+    image_count: imageCount,
+    primary_image_id: primaryImageId,
+    category: product.category,
+    pet_type: product.pet_type,
+    stock: product.stock,
+  };
   if (isMember) {
     return {
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      image_url: product.image_url,
-      has_db_image: hasDbImage,
-      category: product.category,
-      pet_type: product.pet_type,
-      stock: product.stock,
+      ...base,
       price: product.member_price || product.price,
       originalPrice: product.price,
       isMember: true
     };
   } else {
     return {
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      image_url: product.image_url,
-      has_db_image: hasDbImage,
-      category: product.category,
-      pet_type: product.pet_type,
-      stock: product.stock,
+      ...base,
       price: product.price,
       isMember: false
     };
@@ -58,7 +58,10 @@ const getAllProducts = async (req, res, next) => {
     const { category, petType, search, sort, limit = 50, offset = 0 } = req.query;
     const isMember = !!req.user;
 
-    let query = 'SELECT id, name, description, price, member_price, image_url, image_mime, category, pet_type, stock, weight, is_active, created_at, updated_at, (image_data IS NOT NULL) AS has_db_image FROM products WHERE is_active = true';
+    let query = `SELECT id, name, description, price, member_price, image_url, image_mime, category, pet_type, stock, weight, is_active, created_at, updated_at, (image_data IS NOT NULL) AS has_db_image,
+      (SELECT COUNT(*) FROM product_images pi WHERE pi.product_id = products.id) AS image_count,
+      (SELECT pi.id FROM product_images pi WHERE pi.product_id = products.id ORDER BY pi.sort_order ASC LIMIT 1) AS primary_image_id
+      FROM products WHERE is_active = true`;
     const params = [];
     let paramCount = 0;
 
@@ -124,7 +127,10 @@ const getProductById = async (req, res, next) => {
     const isMember = !!req.user;
 
     const result = await db.query(
-      'SELECT id, name, description, price, member_price, image_url, image_mime, category, pet_type, stock, weight, is_active, created_at, updated_at, (image_data IS NOT NULL) AS has_db_image FROM products WHERE id = $1 AND is_active = true',
+      `SELECT id, name, description, price, member_price, image_url, image_mime, category, pet_type, stock, weight, is_active, created_at, updated_at, (image_data IS NOT NULL) AS has_db_image,
+        (SELECT COUNT(*) FROM product_images pi WHERE pi.product_id = products.id) AS image_count,
+        (SELECT pi.id FROM product_images pi WHERE pi.product_id = products.id ORDER BY pi.sort_order ASC LIMIT 1) AS primary_image_id
+       FROM products WHERE id = $1 AND is_active = true`,
       [id]
     );
 
@@ -138,6 +144,12 @@ const getProductById = async (req, res, next) => {
       [id]
     );
 
+    // Fetch all product images
+    const imagesResult = await db.query(
+      'SELECT id, image_mime, sort_order FROM product_images WHERE product_id = $1 ORDER BY sort_order ASC',
+      [id]
+    );
+
     const product = formatProduct(result.rows[0], isMember);
     const variants = variantsResult.rows.map(v => formatVariant(v, isMember));
 
@@ -148,6 +160,8 @@ const getProductById = async (req, res, next) => {
     } else {
       product.hasVariants = false;
     }
+
+    product.images = imagesResult.rows;
 
     res.json({ product });
   } catch (error) {

@@ -41,6 +41,9 @@ const {
   createVariant,
   updateVariant,
   deleteVariant,
+  addProductImage,
+  deleteProductImage,
+  reorderProductImages,
 } = require('../controllers/productAdminController');
 
 // All admin routes require admin authentication
@@ -92,5 +95,8 @@ router.patch('/products/:id/toggle', toggleProductStatus);
 router.post('/products/:id/variants', createVariant);
 router.put('/products/:id/variants/:variantId', updateVariant);
 router.delete('/products/:id/variants/:variantId', deleteVariant);
+router.post('/products/:id/images', addProductImage);
+router.delete('/products/:id/images/:imageId', deleteProductImage);
+router.put('/products/:id/images/reorder', reorderProductImages);
 
 module.exports = router;

@@ -10,7 +10,9 @@ const getAdminProducts = async (req, res, next) => {
         p.category, p.pet_type, p.stock, p.weight, p.is_active, p.created_at, p.updated_at,
         (p.image_data IS NOT NULL) AS has_db_image,
         (SELECT COUNT(*) FROM product_variants pv WHERE pv.product_id = p.id) AS variant_count,
-        (SELECT COALESCE(SUM(pv.stock), 0) FROM product_variants pv WHERE pv.product_id = p.id AND pv.is_active = true) AS variant_stock
+        (SELECT COALESCE(SUM(pv.stock), 0) FROM product_variants pv WHERE pv.product_id = p.id AND pv.is_active = true) AS variant_stock,
+        (SELECT COUNT(*) FROM product_images pi WHERE pi.product_id = p.id) AS image_count,
+        (SELECT pi.id FROM product_images pi WHERE pi.product_id = p.id ORDER BY pi.sort_order ASC LIMIT 1) AS primary_image_id
        FROM products p
        ORDER BY p.created_at DESC`
     );
@@ -45,9 +47,15 @@ const getAdminProductById = async (req, res, next) => {
       [id]
     );
 
+    const imagesResult = await db.query(
+      `SELECT id, image_mime, sort_order, created_at FROM product_images WHERE product_id = $1 ORDER BY sort_order ASC`,
+      [id]
+    );
+
     res.json({
       product: result.rows[0],
-      variants: variantsResult.rows
+      variants: variantsResult.rows,
+      images: imagesResult.rows
     });
   } catch (error) {
     next(error);
@@ -383,6 +391,94 @@ const deleteVariant = async (req, res, next) => {
   }
 };
 
+/**
+ * Add image to a product (admin)
+ */
+const addProductImage = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { image_data, image_mime } = req.body;
+
+    if (!image_data) {
+      return res.status(400).json({ error: 'Image data is required.' });
+    }
+
+    // Verify product exists
+    const productCheck = await db.query(`SELECT id FROM products WHERE id = $1`, [id]);
+    if (productCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found.' });
+    }
+
+    // Get next sort_order
+    const maxOrder = await db.query(
+      `SELECT COALESCE(MAX(sort_order), -1) AS max_order FROM product_images WHERE product_id = $1`,
+      [id]
+    );
+    const nextOrder = parseInt(maxOrder.rows[0].max_order) + 1;
+
+    const result = await db.query(
+      `INSERT INTO product_images (product_id, image_data, image_mime, sort_order)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, image_mime, sort_order, created_at`,
+      [id, image_data, image_mime || 'image/jpeg', nextOrder]
+    );
+
+    res.status(201).json({
+      message: 'Image added successfully.',
+      image: result.rows[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Delete an image from a product (admin)
+ */
+const deleteProductImage = async (req, res, next) => {
+  try {
+    const { id, imageId } = req.params;
+
+    const result = await db.query(
+      `DELETE FROM product_images WHERE id = $1 AND product_id = $2 RETURNING id`,
+      [imageId, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Image not found.' });
+    }
+
+    res.json({ message: 'Image deleted successfully.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Reorder images for a product (admin)
+ */
+const reorderProductImages = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { imageIds } = req.body;
+
+    if (!Array.isArray(imageIds) || imageIds.length === 0) {
+      return res.status(400).json({ error: 'imageIds array is required.' });
+    }
+
+    for (let i = 0; i < imageIds.length; i++) {
+      await db.query(
+        `UPDATE product_images SET sort_order = $1 WHERE id = $2 AND product_id = $3`,
+        [i, imageIds[i], id]
+      );
+    }
+
+    res.json({ message: 'Images reordered successfully.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAdminProducts,
   getAdminProductById,
@@ -392,5 +488,8 @@ module.exports = {
   toggleProductStatus,
   createVariant,
   updateVariant,
-  deleteVariant
+  deleteVariant,
+  addProductImage,
+  deleteProductImage,
+  reorderProductImages
 };

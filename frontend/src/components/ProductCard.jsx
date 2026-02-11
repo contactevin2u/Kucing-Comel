@@ -7,9 +7,13 @@ import { Heart } from 'lucide-react';
 
 const getImageUrl = (product) => {
   if (!product) return 'https://via.placeholder.com/300x200?text=No+Image';
-  // DB-stored image
+  // Multi-image: use primary image from product_images table
+  if (product.primary_image_id) {
+    return `${api.getApiUrl()}/api/product-images/db/${product.primary_image_id}`;
+  }
+  // Legacy DB-stored image (fallback via product ID)
   if (product.has_db_image) {
-    return `${api.getApiUrl()}/api/product-images/db/${product.id}`;
+    return `${api.getApiUrl()}/api/product-images/db/product/${product.id}`;
   }
   const url = product.image_url;
   if (!url) return 'https://via.placeholder.com/300x200?text=No+Image';

@@ -99,7 +99,18 @@ CREATE TABLE IF NOT EXISTS product_variants (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Product Images Table (multi-image per product)
+CREATE TABLE IF NOT EXISTS product_images (
+    id SERIAL PRIMARY KEY,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    image_data TEXT NOT NULL,
+    image_mime VARCHAR(50) NOT NULL,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_product_images_product ON product_images(product_id);
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_products_pet_type ON products(pet_type);
 CREATE INDEX IF NOT EXISTS idx_products_active ON products(is_active);

@@ -8,8 +8,12 @@ import ImageGallery from '../components/ImageGallery';
 const getImageUrl = (urlOrProduct) => {
   // If called with a product object (for fallback image)
   if (urlOrProduct && typeof urlOrProduct === 'object') {
+    // Multi-image: use primary image from product_images table
+    if (urlOrProduct.primary_image_id) {
+      return `${api.getApiUrl()}/api/product-images/db/${urlOrProduct.primary_image_id}`;
+    }
     if (urlOrProduct.has_db_image) {
-      return `${api.getApiUrl()}/api/product-images/db/${urlOrProduct.id}`;
+      return `${api.getApiUrl()}/api/product-images/db/product/${urlOrProduct.id}`;
     }
     const url = urlOrProduct.image_url;
     if (!url) return 'https://via.placeholder.com/500x400?text=No+Image';
@@ -104,6 +108,15 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchVariantImages = async () => {
       if (!product) return;
+
+      // If product has DB images from product_images table, use those
+      if (product.images && product.images.length > 0) {
+        const dbUrls = product.images.map(img =>
+          `${api.getApiUrl()}/api/product-images/db/${img.id}`
+        );
+        setGalleryImages(dbUrls);
+        return;
+      }
 
       const productSlug = getProductSlug(product.name);
       if (!productSlug) {
