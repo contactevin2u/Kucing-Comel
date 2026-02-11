@@ -73,7 +73,7 @@ const getAllProducts = async (req, res, next) => {
 
     if (petType) {
       paramCount++;
-      query += ` AND pet_type = $${paramCount}`;
+      query += ` AND (pet_type = $${paramCount} OR pet_type = 'both')`;
       params.push(petType);
     }
 
