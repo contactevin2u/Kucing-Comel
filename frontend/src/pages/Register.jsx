@@ -55,7 +55,7 @@ const Register = () => {
   return (
     <div className="auth-page">
       <div className="auth-form">
-        <h2>Create Account 🐱</h2>
+        <h2 style={{ textAlign: 'center' }}>Create Account</h2>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">

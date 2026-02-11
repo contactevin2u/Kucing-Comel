@@ -83,8 +83,31 @@ const Home = () => {
 
   return (
     <div>
+      {/* Hero Area - fits viewport on desktop */}
+      <div className="hero-area">
       {/* Hero Carousel */}
       <HeroCarousel />
+
+      {/* Promo Cards Section */}
+      <section className="promo-section" id="promo">
+        <div className="container">
+          <div className="promo-grid promo-grid-2">
+            {/* Member Benefits Card */}
+            <div className="promo-card coral">
+              <h3>Login to enjoy 10% OFF member price on all products</h3>
+              <p className="promo-subtext">Exclusive member pricing available after login</p>
+              <button onClick={() => navigate('/login')} className="btn btn-white btn-sm">LOGIN NOW</button>
+            </div>
+
+            {/* Free Shipping Card */}
+            <div className="promo-card teal">
+              <h3>Enjoy FREE shipping when you spend RM150 & above</h3>
+              <p className="promo-subtext">Buy more, save more with free shipping</p>
+              <button onClick={() => productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="btn btn-white btn-sm">BUY NOW</button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Categories Section - Cats & Dogs */}
       <section className="categories-section">
@@ -108,27 +131,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-      {/* Promo Cards Section */}
-      <section className="promo-section" id="promo">
-        <div className="container">
-          <div className="promo-grid promo-grid-2">
-            {/* Member Benefits Card */}
-            <div className="promo-card coral">
-              <h3>Login to enjoy 10% OFF member price on all products</h3>
-              <p className="promo-subtext">Exclusive member pricing available after login</p>
-              <button onClick={() => navigate('/login')} className="btn btn-white btn-sm">LOGIN NOW</button>
-            </div>
-
-            {/* Free Shipping Card */}
-            <div className="promo-card teal">
-              <h3>Enjoy FREE shipping when you spend RM150 & above</h3>
-              <p className="promo-subtext">Buy more, save more with free shipping</p>
-              <button onClick={() => productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="btn btn-white btn-sm">BUY NOW</button>
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
 
       {/* Products Section */}
       <section className="products-section" ref={productsRef}>

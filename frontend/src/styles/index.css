@@ -110,7 +110,7 @@ img {
 }
 
 .logo-img {
-  height: 75px;
+  height: 60px;
   width: auto;
 }
 
@@ -454,6 +454,26 @@ img {
   transform: none !important;
 }
 
+/* ==================== HERO AREA (viewport fit) ==================== */
+.hero-area .categories-section {
+  padding: 20px 0;
+}
+
+.hero-area .promo-section {
+  padding: 50px 0 15px;
+}
+
+
+@media (max-width: 768px) {
+  .hero-area .categories-section {
+    padding: 20px 0;
+  }
+
+  .hero-area .promo-section {
+    padding: 20px 0 10px;
+  }
+}
+
 /* ==================== HERO SECTION ==================== */
 .hero {
   position: relative;
@@ -549,7 +569,7 @@ img {
   font-size: 1.8rem;
   font-weight: 600;
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: 20px;
   color: var(--dark);
 }
 
@@ -663,10 +683,10 @@ img {
 
 .promo-card {
   border-radius: var(--radius-lg);
-  padding: 30px;
+  padding: 22px 26px;
   position: relative;
   overflow: hidden;
-  min-height: 280px;
+  min-height: auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -694,16 +714,16 @@ img {
 }
 
 .promo-card h3 {
-  font-size: 1.4rem;
+  font-size: 1.15rem;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   line-height: 1.4;
 }
 
 .promo-subtext {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   opacity: 0.9;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .promo-card .btn {
@@ -2260,7 +2280,7 @@ img {
 .hero-carousel {
   position: relative;
   width: 100%;
-  height: 400px;
+  height: 340px;
   overflow: hidden;
   background: var(--light);
 }
