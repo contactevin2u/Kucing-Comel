@@ -592,22 +592,7 @@ const AdminProducts = () => {
                 {filteredProducts.map((product) => (
                   <tr key={product.id}>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        {(product.image_url || product.has_db_image) && (
-                          <img
-                            src={getImageUrl(product)}
-                            alt={product.name}
-                            style={{
-                              width: '40px',
-                              height: '40px',
-                              objectFit: 'cover',
-                              borderRadius: '6px',
-                              border: '1px solid var(--admin-border)'
-                            }}
-                          />
-                        )}
-                        <strong>{product.name}</strong>
-                      </div>
+                      <strong>{product.name}</strong>
                     </td>
                     <td>{product.category || '-'}</td>
                     <td style={{ textTransform: 'capitalize' }}>{product.pet_type || '-'}</td>
