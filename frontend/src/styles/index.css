@@ -2131,6 +2131,14 @@ img {
     padding-left: 0 !important;
   }
 
+  .footer-address-link {
+    gap: 4px !important;
+  }
+
+  .footer-mappin {
+    margin-top: 6px !important;
+  }
+
   .footer-bottom {
     margin-top: 20px;
     padding-top: 15px;
