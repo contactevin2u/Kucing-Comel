@@ -394,7 +394,7 @@ const ProductDetail = () => {
 
             <div
               className="product-detail-description"
-              dangerouslySetInnerHTML={{ __html: (product.description || 'No description available.').replace(/\n/g, '<br>') }}
+              dangerouslySetInnerHTML={{ __html: (product.description || 'No description available.').replace(/\*([^*]+)\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') }}
             />
 
             {(currentStock > 0 || !isVariationSelected()) && (

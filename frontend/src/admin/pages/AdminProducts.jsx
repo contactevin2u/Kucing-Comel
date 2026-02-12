@@ -727,6 +727,21 @@ const AdminProducts = () => {
                     fontFamily: 'inherit'
                   }}
                 />
+                {formData.description && /\*[^*]+\*/.test(formData.description) && (
+                  <div style={{
+                    marginTop: '8px',
+                    padding: '10px 12px',
+                    background: '#f8fafc',
+                    border: '1px solid var(--admin-border)',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#0f172a',
+                    lineHeight: '1.5'
+                  }}>
+                    <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Preview:</span>
+                    <span dangerouslySetInnerHTML={{ __html: formData.description.replace(/\*([^*]+)\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') }} />
+                  </div>
+                )}
               </div>
 
               <div className="form-row">
