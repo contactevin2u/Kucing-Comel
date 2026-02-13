@@ -71,7 +71,7 @@ const Navbar = () => {
       setSearching(true);
       try {
         const data = await api.getProducts({ search: searchQuery });
-        setSearchResults(data.products.slice(0, 5));
+        setSearchResults(data.products);
       } catch (error) {
         console.error('Search failed:', error);
       } finally {
