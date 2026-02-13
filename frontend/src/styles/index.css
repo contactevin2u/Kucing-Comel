@@ -2131,12 +2131,9 @@ img {
     padding-left: 0 !important;
   }
 
-  .footer-address-link {
-    gap: 0px !important;
-  }
-
   .footer-mappin {
     margin-top: 3px !important;
+    margin-right: 1px !important;
   }
 
   .footer-bottom {
