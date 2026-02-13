@@ -2133,8 +2133,8 @@ img {
     margin-bottom: 6px;
   }
 
-  .footer-phone-icon {
-    margin-right: 0px !important;
+  .footer-section a[href^="tel"] {
+    padding-right: 16px;
   }
 
   .footer-section h4 {
