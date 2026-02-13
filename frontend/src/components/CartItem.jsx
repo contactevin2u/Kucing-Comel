@@ -26,9 +26,12 @@ const getImageUrl = (item) => {
 const CartItem = ({ item }) => {
   const { updateQuantity, removeItem } = useCart();
 
+  const isOutOfStock = item.stock !== undefined && item.stock !== null && item.stock <= 0;
+  const exceedsStock = item.stock !== undefined && item.stock !== null && item.quantity > item.stock;
+
   const handleQuantityChange = async (newQuantity) => {
     if (newQuantity < 1) return;
-    if (newQuantity > item.stock) {
+    if (item.stock !== undefined && item.stock !== null && newQuantity > item.stock) {
       alert(`Only ${item.stock} items available`);
       return;
     }
@@ -42,7 +45,7 @@ const CartItem = ({ item }) => {
   };
 
   return (
-    <div className="cart-item">
+    <div className="cart-item" style={isOutOfStock || exceedsStock ? { opacity: 0.7, borderColor: '#e74c3c' } : {}}>
       <img
         src={getImageUrl(item)}
         alt={item.name}
@@ -57,11 +60,23 @@ const CartItem = ({ item }) => {
         )}
         <p className="cart-item-price">RM {parseFloat(item.price).toFixed(2)}</p>
 
+        {isOutOfStock && (
+          <p style={{ color: '#e74c3c', fontSize: '0.85rem', fontWeight: '600', margin: '4px 0' }}>
+            Out of Stock - Please remove this item
+          </p>
+        )}
+        {!isOutOfStock && exceedsStock && (
+          <p style={{ color: '#e74c3c', fontSize: '0.85rem', fontWeight: '600', margin: '4px 0' }}>
+            Only {item.stock} available - Please reduce quantity
+          </p>
+        )}
+
         <div className="cart-item-actions">
           <div className="quantity-selector">
             <button
               className="quantity-btn"
               onClick={() => handleQuantityChange(item.quantity - 1)}
+              disabled={isOutOfStock}
             >
               -
             </button>
@@ -69,6 +84,7 @@ const CartItem = ({ item }) => {
             <button
               className="quantity-btn"
               onClick={() => handleQuantityChange(item.quantity + 1)}
+              disabled={isOutOfStock || (item.stock !== undefined && item.stock !== null && item.quantity >= item.stock)}
             >
               +
             </button>

@@ -43,6 +43,10 @@ const Cart = () => {
     return 9.00 + (w - 3) * 1.00;
   };
 
+  const hasStockIssues = cart.items.some(item =>
+    (item.stock !== undefined && item.stock !== null) && (item.stock <= 0 || item.quantity > item.stock)
+  );
+
   const subtotal = parseFloat(cart.total);
   const totalWeight = cart.items.reduce(
     (sum, item) => sum + (parseFloat(item.weight) || 0) * item.quantity, 0
@@ -108,10 +112,25 @@ const Cart = () => {
               <span>RM {(subtotal + deliveryFee).toFixed(2)}</span>
             </div>
 
+            {hasStockIssues && (
+              <div style={{
+                background: '#fdecea',
+                border: '1px solid #e74c3c',
+                borderRadius: '8px',
+                padding: '10px 14px',
+                marginTop: '15px',
+                fontSize: '0.85rem',
+                color: '#c0392b'
+              }}>
+                Some items in your cart are out of stock or exceed available quantity. Please update your cart to proceed.
+              </div>
+            )}
+
             <button
               onClick={() => navigate('/checkout')}
               className="btn btn-primary btn-lg"
-              style={{ width: '100%', marginTop: '20px' }}
+              style={{ width: '100%', marginTop: '20px', opacity: hasStockIssues ? 0.5 : 1 }}
+              disabled={hasStockIssues}
             >
               Proceed to Checkout
             </button>

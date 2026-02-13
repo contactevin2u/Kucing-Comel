@@ -161,6 +161,15 @@ const Checkout = () => {
   const handlePayment = async (e) => {
     e.preventDefault();
 
+    // Check for stock issues
+    const outOfStockItems = checkoutItems.filter(item =>
+      item.stock !== undefined && item.stock !== null && (item.stock <= 0 || item.quantity > item.stock)
+    );
+    if (outOfStockItems.length > 0) {
+      setError('Some items are out of stock or exceed available quantity. Please update your cart.');
+      return;
+    }
+
     // Validate shipping info
     if (!shippingData.shipping_name || !shippingData.shipping_phone || !shippingData.shipping_address) {
       setError('Please fill in all shipping details');
