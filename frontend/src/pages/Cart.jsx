@@ -130,7 +130,7 @@ const Cart = () => {
                 type="checkbox"
                 checked={selectedIds.size === cart.items.length && cart.items.length > 0}
                 onChange={toggleSelectAll}
-                style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#FF6B6B' }}
+                style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#E891A8' }}
               />
               <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>
                 Select All ({cart.items.length} items)

@@ -53,7 +53,7 @@ const CartItem = ({ item, selected, onToggleSelect }) => {
         type="checkbox"
         checked={selected}
         onChange={onToggleSelect}
-        style={{ width: '18px', height: '18px', cursor: 'pointer', flexShrink: 0, accentColor: '#FF6B6B' }}
+        style={{ width: '18px', height: '18px', cursor: 'pointer', flexShrink: 0, accentColor: '#E891A8' }}
       />
       <img
         src={getImageUrl(item)}
