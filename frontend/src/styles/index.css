@@ -2133,6 +2133,10 @@ img {
     margin-bottom: 6px;
   }
 
+  .footer-phone-icon {
+    margin-right: 0px !important;
+  }
+
   .footer-section h4 {
     padding-left: 0 !important;
   }
