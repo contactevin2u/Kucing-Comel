@@ -2131,14 +2131,15 @@ img {
     padding-left: 0 !important;
   }
 
-  .footer-address-link {
+  .footer-section .footer-address-link {
     display: inline-flex !important;
-    text-align: left;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    gap: 2px !important;
   }
 
   .footer-mappin {
     margin-top: 3px !important;
-    margin-right: 1px !important;
   }
 
   .footer-bottom {
