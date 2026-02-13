@@ -2121,6 +2121,10 @@ img {
     justify-content: center;
   }
 
+  .footer-store-name {
+    padding-bottom: 10px !important;
+  }
+
   .footer-section p,
   .footer-section a {
     text-align: center;

@@ -9,7 +9,7 @@ const Footer = () => {
           {/* About Section */}
           <div className="footer-section">
             <div className="footer-logo">
-              <img src="/lilien-logo-footer.png" alt="Lilien" className="footer-logo-img" /> <span style={{ alignSelf: 'flex-end', paddingBottom: '10px' }}>Lilien Official Store</span>
+              <img src="/lilien-logo-footer.png" alt="Lilien" className="footer-logo-img" /> <span className="footer-store-name" style={{ alignSelf: 'flex-end', paddingBottom: '14px' }}>Lilien Official Store</span>
             </div>
             <p>
               Your one-stop shop for all pet products. We provide premium quality
