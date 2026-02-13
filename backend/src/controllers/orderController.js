@@ -94,7 +94,7 @@ const getGuestOrderById = async (req, res, next) => {
 
 const createOrder = async (req, res, next) => {
   try {
-    const { shipping_name, shipping_address, shipping_phone, shipping_postcode, voucher_code, voucher_discount, delivery_fee } = req.body;
+    const { shipping_name, shipping_address, shipping_phone, shipping_postcode, voucher_code, voucher_discount, delivery_fee, item_ids } = req.body;
 
     if (!shipping_name || !shipping_address || !shipping_phone) {
       return res.status(400).json({ error: 'Shipping details are required.' });
@@ -108,29 +108,50 @@ const createOrder = async (req, res, next) => {
 
     const cartId = cartResult.rows[0].id;
 
-    const itemsResult = await db.query(
-      `SELECT ci.id, ci.quantity, p.id as product_id, p.name, p.price, p.stock, p.weight
-       FROM cart_items ci
-       JOIN products p ON ci.product_id = p.id
-       WHERE ci.cart_id = $1 AND p.is_active = true`,
-      [cartId]
-    );
-
-    if (itemsResult.rows.length === 0) {
-      return res.status(400).json({ error: 'Cart is empty.' });
+    let itemsResult;
+    if (item_ids && Array.isArray(item_ids) && item_ids.length > 0) {
+      // Only process selected cart items
+      itemsResult = await db.query(
+        `SELECT ci.id, ci.quantity, ci.variant_id, p.id as product_id, p.name, p.price, p.stock, p.weight,
+                pv.price as variant_price, pv.stock as variant_stock
+         FROM cart_items ci
+         JOIN products p ON ci.product_id = p.id
+         LEFT JOIN product_variants pv ON ci.variant_id = pv.id
+         WHERE ci.cart_id = $1 AND ci.id = ANY($2) AND p.is_active = true`,
+        [cartId, item_ids]
+      );
+    } else {
+      // Process all cart items (backwards compatible)
+      itemsResult = await db.query(
+        `SELECT ci.id, ci.quantity, ci.variant_id, p.id as product_id, p.name, p.price, p.stock, p.weight,
+                pv.price as variant_price, pv.stock as variant_stock
+         FROM cart_items ci
+         JOIN products p ON ci.product_id = p.id
+         LEFT JOIN product_variants pv ON ci.variant_id = pv.id
+         WHERE ci.cart_id = $1 AND p.is_active = true`,
+        [cartId]
+      );
     }
 
-    // Check stock
+    if (itemsResult.rows.length === 0) {
+      return res.status(400).json({ error: 'No items to checkout.' });
+    }
+
+    // Check stock (use variant stock if variant exists)
     for (const item of itemsResult.rows) {
-      if (item.quantity > item.stock) {
+      const availableStock = item.variant_id ? item.variant_stock : item.stock;
+      if (item.quantity > availableStock) {
         return res.status(400).json({
-          error: `Not enough stock for ${item.name}. Available: ${item.stock}`
+          error: `Not enough stock for ${item.name}. Available: ${availableStock}`
         });
       }
     }
 
     const subtotal = itemsResult.rows.reduce(
-      (sum, item) => sum + parseFloat(item.price) * item.quantity,
+      (sum, item) => {
+        const price = item.variant_id && item.variant_price ? item.variant_price : item.price;
+        return sum + parseFloat(price) * item.quantity;
+      },
       0
     );
 
@@ -231,17 +252,24 @@ const createOrder = async (req, res, next) => {
     }
 
     // Create order items and update stock
+    const processedCartItemIds = [];
     for (const item of itemsResult.rows) {
+      const price = item.variant_id && item.variant_price ? item.variant_price : item.price;
       await db.query(
         `INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity)
          VALUES ($1, $2, $3, $4, $5)`,
-        [orderId, item.product_id, item.name, item.price, item.quantity]
+        [orderId, item.product_id, item.name, price, item.quantity]
       );
-      await db.query('UPDATE products SET stock = stock - $1 WHERE id = $2', [item.quantity, item.product_id]);
+      if (item.variant_id) {
+        await db.query('UPDATE product_variants SET stock = stock - $1 WHERE id = $2', [item.quantity, item.variant_id]);
+      } else {
+        await db.query('UPDATE products SET stock = stock - $1 WHERE id = $2', [item.quantity, item.product_id]);
+      }
+      processedCartItemIds.push(item.id);
     }
 
-    // Clear cart
-    await db.query('DELETE FROM cart_items WHERE cart_id = $1', [cartId]);
+    // Only remove processed items from cart (not entire cart)
+    await db.query('DELETE FROM cart_items WHERE id = ANY($1)', [processedCartItemIds]);
 
     // Get the created order
     const finalOrderResult = await db.query('SELECT * FROM orders WHERE id = $1', [orderId]);

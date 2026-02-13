@@ -23,7 +23,7 @@ const getImageUrl = (item) => {
   return `${api.getApiUrl()}/api/product-images${encodeURI(url)}`;
 };
 
-const CartItem = ({ item }) => {
+const CartItem = ({ item, selected, onToggleSelect }) => {
   const { updateQuantity, removeItem } = useCart();
 
   const isOutOfStock = item.stock !== undefined && item.stock !== null && item.stock <= 0;
@@ -45,7 +45,16 @@ const CartItem = ({ item }) => {
   };
 
   return (
-    <div className="cart-item" style={isOutOfStock || exceedsStock ? { opacity: 0.7, borderColor: '#e74c3c' } : {}}>
+    <div className="cart-item" style={{
+      ...(isOutOfStock || exceedsStock ? { opacity: 0.7, borderColor: '#e74c3c' } : {}),
+      ...(!selected ? { opacity: 0.5 } : {})
+    }}>
+      <input
+        type="checkbox"
+        checked={selected}
+        onChange={onToggleSelect}
+        style={{ width: '18px', height: '18px', cursor: 'pointer', flexShrink: 0, accentColor: '#FF6B6B' }}
+      />
       <img
         src={getImageUrl(item)}
         alt={item.name}

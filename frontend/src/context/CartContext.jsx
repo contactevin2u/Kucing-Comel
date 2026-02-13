@@ -213,6 +213,24 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // Remove specific items by IDs (for partial checkout)
+  const removeItemsByIds = async (itemIds) => {
+    if (isAuthenticated) {
+      // Server cart items are already removed by the backend after order creation
+      // Just refresh the cart
+      await fetchCart();
+      return { success: true };
+    } else {
+      // Guest - remove specific items from localStorage
+      const localCart = getLocalCart();
+      localCart.items = localCart.items.filter(item => !itemIds.includes(item.id));
+      const updatedCart = calculateTotals(localCart.items);
+      saveLocalCart(updatedCart);
+      setCart(updatedCart);
+      return { success: true };
+    }
+  };
+
   // Get cart items formatted for guest order API
   const getCartItemsForOrder = () => {
     return cart.items.map(item => ({
@@ -228,6 +246,7 @@ export const CartProvider = ({ children }) => {
     addToCart,
     updateQuantity,
     removeItem,
+    removeItemsByIds,
     clearCart,
     refreshCart: fetchCart,
     getCartItemsForOrder,

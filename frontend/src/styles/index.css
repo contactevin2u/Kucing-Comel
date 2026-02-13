@@ -1012,6 +1012,7 @@ img {
 
 .cart-item {
   display: flex;
+  align-items: center;
   gap: 20px;
   padding: 20px 0;
   border-bottom: 1px solid var(--light);
@@ -2322,7 +2323,7 @@ img {
   }
 
   .cart-item {
-    flex-direction: column;
+    flex-wrap: wrap;
   }
 
   .cart-item-image {

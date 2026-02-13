@@ -15,11 +15,14 @@ const Checkout = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { user, isAuthenticated } = useAuth();
-  const { cart, clearCart, getCartItemsForOrder } = useCart();
+  const { cart, clearCart, removeItemsByIds, refreshCart, getCartItemsForOrder } = useCart();
 
   // Check for Buy Now mode
   const buyNowMode = location.state?.buyNow || false;
   const buyNowItem = location.state?.item || null;
+
+  // Selected items from cart page
+  const selectedItemIds = location.state?.selectedItemIds || null;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -63,10 +66,12 @@ const Checkout = () => {
     return 9.00 + (w - 3) * 1.00;
   };
 
-  // Get items to checkout (either buyNow item or cart items)
+  // Get items to checkout (buyNow, selected items, or all cart items)
   const checkoutItems = buyNowMode && buyNowItem
     ? [{ id: buyNowItem.product_id, name: buyNowItem.name, price: buyNowItem.price, quantity: buyNowItem.quantity, weight: buyNowItem.weight || 0 }]
-    : cart.items;
+    : selectedItemIds
+      ? cart.items.filter(item => selectedItemIds.includes(item.id))
+      : cart.items;
 
   // Calculate subtotal
   const subtotal = checkoutItems.reduce(
@@ -148,15 +153,15 @@ const Checkout = () => {
     }
   }, [searchParams]);
 
-  // Redirect if cart is empty (unless in Buy Now mode)
+  // Redirect if no items to checkout
   useEffect(() => {
-    if (!buyNowMode && cart.items.length === 0) {
+    if (!buyNowMode && checkoutItems.length === 0) {
       navigate('/cart');
     }
     if (buyNowMode && !buyNowItem) {
       navigate('/');
     }
-  }, [cart.items.length, navigate, buyNowMode, buyNowItem]);
+  }, [checkoutItems.length, navigate, buyNowMode, buyNowItem]);
 
   const handlePayment = async (e) => {
     e.preventDefault();
@@ -224,15 +229,21 @@ const Checkout = () => {
         const orderPayload = {
           ...shippingData,
           voucher_code: voucherApplied?.code || null,
-          delivery_fee: deliveryFee
+          delivery_fee: deliveryFee,
+          item_ids: selectedItemIds || undefined
         };
         orderData = await api.createOrder(orderPayload);
       } else {
-        // Guest checkout - use guest order endpoint
+        // Guest checkout - use guest order endpoint (send only selected items)
+        const itemsForOrder = checkoutItems.map(item => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          variant_id: item.variant_id || null
+        }));
         const payload = {
           ...shippingData,
           guest_email: guestEmail,
-          items: getCartItemsForOrder(),
+          items: itemsForOrder,
           voucher_code: voucherApplied?.code || null,
           delivery_fee: deliveryFee
         };
@@ -240,6 +251,20 @@ const Checkout = () => {
       }
 
       const order = orderData.order;
+
+      // Clean up cart: remove only checked-out items
+      if (!buyNowMode) {
+        if (selectedItemIds && selectedItemIds.length > 0 && selectedItemIds.length < cart.items.length) {
+          // Partial checkout - remove only selected items
+          await removeItemsByIds(selectedItemIds);
+        } else if (isAuthenticated) {
+          // Full checkout for authenticated - refresh cart (backend already cleared items)
+          await refreshCart();
+        } else {
+          // Full guest checkout - clear entire cart
+          await clearCart();
+        }
+      }
 
       // Store guest email in sessionStorage for payment page
       if (!isAuthenticated && guestEmail) {

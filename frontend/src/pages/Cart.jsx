@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -8,6 +8,34 @@ const Cart = () => {
   const { isAuthenticated } = useAuth();
   const { cart, loading } = useCart();
   const navigate = useNavigate();
+
+  // Selected items state - default to all items selected
+  const [selectedIds, setSelectedIds] = useState(new Set());
+
+  // Initialize selection when cart items change
+  useEffect(() => {
+    setSelectedIds(new Set(cart.items.map(item => item.id)));
+  }, [cart.items]);
+
+  const toggleSelect = (itemId) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === cart.items.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(cart.items.map(item => item.id)));
+    }
+  };
 
   if (loading) {
     return (
@@ -22,7 +50,7 @@ const Cart = () => {
       <div className="cart-page">
         <div className="container">
           <div className="cart-empty">
-            <h2>🛒 Your cart is empty</h2>
+            <h2>Your cart is empty</h2>
             <p style={{ color: '#95A5A6', marginBottom: '20px' }}>
               Looks like you haven't added anything yet
             </p>
@@ -43,15 +71,24 @@ const Cart = () => {
     return 9.00 + (w - 3) * 1.00;
   };
 
-  const hasStockIssues = cart.items.some(item =>
+  // Only compute summary for selected items
+  const selectedItems = cart.items.filter(item => selectedIds.has(item.id));
+
+  const hasSelectedStockIssues = selectedItems.some(item =>
     (item.stock !== undefined && item.stock !== null) && (item.stock <= 0 || item.quantity > item.stock)
   );
 
-  const subtotal = parseFloat(cart.total);
-  const totalWeight = cart.items.reduce(
+  const selectedCount = selectedItems.reduce((sum, item) => sum + item.quantity, 0);
+  const subtotal = selectedItems.reduce(
+    (sum, item) => sum + parseFloat(item.price) * item.quantity, 0
+  );
+  const totalWeight = selectedItems.reduce(
     (sum, item) => sum + (parseFloat(item.weight) || 0) * item.quantity, 0
   );
   const deliveryFee = subtotal >= 150 ? 0 : calculateShipping(totalWeight);
+
+  const noItemsSelected = selectedItems.length === 0;
+  const cannotCheckout = noItemsSelected || hasSelectedStockIssues;
 
   return (
     <div className="cart-page">
@@ -79,8 +116,34 @@ const Cart = () => {
 
         <div className="cart-grid">
           <div className="cart-items">
+            {/* Select All */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              padding: '12px 16px',
+              background: '#f8f9fa',
+              borderRadius: '8px',
+              marginBottom: '15px'
+            }}>
+              <input
+                type="checkbox"
+                checked={selectedIds.size === cart.items.length && cart.items.length > 0}
+                onChange={toggleSelectAll}
+                style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#FF6B6B' }}
+              />
+              <span style={{ fontSize: '0.9rem', fontWeight: '500' }}>
+                Select All ({cart.items.length} items)
+              </span>
+            </div>
+
             {cart.items.map((item) => (
-              <CartItem key={item.id} item={item} />
+              <CartItem
+                key={item.id}
+                item={item}
+                selected={selectedIds.has(item.id)}
+                onToggleSelect={() => toggleSelect(item.id)}
+              />
             ))}
           </div>
 
@@ -88,20 +151,22 @@ const Cart = () => {
             <h3>Order Summary</h3>
 
             <div className="summary-row">
-              <span>Items ({cart.item_count})</span>
-              <span>RM {cart.total}</span>
+              <span>Selected Items ({selectedCount})</span>
+              <span>RM {subtotal.toFixed(2)}</span>
             </div>
 
             <div className="summary-row">
               <span>Shipping ({Math.ceil(totalWeight) || 1}kg)</span>
-              {deliveryFee === 0 ? (
+              {noItemsSelected ? (
+                <span>-</span>
+              ) : deliveryFee === 0 ? (
                 <span style={{ color: '#27AE60' }}>FREE</span>
               ) : (
                 <span>RM {deliveryFee.toFixed(2)}</span>
               )}
             </div>
 
-            {deliveryFee > 0 && subtotal < 150 && (
+            {!noItemsSelected && deliveryFee > 0 && subtotal < 150 && (
               <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
                 Spend RM {(150 - subtotal).toFixed(2)} more for free shipping
               </div>
@@ -109,10 +174,10 @@ const Cart = () => {
 
             <div className="summary-row summary-total">
               <span>Total</span>
-              <span>RM {(subtotal + deliveryFee).toFixed(2)}</span>
+              <span>RM {noItemsSelected ? '0.00' : (subtotal + deliveryFee).toFixed(2)}</span>
             </div>
 
-            {hasStockIssues && (
+            {hasSelectedStockIssues && (
               <div style={{
                 background: '#fdecea',
                 border: '1px solid #e74c3c',
@@ -122,17 +187,31 @@ const Cart = () => {
                 fontSize: '0.85rem',
                 color: '#c0392b'
               }}>
-                Some items in your cart are out of stock or exceed available quantity. Please update your cart to proceed.
+                Unable to checkout: some selected items are out of stock or exceed available quantity.
+              </div>
+            )}
+
+            {noItemsSelected && (
+              <div style={{
+                background: '#fff3cd',
+                border: '1px solid #ffc107',
+                borderRadius: '8px',
+                padding: '10px 14px',
+                marginTop: '15px',
+                fontSize: '0.85rem',
+                color: '#856404'
+              }}>
+                Please select at least one item to checkout.
               </div>
             )}
 
             <button
-              onClick={() => navigate('/checkout')}
+              onClick={() => navigate('/checkout', { state: { selectedItemIds: Array.from(selectedIds) } })}
               className="btn btn-primary btn-lg"
-              style={{ width: '100%', marginTop: '20px', opacity: hasStockIssues ? 0.5 : 1 }}
-              disabled={hasStockIssues}
+              style={{ width: '100%', marginTop: '20px', opacity: cannotCheckout ? 0.5 : 1 }}
+              disabled={cannotCheckout}
             >
-              Proceed to Checkout
+              Proceed to Checkout ({selectedItems.length} {selectedItems.length === 1 ? 'item' : 'items'})
             </button>
 
             <Link
