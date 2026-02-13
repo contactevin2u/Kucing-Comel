@@ -2101,7 +2101,11 @@ img {
   .footer-grid {
     grid-template-columns: 1fr;
     text-align: center;
-    gap: 35px;
+    gap: 20px;
+  }
+
+  .footer-section:nth-child(2) {
+    margin-bottom: 15px;
   }
 
   .footer-section h4 {
