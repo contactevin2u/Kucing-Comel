@@ -228,7 +228,11 @@ const Home = () => {
             </div>
           ) : (
             <div className="products-grid">
-              {products.map((product) => (
+              {[...products].sort((a, b) => {
+                const aOOS = a.stock === 0 || a.stock === '0' ? 1 : 0;
+                const bOOS = b.stock === 0 || b.stock === '0' ? 1 : 0;
+                return aOOS - bOOS;
+              }).map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
