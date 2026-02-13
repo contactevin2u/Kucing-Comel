@@ -2132,11 +2132,11 @@ img {
   }
 
   .footer-address-link {
-    gap: 2px !important;
+    gap: 0px !important;
   }
 
   .footer-mappin {
-    margin-top: 6px !important;
+    margin-top: 3px !important;
   }
 
   .footer-bottom {
