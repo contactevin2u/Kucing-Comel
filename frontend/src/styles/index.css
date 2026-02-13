@@ -198,6 +198,8 @@ img {
   box-shadow: var(--shadow-lg);
   width: 90%;
   max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
 }
 
 .search-input-wrapper {
@@ -243,7 +245,7 @@ img {
 }
 
 .search-results {
-  max-height: 400px;
+  max-height: calc(80vh - 70px);
   overflow-y: auto;
 }
 
