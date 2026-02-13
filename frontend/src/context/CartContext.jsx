@@ -127,6 +127,8 @@ export const CartProvider = ({ children }) => {
             name: itemName,
             price: itemPrice,
             image_url: product.image_url,
+            has_db_image: product.has_db_image,
+            primary_image_id: product.primary_image_id,
             quantity
           });
         }
