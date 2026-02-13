@@ -2104,8 +2104,8 @@ img {
     gap: 20px;
   }
 
-  .footer-section:nth-child(2) {
-    margin-bottom: 15px;
+  .footer-mappin {
+    margin-right: 6px !important;
   }
 
   .footer-section h4 {
