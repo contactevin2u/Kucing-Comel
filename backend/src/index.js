@@ -115,7 +115,7 @@ app.use('/api/product-images', express.static(productsPath));
 app.get('/', (req, res) => {
   res.json({
     name: 'Kucing Comel API',
-    version: '1.0.10',
+    version: '1.0.11',
     endpoints: {
       health: '/api/health',
       products: '/api/products',
