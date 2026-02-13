@@ -96,10 +96,18 @@ const Navbar = () => {
     }
   };
 
-  const getImageUrl = (imageUrl) => {
-    if (!imageUrl) return 'https://via.placeholder.com/300x200?text=No+Image';
-    if (imageUrl.startsWith('http')) return imageUrl;
-    return `${api.getApiUrl()}/api/product-images${encodeURI(imageUrl)}`;
+  const getImageUrl = (product) => {
+    if (!product) return 'https://via.placeholder.com/300x200?text=No+Image';
+    if (product.primary_image_id) {
+      return `${api.getApiUrl()}/api/product-images/db/${product.primary_image_id}`;
+    }
+    if (product.has_db_image) {
+      return `${api.getApiUrl()}/api/product-images/db/product/${product.id}`;
+    }
+    const url = product.image_url;
+    if (!url) return 'https://via.placeholder.com/300x200?text=No+Image';
+    if (url.startsWith('http')) return url;
+    return `${api.getApiUrl()}/api/product-images${encodeURI(url)}`;
   };
 
   return (
@@ -216,7 +224,7 @@ const Navbar = () => {
                       onClick={() => handleSearchSelect(product.id)}
                     >
                       <img
-                        src={getImageUrl(product.image_url)}
+                        src={getImageUrl(product)}
                         alt={product.name}
                         className="search-result-image"
                         onError={(e) => { e.target.src = 'https://via.placeholder.com/300x200?text=No+Image'; }}

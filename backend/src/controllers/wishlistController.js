@@ -7,7 +7,9 @@ const getWishlist = async (req, res, next) => {
   try {
     const result = await db.query(
       `SELECT w.id, w.product_id, w.created_at,
-              p.name, p.price, p.member_price, p.image_url, p.category
+              p.name, p.price, p.member_price, p.image_url, p.category,
+              (p.image_data IS NOT NULL) AS has_db_image,
+              (SELECT pi.id FROM product_images pi WHERE pi.product_id = p.id ORDER BY pi.sort_order ASC LIMIT 1) AS primary_image_id
        FROM wishlist w
        JOIN products p ON w.product_id = p.id
        WHERE w.user_id = $1

@@ -42,11 +42,18 @@ const Wishlist = () => {
     }
   };
 
-  const getImageUrl = (imageUrl) => {
-    if (!imageUrl) return 'https://via.placeholder.com/300x200?text=No+Image';
-    if (imageUrl.startsWith('http')) return imageUrl;
-    // image_url is like "/Folder Name/image.jpg", backend serves from /api/product-images
-    return `${api.getApiUrl()}/api/product-images${encodeURI(imageUrl)}`;
+  const getImageUrl = (item) => {
+    if (!item) return 'https://via.placeholder.com/300x200?text=No+Image';
+    if (item.primary_image_id) {
+      return `${api.getApiUrl()}/api/product-images/db/${item.primary_image_id}`;
+    }
+    if (item.has_db_image) {
+      return `${api.getApiUrl()}/api/product-images/db/product/${item.product_id}`;
+    }
+    const url = item.image_url;
+    if (!url) return 'https://via.placeholder.com/300x200?text=No+Image';
+    if (url.startsWith('http')) return url;
+    return `${api.getApiUrl()}/api/product-images${encodeURI(url)}`;
   };
 
   if (!isAuthenticated) return null;
@@ -80,7 +87,7 @@ const Wishlist = () => {
               <div key={item.id} className="wishlist-card">
                 <Link to={`/product/${item.product_id}`} className="wishlist-image">
                   <img
-                    src={getImageUrl(item.image_url)}
+                    src={getImageUrl(item)}
                     alt={item.name}
                     onError={(e) => { e.target.src = 'https://via.placeholder.com/300x200?text=No+Image'; }}
                   />
