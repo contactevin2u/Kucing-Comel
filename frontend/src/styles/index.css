@@ -2132,9 +2132,6 @@ img {
   }
 
   .footer-section .footer-address-link {
-    display: inline-flex !important;
-    text-align: left !important;
-    justify-content: flex-start !important;
     gap: 4px !important;
   }
 
