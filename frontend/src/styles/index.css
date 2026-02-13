@@ -2135,7 +2135,7 @@ img {
     display: inline-flex !important;
     text-align: left !important;
     justify-content: flex-start !important;
-    gap: 2px !important;
+    gap: 4px !important;
   }
 
   .footer-mappin {
