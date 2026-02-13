@@ -263,6 +263,8 @@ async function getCartData(userId) {
   const itemsResult = await db.query(
     `SELECT ci.id, ci.quantity, ci.variant_id,
             p.id as product_id, p.name, p.price, p.member_price, p.image_url, p.stock, p.weight,
+            (p.image_data IS NOT NULL) AS has_db_image,
+            (SELECT pi.id FROM product_images pi WHERE pi.product_id = p.id ORDER BY pi.sort_order ASC LIMIT 1) AS primary_image_id,
             pv.variant_name, pv.price as variant_price, pv.member_price as variant_member_price, pv.stock as variant_stock
      FROM cart_items ci
      JOIN products p ON ci.product_id = p.id
@@ -288,6 +290,8 @@ async function getCartData(userId) {
       price: memberPrice || price,
       original_price: price,
       image_url: item.image_url,
+      has_db_image: item.has_db_image === true || item.has_db_image === 1,
+      primary_image_id: item.primary_image_id || null,
       stock: stock,
       weight: parseFloat(item.weight) || 0
     };
