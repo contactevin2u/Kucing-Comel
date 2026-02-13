@@ -51,7 +51,12 @@ const Wishlist = () => {
       return `${api.getApiUrl()}/api/product-images/db/product/${item.product_id}`;
     }
     const url = item.image_url;
-    if (!url) return 'https://via.placeholder.com/300x200?text=No+Image';
+    if (!url) {
+      if (item.product_id) {
+        return `${api.getApiUrl()}/api/product-images/db/product/${item.product_id}`;
+      }
+      return 'https://via.placeholder.com/300x200?text=No+Image';
+    }
     if (url.startsWith('http')) return url;
     return `${api.getApiUrl()}/api/product-images${encodeURI(url)}`;
   };
