@@ -2135,6 +2135,10 @@ img {
     gap: 4px !important;
   }
 
+  .footer-phone-icon {
+    margin-left: -10px !important;
+  }
+
   .footer-mappin {
     margin-top: 3px !important;
   }
