@@ -494,6 +494,65 @@ const AdminProducts = () => {
     }
   };
 
+  const handleCloseAsDraft = async () => {
+    // If form has enough data to save, save as draft (inactive)
+    if (formData.name && formData.price) {
+      try {
+        const token = getToken();
+        const url = editingProduct
+          ? `${API_URL}/api/admin/products/${editingProduct.id}`
+          : `${API_URL}/api/admin/products`;
+
+        const method = editingProduct ? 'PUT' : 'POST';
+
+        const payload = {
+          name: formData.name,
+          description: formData.description || null,
+          price: parseFloat(formData.price),
+          member_price: formData.member_price ? parseFloat(formData.member_price) : null,
+          image_url: formData.image_url || null,
+          category: formData.category || null,
+          pet_type: formData.pet_type || null,
+          stock: parseInt(formData.stock) || 0,
+          weight: formData.weight ? parseFloat(formData.weight) : null,
+          is_active: false
+        };
+
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // For new products, upload pending images
+          if (!editingProduct && pendingImages.length > 0) {
+            const newProductId = data.product.id;
+            for (const img of pendingImages) {
+              await fetch(`${API_URL}/api/admin/products/${newProductId}/images`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ image_data: img.base64, image_mime: img.mime })
+              });
+            }
+          }
+          refreshProducts();
+        }
+      } catch {
+        // Silently fail — close modal anyway
+      }
+    }
+    setShowModal(false);
+  };
+
   const filteredProducts = products.filter(p => {
     if (categoryFilter && p.category !== categoryFilter) return false;
     if (petTypeFilter && p.pet_type !== petTypeFilter) return false;
@@ -670,11 +729,11 @@ const AdminProducts = () => {
 
       {/* Create/Edit Product Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+        <div className="modal-overlay" onClick={handleCloseAsDraft}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
             <div className="modal-header">
               <h2>{editingProduct ? 'Edit Product' : 'Create Product'}</h2>
-              <button className="modal-close" onClick={() => setShowModal(false)}>&times;</button>
+              <button className="modal-close" onClick={handleCloseAsDraft}>&times;</button>
             </div>
 
             <form onSubmit={handleSubmit}>
