@@ -208,10 +208,10 @@ const Cart = () => {
             <button
               onClick={() => navigate('/checkout', { state: { selectedItemIds: Array.from(selectedIds) } })}
               className="btn btn-primary btn-lg"
-              style={{ width: '100%', marginTop: '20px', opacity: cannotCheckout ? 0.5 : 1 }}
+              style={{ width: '100%', marginTop: '20px', opacity: cannotCheckout ? 0.5 : 1, whiteSpace: 'nowrap' }}
               disabled={cannotCheckout}
             >
-              Proceed to Checkout ({selectedItems.length} {selectedItems.length === 1 ? 'item' : 'items'})
+              Checkout ({selectedItems.length} {selectedItems.length === 1 ? 'item' : 'items'})
             </button>
 
             <Link
