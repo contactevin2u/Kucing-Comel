@@ -450,8 +450,8 @@ const Checkout = () => {
 
         .order-summary-desktop {
           position: sticky;
-          top: 20px;
-          max-height: calc(100vh - 40px);
+          top: 90px;
+          max-height: calc(100vh - 110px);
           overflow-y: auto;
         }
 
