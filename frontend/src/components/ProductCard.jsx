@@ -105,12 +105,14 @@ const ProductCard = ({ product }) => {
 
   const isNew = product.id <= 5;
   const isMemberPrice = product.isMember && product.originalPrice;
+  const isOutOfStock = product.stock === 0 || product.stock === '0';
 
   return (
     <div className="product-card">
       {/* Badge */}
-      {isMemberPrice && <span className="product-badge" style={{ background: '#FF7B54' }}>MEMBER</span>}
-      {isNew && !isMemberPrice && <span className="product-badge" style={{ background: '#00BFB3' }}>NEW</span>}
+      {isOutOfStock && <span className="product-badge" style={{ background: '#95A5A6' }}>OUT OF STOCK</span>}
+      {!isOutOfStock && isMemberPrice && <span className="product-badge" style={{ background: '#FF7B54' }}>MEMBER</span>}
+      {!isOutOfStock && isNew && !isMemberPrice && <span className="product-badge" style={{ background: '#00BFB3' }}>NEW</span>}
 
       {/* Wishlist Button */}
       <button
@@ -124,12 +126,37 @@ const ProductCard = ({ product }) => {
 
       <Link to={`/product/${product.id}`}>
         {/* Product Image */}
-        <div className="product-image-wrapper">
+        <div className="product-image-wrapper" style={{ position: 'relative' }}>
           <img
             src={getImageUrl(product)}
             alt={product.name}
             className="product-image"
+            style={isOutOfStock ? { filter: 'blur(2px) grayscale(40%)', opacity: 0.6 } : {}}
           />
+          {isOutOfStock && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <span style={{
+                background: 'rgba(0,0,0,0.6)',
+                color: '#fff',
+                padding: '8px 20px',
+                borderRadius: '6px',
+                fontSize: '0.9rem',
+                fontWeight: '700',
+                letterSpacing: '1px'
+              }}>
+                OUT OF STOCK
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Product Info */}
