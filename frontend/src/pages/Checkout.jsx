@@ -30,11 +30,9 @@ const Checkout = () => {
   const [guestEmail, setGuestEmail] = useState('');
   const [policyAgreed, setPolicyAgreed] = useState(false);
 
-  // Voucher state
+  // Voucher state (multiple vouchers)
   const [voucherCode, setVoucherCode] = useState('');
-  const [voucherApplied, setVoucherApplied] = useState(null);
-  const [voucherDiscount, setVoucherDiscount] = useState(0);
-  const [voucherDiscountType, setVoucherDiscountType] = useState(null);
+  const [appliedVouchers, setAppliedVouchers] = useState([]); // Array of { voucher, discount, discountType }
   const [voucherLoading, setVoucherLoading] = useState(false);
   const [voucherError, setVoucherError] = useState('');
 
@@ -87,20 +85,32 @@ const Checkout = () => {
   // Delivery fee: free for RM150+, otherwise SPX weight-based rate
   const deliveryFee = subtotal >= 150 ? 0 : calculateShipping(totalWeight);
 
-  // Effective delivery fee (reduced/zeroed when free_shipping voucher applied)
-  const isFreeShippingVoucher = voucherDiscountType === 'free_shipping';
-  const shippingDiscountAmount = isFreeShippingVoucher ? (parseFloat(voucherApplied?.discount_amount) || 0) : 0;
-  const effectiveDeliveryFee = isFreeShippingVoucher
+  // Calculate total voucher discount and shipping discount from all applied vouchers
+  const totalVoucherDiscount = appliedVouchers
+    .filter(v => v.discountType !== 'free_shipping')
+    .reduce((sum, v) => sum + v.discount, 0);
+  const freeShippingVoucher = appliedVouchers.find(v => v.discountType === 'free_shipping');
+  const hasFreeShippingVoucher = !!freeShippingVoucher;
+  const shippingDiscountAmount = hasFreeShippingVoucher ? (parseFloat(freeShippingVoucher.voucher.discount_amount) || 0) : 0;
+  const effectiveDeliveryFee = hasFreeShippingVoucher
     ? (shippingDiscountAmount === 0 ? 0 : Math.max(0, deliveryFee - shippingDiscountAmount))
     : deliveryFee;
 
-  // Handle voucher application
+  // Handle voucher application (multiple)
   const handleApplyVoucher = async () => {
     if (!voucherCode.trim()) {
       setVoucherError('Please enter a voucher code');
       return;
     }
 
+    // Check if already applied
+    const codeUpper = voucherCode.trim().toUpperCase();
+    if (appliedVouchers.some(v => v.voucher.code.toUpperCase() === codeUpper)) {
+      setVoucherError('This voucher is already applied');
+      return;
+    }
+
+    // Check if trying to add a second free_shipping voucher
     const userEmail = isAuthenticated ? user?.email : guestEmail;
 
     setVoucherLoading(true);
@@ -119,24 +129,28 @@ const Checkout = () => {
         throw new Error(data.error || 'Invalid voucher code');
       }
 
-      setVoucherApplied(data.voucher);
-      setVoucherDiscount(data.calculated_discount);
-      setVoucherDiscountType(data.voucher.discount_type);
+      // Check if trying to add a second free_shipping voucher
+      if (data.voucher.discount_type === 'free_shipping' && hasFreeShippingVoucher) {
+        setVoucherError('Only one free shipping voucher can be applied');
+        return;
+      }
+
+      setAppliedVouchers(prev => [...prev, {
+        voucher: data.voucher,
+        discount: data.calculated_discount,
+        discountType: data.voucher.discount_type
+      }]);
+      setVoucherCode('');
       setVoucherError('');
     } catch (err) {
       setVoucherError(err.message);
-      setVoucherApplied(null);
-      setVoucherDiscount(0);
     } finally {
       setVoucherLoading(false);
     }
   };
 
-  const handleRemoveVoucher = () => {
-    setVoucherCode('');
-    setVoucherApplied(null);
-    setVoucherDiscount(0);
-    setVoucherDiscountType(null);
+  const handleRemoveVoucher = (code) => {
+    setAppliedVouchers(prev => prev.filter(v => v.voucher.code !== code));
     setVoucherError('');
   };
 
@@ -214,13 +228,15 @@ const Checkout = () => {
     try {
       let orderData;
 
+      const voucherCodes = appliedVouchers.map(v => v.voucher.code);
+
       if (buyNowMode) {
         // Buy Now mode - always use guest order endpoint with single item
         const payload = {
           ...shippingData,
           guest_email: isAuthenticated ? user?.email : guestEmail,
           items: [{ product_id: buyNowItem.product_id, quantity: buyNowItem.quantity }],
-          voucher_code: voucherApplied?.code || null,
+          voucher_codes: voucherCodes.length > 0 ? voucherCodes : undefined,
           delivery_fee: deliveryFee
         };
         orderData = await api.createGuestOrder(payload);
@@ -228,7 +244,7 @@ const Checkout = () => {
         // Authenticated user - use regular order endpoint
         const orderPayload = {
           ...shippingData,
-          voucher_code: voucherApplied?.code || null,
+          voucher_codes: voucherCodes.length > 0 ? voucherCodes : undefined,
           delivery_fee: deliveryFee,
           item_ids: selectedItemIds || undefined
         };
@@ -244,7 +260,7 @@ const Checkout = () => {
           ...shippingData,
           guest_email: guestEmail,
           items: itemsForOrder,
-          voucher_code: voucherApplied?.code || null,
+          voucher_codes: voucherCodes.length > 0 ? voucherCodes : undefined,
           delivery_fee: deliveryFee
         };
         orderData = await api.createGuestOrder(payload);
@@ -333,74 +349,79 @@ const Checkout = () => {
         <label style={{ fontWeight: '500', marginBottom: '8px', display: 'block', fontSize: '0.9rem' }}>
           Voucher Code
         </label>
-        {voucherApplied ? (
-          <div style={{
+
+        {/* Applied vouchers list */}
+        {appliedVouchers.map((v) => (
+          <div key={v.voucher.code} style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             background: '#e8f5e9',
-            padding: '10px 12px',
+            padding: '8px 12px',
             borderRadius: '6px',
-            border: '1px solid #4CAF50'
+            border: '1px solid #4CAF50',
+            marginBottom: '8px'
           }}>
             <div>
-              <span style={{ fontWeight: '600', color: '#2e7d32', fontFamily: 'monospace' }}>
-                {voucherApplied.code}
+              <span style={{ fontWeight: '600', color: '#2e7d32', fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                {v.voucher.code}
               </span>
-              <span style={{ marginLeft: '10px', color: '#4CAF50', fontSize: '0.85rem' }}>
-                {isFreeShippingVoucher
-                  ? (effectiveDeliveryFee === 0 ? 'Free Shipping' : `-RM ${shippingDiscountAmount.toFixed(2)} shipping`)
-                  : `-RM ${voucherDiscount.toFixed(2)}`}
+              <span style={{ marginLeft: '10px', color: '#4CAF50', fontSize: '0.8rem' }}>
+                {v.discountType === 'free_shipping'
+                  ? (shippingDiscountAmount === 0 ? 'Free Shipping' : `-RM ${shippingDiscountAmount.toFixed(2)} shipping`)
+                  : `-RM ${v.discount.toFixed(2)}`}
               </span>
             </div>
             <button
               type="button"
-              onClick={handleRemoveVoucher}
+              onClick={() => handleRemoveVoucher(v.voucher.code)}
               style={{
                 background: 'none',
                 border: 'none',
                 color: '#d32f2f',
                 cursor: 'pointer',
-                fontSize: '1.2rem'
+                fontSize: '1.2rem',
+                lineHeight: 1
               }}
             >
               &times;
             </button>
           </div>
-        ) : (
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <input
-              type="text"
-              value={voucherCode}
-              onChange={(e) => setVoucherCode(e.target.value)}
-              placeholder="Enter code"
-              style={{
-                flex: 1,
-                padding: '10px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                fontFamily: 'monospace',
-                textTransform: 'uppercase'
-              }}
-            />
-            <button
-              type="button"
-              onClick={handleApplyVoucher}
-              disabled={voucherLoading}
-              style={{
-                padding: '10px 16px',
-                background: '#FF6B6B',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: voucherLoading ? 'not-allowed' : 'pointer',
-                fontWeight: '500'
-              }}
-            >
-              {voucherLoading ? '...' : 'Apply'}
-            </button>
-          </div>
-        )}
+        ))}
+
+        {/* Input for adding more vouchers */}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input
+            type="text"
+            value={voucherCode}
+            onChange={(e) => setVoucherCode(e.target.value)}
+            placeholder={appliedVouchers.length > 0 ? 'Add another code' : 'Enter code'}
+            style={{
+              flex: 1,
+              padding: '10px 12px',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              fontFamily: 'monospace',
+              textTransform: 'uppercase'
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleApplyVoucher}
+            disabled={voucherLoading}
+            style={{
+              padding: '10px 16px',
+              background: '#FF6B6B',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: voucherLoading ? 'not-allowed' : 'pointer',
+              fontWeight: '500'
+            }}
+          >
+            {voucherLoading ? '...' : 'Apply'}
+          </button>
+        </div>
         {voucherError && (
           <p style={{ color: '#d32f2f', fontSize: '0.8rem', marginTop: '8px', marginBottom: 0 }}>
             {voucherError}
@@ -413,16 +434,18 @@ const Checkout = () => {
         <span>RM {subtotal.toFixed(2)}</span>
       </div>
 
-      {voucherDiscount > 0 && (
+      {totalVoucherDiscount > 0 && (
         <div className="summary-row" style={{ color: '#4CAF50' }}>
-          <span>Discount {voucherApplied?.code ? `(${voucherApplied.code})` : ''}</span>
-          <span>-RM {voucherDiscount.toFixed(2)}</span>
+          <span>Discount{appliedVouchers.filter(v => v.discountType !== 'free_shipping').length === 1
+            ? ` (${appliedVouchers.find(v => v.discountType !== 'free_shipping')?.voucher.code})`
+            : ''}</span>
+          <span>-RM {totalVoucherDiscount.toFixed(2)}</span>
         </div>
       )}
 
       <div className="summary-row">
         <span>Shipping ({Math.ceil(totalWeight) || 1}kg)</span>
-        {isFreeShippingVoucher && effectiveDeliveryFee === 0 ? (
+        {hasFreeShippingVoucher && effectiveDeliveryFee === 0 ? (
           <span style={{ color: '#27AE60' }}>
             {deliveryFee > 0 && (
               <span style={{ textDecoration: 'line-through', color: '#999', marginRight: '6px' }}>
@@ -431,7 +454,7 @@ const Checkout = () => {
             )}
             FREE
           </span>
-        ) : isFreeShippingVoucher && effectiveDeliveryFee < deliveryFee ? (
+        ) : hasFreeShippingVoucher && effectiveDeliveryFee < deliveryFee ? (
           <span style={{ color: '#27AE60' }}>
             <span style={{ textDecoration: 'line-through', color: '#999', marginRight: '6px' }}>
               RM {deliveryFee.toFixed(2)}
@@ -445,7 +468,7 @@ const Checkout = () => {
         )}
       </div>
 
-      {!isFreeShippingVoucher && deliveryFee > 0 && subtotal < 150 && (
+      {!hasFreeShippingVoucher && deliveryFee > 0 && subtotal < 150 && (
         <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
           Spend RM {(150 - subtotal).toFixed(2)} more for free shipping
         </div>
@@ -453,7 +476,7 @@ const Checkout = () => {
 
       <div className="summary-row summary-total">
         <span>Total</span>
-        <span>RM {(subtotal - voucherDiscount + effectiveDeliveryFee).toFixed(2)}</span>
+        <span>RM {(subtotal - totalVoucherDiscount + effectiveDeliveryFee).toFixed(2)}</span>
       </div>
     </div>
   );
@@ -817,7 +840,7 @@ const Checkout = () => {
                   }}
                   disabled={loading || !policyAgreed}
                 >
-                  {loading ? 'Processing...' : `Pay RM ${(subtotal - voucherDiscount + effectiveDeliveryFee).toFixed(2)} with SenangPay`}
+                  {loading ? 'Processing...' : `Pay RM ${(subtotal - totalVoucherDiscount + effectiveDeliveryFee).toFixed(2)} with SenangPay`}
                 </button>
 
                 <p style={{ marginTop: '20px', fontSize: '0.85rem', color: '#95A5A6', textAlign: 'center' }}>

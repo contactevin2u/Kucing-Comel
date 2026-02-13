@@ -94,7 +94,7 @@ const getGuestOrderById = async (req, res, next) => {
 
 const createOrder = async (req, res, next) => {
   try {
-    const { shipping_name, shipping_address, shipping_phone, shipping_postcode, voucher_code, voucher_discount, delivery_fee, item_ids } = req.body;
+    const { shipping_name, shipping_address, shipping_phone, shipping_postcode, voucher_code, voucher_codes, voucher_discount, delivery_fee, item_ids } = req.body;
 
     if (!shipping_name || !shipping_address || !shipping_phone) {
       return res.status(400).json({ error: 'Shipping details are required.' });
@@ -160,20 +160,26 @@ const createOrder = async (req, res, next) => {
       (sum, item) => sum + (parseFloat(item.weight) || 0) * item.quantity, 0
     );
 
-    // Validate and apply voucher if provided
-    let appliedVoucherCode = null;
+    // Validate and apply vouchers if provided (supports multiple)
+    const appliedVoucherCodes = [];
     let appliedVoucherDiscount = 0;
-    let voucherId = null;
-    let appliedVoucherType = null;
+    const appliedVoucherIds = [];
+    let hasShippingVoucher = false;
+    let shippingVoucherId = null;
 
     // Get user email for voucher tracking
     const userEmailResult = await db.query('SELECT email FROM users WHERE id = $1', [req.user.id]);
     const userEmail = userEmailResult.rows[0]?.email;
 
-    if (voucher_code) {
+    // Support both single voucher_code and array voucher_codes
+    const codesToProcess = voucher_codes && Array.isArray(voucher_codes) && voucher_codes.length > 0
+      ? voucher_codes
+      : (voucher_code ? [voucher_code] : []);
+
+    for (const code of codesToProcess) {
       const voucherResult = await db.query(
         `SELECT * FROM vouchers WHERE LOWER(code) = LOWER($1)`,
-        [voucher_code.trim()]
+        [code.trim()]
       );
 
       if (voucherResult.rows.length > 0) {
@@ -198,28 +204,34 @@ const createOrder = async (req, res, next) => {
             (voucher.usage_limit === null || voucher.times_used < voucher.usage_limit) &&
             (!voucher.min_order_amount || subtotal >= parseFloat(voucher.min_order_amount))) {
 
-          // Calculate discount
           if (voucher.discount_type === 'free_shipping') {
-            appliedVoucherDiscount = 0; // No subtotal discount — delivery fee zeroed below
-          } else if (voucher.discount_type === 'fixed') {
-            appliedVoucherDiscount = parseFloat(voucher.discount_amount);
-          } else {
-            appliedVoucherDiscount = (subtotal * parseFloat(voucher.discount_amount)) / 100;
-            if (voucher.max_discount && appliedVoucherDiscount > parseFloat(voucher.max_discount)) {
-              appliedVoucherDiscount = parseFloat(voucher.max_discount);
+            if (!hasShippingVoucher) {
+              hasShippingVoucher = true;
+              shippingVoucherId = voucher.id;
+              appliedVoucherCodes.push(voucher.code);
+              appliedVoucherIds.push(voucher.id);
             }
+          } else {
+            let discount = 0;
+            if (voucher.discount_type === 'fixed') {
+              discount = parseFloat(voucher.discount_amount);
+            } else {
+              discount = (subtotal * parseFloat(voucher.discount_amount)) / 100;
+              if (voucher.max_discount && discount > parseFloat(voucher.max_discount)) {
+                discount = parseFloat(voucher.max_discount);
+              }
+            }
+            appliedVoucherDiscount += discount;
+            appliedVoucherCodes.push(voucher.code);
+            appliedVoucherIds.push(voucher.id);
           }
-
-          // Discount cannot exceed subtotal
-          if (appliedVoucherDiscount > subtotal) {
-            appliedVoucherDiscount = subtotal;
-          }
-
-          appliedVoucherCode = voucher.code;
-          voucherId = voucher.id;
-          appliedVoucherType = voucher.discount_type;
         }
       }
+    }
+
+    // Discount cannot exceed subtotal
+    if (appliedVoucherDiscount > subtotal) {
+      appliedVoucherDiscount = subtotal;
     }
 
     const totalAmount = subtotal - appliedVoucherDiscount;
@@ -227,9 +239,9 @@ const createOrder = async (req, res, next) => {
     // Calculate delivery fee from weight using SPX rates
     let appliedDeliveryFee = calculateDeliveryFee(totalWeight, subtotal);
 
-    // Shipping discount voucher: discount_amount = RM off shipping (0 = fully free)
-    if (appliedVoucherType === 'free_shipping') {
-      const voucherRow = (await db.query('SELECT discount_amount FROM vouchers WHERE id = $1', [voucherId])).rows[0];
+    // Shipping discount voucher
+    if (hasShippingVoucher && shippingVoucherId) {
+      const voucherRow = (await db.query('SELECT discount_amount FROM vouchers WHERE id = $1', [shippingVoucherId])).rows[0];
       const shippingDiscount = parseFloat(voucherRow?.discount_amount) || 0;
       if (shippingDiscount === 0) {
         appliedDeliveryFee = 0;
@@ -238,17 +250,17 @@ const createOrder = async (req, res, next) => {
       }
     }
 
-    // Create order
+    // Create order (store voucher codes comma-separated)
     const orderResult = await db.query(
       `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone, shipping_postcode, voucher_code, voucher_discount, delivery_fee)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
-      [req.user.id, totalAmount, shipping_name, shipping_address, shipping_phone, shipping_postcode || null, appliedVoucherCode, appliedVoucherDiscount, appliedDeliveryFee]
+      [req.user.id, totalAmount, shipping_name, shipping_address, shipping_phone, shipping_postcode || null, appliedVoucherCodes.join(', ') || null, appliedVoucherDiscount, appliedDeliveryFee]
     );
     const orderId = orderResult.rows[0].id;
 
-    // Increment voucher usage if voucher was applied
-    if (voucherId) {
-      await incrementVoucherUsage(voucherId, userEmail, orderId);
+    // Increment voucher usage for all applied vouchers
+    for (const vid of appliedVoucherIds) {
+      await incrementVoucherUsage(vid, userEmail, orderId);
     }
 
     // Create order items and update stock
@@ -301,6 +313,7 @@ const createGuestOrder = async (req, res, next) => {
       guest_email,
       items, // Array of { product_id, quantity, variant_id? }
       voucher_code,
+      voucher_codes,
       delivery_fee
     } = req.body;
 
@@ -375,16 +388,22 @@ const createGuestOrder = async (req, res, next) => {
       (sum, item) => sum + item.weight * item.quantity, 0
     );
 
-    // Validate and apply voucher if provided
-    let appliedVoucherCode = null;
+    // Validate and apply vouchers if provided (supports multiple)
+    const appliedVoucherCodes = [];
     let appliedVoucherDiscount = 0;
-    let voucherId = null;
-    let appliedVoucherType = null;
+    const appliedVoucherIds = [];
+    let hasShippingVoucher = false;
+    let shippingVoucherId = null;
 
-    if (voucher_code) {
+    // Support both single voucher_code and array voucher_codes
+    const codesToProcess = voucher_codes && Array.isArray(voucher_codes) && voucher_codes.length > 0
+      ? voucher_codes
+      : (voucher_code ? [voucher_code] : []);
+
+    for (const code of codesToProcess) {
       const voucherResult = await db.query(
         `SELECT * FROM vouchers WHERE LOWER(code) = LOWER($1)`,
-        [voucher_code.trim()]
+        [code.trim()]
       );
 
       if (voucherResult.rows.length > 0) {
@@ -409,28 +428,34 @@ const createGuestOrder = async (req, res, next) => {
             (voucher.usage_limit === null || voucher.times_used < voucher.usage_limit) &&
             (!voucher.min_order_amount || subtotal >= parseFloat(voucher.min_order_amount))) {
 
-          // Calculate discount
           if (voucher.discount_type === 'free_shipping') {
-            appliedVoucherDiscount = 0; // No subtotal discount — delivery fee zeroed below
-          } else if (voucher.discount_type === 'fixed') {
-            appliedVoucherDiscount = parseFloat(voucher.discount_amount);
-          } else {
-            appliedVoucherDiscount = (subtotal * parseFloat(voucher.discount_amount)) / 100;
-            if (voucher.max_discount && appliedVoucherDiscount > parseFloat(voucher.max_discount)) {
-              appliedVoucherDiscount = parseFloat(voucher.max_discount);
+            if (!hasShippingVoucher) {
+              hasShippingVoucher = true;
+              shippingVoucherId = voucher.id;
+              appliedVoucherCodes.push(voucher.code);
+              appliedVoucherIds.push(voucher.id);
             }
+          } else {
+            let discount = 0;
+            if (voucher.discount_type === 'fixed') {
+              discount = parseFloat(voucher.discount_amount);
+            } else {
+              discount = (subtotal * parseFloat(voucher.discount_amount)) / 100;
+              if (voucher.max_discount && discount > parseFloat(voucher.max_discount)) {
+                discount = parseFloat(voucher.max_discount);
+              }
+            }
+            appliedVoucherDiscount += discount;
+            appliedVoucherCodes.push(voucher.code);
+            appliedVoucherIds.push(voucher.id);
           }
-
-          // Discount cannot exceed subtotal
-          if (appliedVoucherDiscount > subtotal) {
-            appliedVoucherDiscount = subtotal;
-          }
-
-          appliedVoucherCode = voucher.code;
-          voucherId = voucher.id;
-          appliedVoucherType = voucher.discount_type;
         }
       }
+    }
+
+    // Discount cannot exceed subtotal
+    if (appliedVoucherDiscount > subtotal) {
+      appliedVoucherDiscount = subtotal;
     }
 
     const totalAmount = subtotal - appliedVoucherDiscount;
@@ -438,9 +463,9 @@ const createGuestOrder = async (req, res, next) => {
     // Calculate delivery fee from weight using SPX rates
     let appliedDeliveryFee = calculateDeliveryFee(totalWeight, subtotal);
 
-    // Shipping discount voucher: discount_amount = RM off shipping (0 = fully free)
-    if (appliedVoucherType === 'free_shipping') {
-      const voucherRow = (await db.query('SELECT discount_amount FROM vouchers WHERE id = $1', [voucherId])).rows[0];
+    // Shipping discount voucher
+    if (hasShippingVoucher && shippingVoucherId) {
+      const voucherRow = (await db.query('SELECT discount_amount FROM vouchers WHERE id = $1', [shippingVoucherId])).rows[0];
       const shippingDiscount = parseFloat(voucherRow?.discount_amount) || 0;
       if (shippingDiscount === 0) {
         appliedDeliveryFee = 0;
@@ -449,17 +474,17 @@ const createGuestOrder = async (req, res, next) => {
       }
     }
 
-    // Create order (user_id is NULL for guest)
+    // Create order (user_id is NULL for guest, store voucher codes comma-separated)
     const orderResult = await db.query(
       `INSERT INTO orders (user_id, total_amount, shipping_name, shipping_address, shipping_phone, shipping_postcode, guest_email, voucher_code, voucher_discount, delivery_fee)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
-      [null, totalAmount, shipping_name, shipping_address, shipping_phone, shipping_postcode || null, guest_email.toLowerCase(), appliedVoucherCode, appliedVoucherDiscount, appliedDeliveryFee]
+      [null, totalAmount, shipping_name, shipping_address, shipping_phone, shipping_postcode || null, guest_email.toLowerCase(), appliedVoucherCodes.join(', ') || null, appliedVoucherDiscount, appliedDeliveryFee]
     );
     const orderId = orderResult.rows[0].id;
 
-    // Increment voucher usage if voucher was applied
-    if (voucherId) {
-      await incrementVoucherUsage(voucherId, guest_email, orderId);
+    // Increment voucher usage for all applied vouchers
+    for (const vid of appliedVoucherIds) {
+      await incrementVoucherUsage(vid, guest_email, orderId);
     }
 
     // Create order items and update stock
