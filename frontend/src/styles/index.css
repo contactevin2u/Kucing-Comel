@@ -2137,6 +2137,15 @@ img {
     padding-right: 16px;
   }
 
+  .footer-phone-icon {
+    margin-top: -6px !important;
+  }
+
+  .footer-mappin {
+    margin-top: -3px !important;
+    margin-left: -8px !important;
+  }
+
   .footer-section h4 {
     padding-left: 0 !important;
   }
