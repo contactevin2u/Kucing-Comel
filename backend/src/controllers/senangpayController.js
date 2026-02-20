@@ -66,14 +66,6 @@ const initiatePayment = async (req, res, next) => {
       return res.status(400).json({ error: 'Order ID is required.' });
     }
 
-    console.log('[SenangPay DEBUG] Initiate payment request:', {
-      order_id,
-      guest_email,
-      has_user: !!req.user,
-      user_id: req.user?.id,
-      user_email: req.user?.email,
-    });
-
     let order;
 
     // Check if this is a guest order or authenticated user order
@@ -179,16 +171,6 @@ const initiatePayment = async (req, res, next) => {
     // REAL MODE: Use actual SenangPay API
     // ============================================================
     const hash = generateRequestHash(orderDetails, amount, senangpayOrderId);
-
-    console.log('[SenangPay DEBUG] Payment initiation:', {
-      merchant_id: SENANGPAY_MERCHANT_ID,
-      secret_key_prefix: SENANGPAY_SECRET_KEY?.substring(0, 6) + '...',
-      detail: orderDetails,
-      amount,
-      order_id: senangpayOrderId,
-      hash,
-      payment_url: `${SENANGPAY_BASE_URL}/payment/${SENANGPAY_MERCHANT_ID}`,
-    });
 
     res.json({
       success: true,
@@ -513,7 +495,6 @@ const getConfig = (req, res) => {
     message: isMockMode()
       ? 'Running in MOCK mode - SenangPay integration pending approval'
       : 'Running in LIVE mode - Connected to SenangPay',
-    _debug_key_prefix: SENANGPAY_SECRET_KEY ? SENANGPAY_SECRET_KEY.substring(0, 8) + '...' : 'NOT SET'
   });
 };
 
