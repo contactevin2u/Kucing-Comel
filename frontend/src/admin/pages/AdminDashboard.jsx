@@ -5,7 +5,7 @@ import { useAdminAuth } from '../AdminApp';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AdminDashboard = () => {
-  const { getToken } = useAdminAuth();
+  const { adminFetch } = useAdminAuth();
   const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
@@ -38,19 +38,12 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const token = getToken();
 
       // Fetch summary, orders, and available periods
       const [summaryRes, ordersRes, periodsRes] = await Promise.all([
-        fetch(`${API_URL}/api/admin/dashboard`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_URL}/api/admin/orders?limit=5`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${API_URL}/api/admin/stats/available-periods`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        adminFetch(`${API_URL}/api/admin/dashboard`),
+        adminFetch(`${API_URL}/api/admin/orders?limit=5`),
+        adminFetch(`${API_URL}/api/admin/stats/available-periods`),
       ]);
 
       if (!summaryRes.ok) throw new Error('Failed to fetch dashboard data');
@@ -81,10 +74,8 @@ const AdminDashboard = () => {
   const fetchMonthDetail = async () => {
     if (!selectedMonth) return;
     try {
-      const token = getToken();
-      const res = await fetch(
-        `${API_URL}/api/admin/stats/month-detail?year=${selectedMonth.year}&month=${selectedMonth.month}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await adminFetch(
+        `${API_URL}/api/admin/stats/month-detail?year=${selectedMonth.year}&month=${selectedMonth.month}`
       );
 
       if (res.ok) {
@@ -100,10 +91,8 @@ const AdminDashboard = () => {
   const fetchYearDetail = async () => {
     if (!selectedYear) return;
     try {
-      const token = getToken();
-      const res = await fetch(
-        `${API_URL}/api/admin/stats/year-detail?year=${selectedYear}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await adminFetch(
+        `${API_URL}/api/admin/stats/year-detail?year=${selectedYear}`
       );
 
       if (res.ok) {

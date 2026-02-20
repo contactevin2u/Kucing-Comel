@@ -4,7 +4,7 @@ import { useAdminAuth } from '../AdminApp';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AdminSettings = () => {
-  const { getToken, admin } = useAdminAuth();
+  const { adminFetch, admin } = useAdminAuth();
   const [feeConfig, setFeeConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -16,11 +16,8 @@ const AdminSettings = () => {
   const fetchFeeConfig = async () => {
     try {
       setLoading(true);
-      const token = getToken();
 
-      const response = await fetch(`${API_URL}/api/admin/config/fees`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await adminFetch(`${API_URL}/api/admin/config/fees`);
 
       if (!response.ok) throw new Error('Failed to fetch fee configuration');
 

@@ -39,6 +39,15 @@ const AdminAuthProvider = ({ children }) => {
 
     if (token && adminData) {
       try {
+        // Check if token is expired by decoding JWT payload
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp * 1000 < Date.now()) {
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminUser');
+          setLoading(false);
+          return;
+        }
+
         const user = JSON.parse(adminData);
         if (user.role === 'admin') {
           setAdmin(user);
@@ -71,8 +80,26 @@ const AdminAuthProvider = ({ children }) => {
 
   const getToken = () => localStorage.getItem('adminToken');
 
+  // Wrapper for fetch that auto-logouts on 401 (expired/invalid token)
+  const adminFetch = async (url, options = {}) => {
+    const token = localStorage.getItem('adminToken');
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (res.status === 401) {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminUser');
+      setAdmin(null);
+    }
+    return res;
+  };
+
   return (
-    <AdminAuthContext.Provider value={{ admin, login, logout, getToken, loading }}>
+    <AdminAuthContext.Provider value={{ admin, login, logout, getToken, adminFetch, loading }}>
       {children}
     </AdminAuthContext.Provider>
   );

@@ -22,7 +22,7 @@ const getImageUrl = (product) => {
 const getDbImageUrl = (imageId) => `${API_URL}/api/product-images/db/${imageId}`;
 
 const AdminProducts = () => {
-  const { getToken } = useAdminAuth();
+  const { adminFetch } = useAdminAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -72,17 +72,14 @@ const AdminProducts = () => {
 
   const refreshProducts = useCallback(async () => {
     try {
-      const token = getToken();
-      const response = await fetch(`${API_URL}/api/admin/products`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await adminFetch(`${API_URL}/api/admin/products`);
       if (!response.ok) return;
       const data = await response.json();
       setProducts(data.products);
     } catch {
       // Silently ignore — next poll will retry
     }
-  }, [getToken]);
+  }, [adminFetch]);
 
   refreshRef.current = refreshProducts;
 
@@ -91,10 +88,7 @@ const AdminProducts = () => {
     const loadInitial = async () => {
       try {
         setLoading(true);
-        const token = getToken();
-        const response = await fetch(`${API_URL}/api/admin/products`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await adminFetch(`${API_URL}/api/admin/products`);
         if (!response.ok) throw new Error('Failed to fetch products');
         const data = await response.json();
         setProducts(data.products);
@@ -121,10 +115,7 @@ const AdminProducts = () => {
 
   const fetchProductDetail = async (id) => {
     try {
-      const token = getToken();
-      const response = await fetch(`${API_URL}/api/admin/products/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await adminFetch(`${API_URL}/api/admin/products/${id}`);
 
       if (!response.ok) throw new Error('Failed to fetch product details');
 
@@ -227,12 +218,10 @@ const AdminProducts = () => {
   const uploadImage = async (productId, base64, mime) => {
     setImageUploading(true);
     try {
-      const token = getToken();
-      const response = await fetch(`${API_URL}/api/admin/products/${productId}/images`, {
+      const response = await adminFetch(`${API_URL}/api/admin/products/${productId}/images`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({ image_data: base64, image_mime: mime })
       });
@@ -249,10 +238,9 @@ const AdminProducts = () => {
   const handleDeleteImage = async (imageId) => {
     if (!editingProduct) return;
     try {
-      const token = getToken();
-      const response = await fetch(
+      const response = await adminFetch(
         `${API_URL}/api/admin/products/${editingProduct.id}/images/${imageId}`,
-        { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }
+        { method: 'DELETE' }
       );
       if (!response.ok) throw new Error('Failed to delete image');
       await fetchProductDetail(editingProduct.id);
@@ -295,12 +283,10 @@ const AdminProducts = () => {
       // Save reorder to backend
       const imageIds = productImages.map(img => img.id);
       try {
-        const token = getToken();
-        await fetch(`${API_URL}/api/admin/products/${editingProduct.id}/images/reorder`, {
+        await adminFetch(`${API_URL}/api/admin/products/${editingProduct.id}/images/reorder`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({ imageIds })
         });
@@ -318,7 +304,6 @@ const AdminProducts = () => {
     setSaving(true);
 
     try {
-      const token = getToken();
       const url = editingProduct
         ? `${API_URL}/api/admin/products/${editingProduct.id}`
         : `${API_URL}/api/admin/products`;
@@ -338,11 +323,10 @@ const AdminProducts = () => {
         is_active: formData.is_active
       };
 
-      const response = await fetch(url, {
+      const response = await adminFetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       });
@@ -357,11 +341,10 @@ const AdminProducts = () => {
       if (!editingProduct && pendingImages.length > 0) {
         const newProductId = data.product.id;
         for (const img of pendingImages) {
-          await fetch(`${API_URL}/api/admin/products/${newProductId}/images`, {
+          await adminFetch(`${API_URL}/api/admin/products/${newProductId}/images`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({ image_data: img.base64, image_mime: img.mime })
           });
@@ -379,10 +362,8 @@ const AdminProducts = () => {
 
   const toggleStatus = async (product) => {
     try {
-      const token = getToken();
-      const response = await fetch(`${API_URL}/api/admin/products/${product.id}/toggle`, {
+      const response = await adminFetch(`${API_URL}/api/admin/products/${product.id}/toggle`, {
         method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (!response.ok) throw new Error('Failed to toggle product status');
@@ -399,10 +380,8 @@ const AdminProducts = () => {
     }
 
     try {
-      const token = getToken();
-      const response = await fetch(`${API_URL}/api/admin/products/${product.id}`, {
+      const response = await adminFetch(`${API_URL}/api/admin/products/${product.id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (!response.ok) throw new Error('Failed to delete product');
@@ -437,7 +416,6 @@ const AdminProducts = () => {
     if (!editingProduct) return;
 
     try {
-      const token = getToken();
       const url = editingVariant
         ? `${API_URL}/api/admin/products/${editingProduct.id}/variants/${editingVariant.id}`
         : `${API_URL}/api/admin/products/${editingProduct.id}/variants`;
@@ -452,11 +430,10 @@ const AdminProducts = () => {
         is_active: variantForm.is_active
       };
 
-      const response = await fetch(url, {
+      const response = await adminFetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       });
@@ -477,12 +454,10 @@ const AdminProducts = () => {
     if (!window.confirm(`Delete variant "${variant.variant_name}"?`)) return;
 
     try {
-      const token = getToken();
-      const response = await fetch(
+      const response = await adminFetch(
         `${API_URL}/api/admin/products/${editingProduct.id}/variants/${variant.id}`,
         {
           method: 'DELETE',
-          headers: { Authorization: `Bearer ${token}` }
         }
       );
 
@@ -498,7 +473,6 @@ const AdminProducts = () => {
     // If form has enough data to save, save as draft (inactive)
     if (formData.name && formData.price) {
       try {
-        const token = getToken();
         const url = editingProduct
           ? `${API_URL}/api/admin/products/${editingProduct.id}`
           : `${API_URL}/api/admin/products`;
@@ -518,11 +492,10 @@ const AdminProducts = () => {
           is_active: false
         };
 
-        const response = await fetch(url, {
+        const response = await adminFetch(url, {
           method,
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify(payload)
         });
@@ -534,11 +507,10 @@ const AdminProducts = () => {
           if (!editingProduct && pendingImages.length > 0) {
             const newProductId = data.product.id;
             for (const img of pendingImages) {
-              await fetch(`${API_URL}/api/admin/products/${newProductId}/images`, {
+              await adminFetch(`${API_URL}/api/admin/products/${newProductId}/images`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  Authorization: `Bearer ${token}`
                 },
                 body: JSON.stringify({ image_data: img.base64, image_mime: img.mime })
               });

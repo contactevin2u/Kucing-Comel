@@ -4,7 +4,7 @@ import { useAdminAuth } from '../AdminApp';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AdminVouchers = () => {
-  const { getToken } = useAdminAuth();
+  const { adminFetch } = useAdminAuth();
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,10 +32,7 @@ const AdminVouchers = () => {
   const fetchVouchers = async () => {
     try {
       setLoading(true);
-      const token = getToken();
-      const response = await fetch(`${API_URL}/api/admin/vouchers`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await adminFetch(`${API_URL}/api/admin/vouchers`);
 
       if (!response.ok) throw new Error('Failed to fetch vouchers');
 
@@ -90,7 +87,6 @@ const AdminVouchers = () => {
     setSaving(true);
 
     try {
-      const token = getToken();
       const url = editingVoucher
         ? `${API_URL}/api/admin/vouchers/${editingVoucher.id}`
         : `${API_URL}/api/admin/vouchers`;
@@ -111,11 +107,10 @@ const AdminVouchers = () => {
         is_active: formData.is_active
       };
 
-      const response = await fetch(url, {
+      const response = await adminFetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       });
@@ -137,10 +132,8 @@ const AdminVouchers = () => {
 
   const toggleStatus = async (voucher) => {
     try {
-      const token = getToken();
-      const response = await fetch(`${API_URL}/api/admin/vouchers/${voucher.id}/toggle`, {
+      const response = await adminFetch(`${API_URL}/api/admin/vouchers/${voucher.id}/toggle`, {
         method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (!response.ok) throw new Error('Failed to toggle voucher status');
@@ -157,10 +150,8 @@ const AdminVouchers = () => {
     }
 
     try {
-      const token = getToken();
-      const response = await fetch(`${API_URL}/api/admin/vouchers/${voucher.id}`, {
+      const response = await adminFetch(`${API_URL}/api/admin/vouchers/${voucher.id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (!response.ok) throw new Error('Failed to delete voucher');

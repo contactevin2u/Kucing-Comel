@@ -5,7 +5,7 @@ import { useAdminAuth } from '../AdminApp';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AdminDrilldown = () => {
-  const { getToken } = useAdminAuth();
+  const { adminFetch } = useAdminAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [data, setData] = useState(null);
@@ -24,14 +24,11 @@ const AdminDrilldown = () => {
   const fetchDrilldownData = async () => {
     try {
       setLoading(true);
-      const token = getToken();
 
       const params = new URLSearchParams({ metric, sort_by: sortBy, sort_order: sortOrder });
       if (paymentStatus) params.append('payment_status', paymentStatus);
 
-      const response = await fetch(`${API_URL}/api/admin/dashboard/drilldown?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await adminFetch(`${API_URL}/api/admin/dashboard/drilldown?${params}`);
 
       if (!response.ok) throw new Error('Failed to fetch data');
 

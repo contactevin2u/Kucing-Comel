@@ -5,7 +5,7 @@ import { useAdminAuth } from '../AdminApp';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AdminOrders = () => {
-  const { getToken } = useAdminAuth();
+  const { adminFetch } = useAdminAuth();
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
@@ -24,7 +24,6 @@ const AdminOrders = () => {
   const fetchOrders = async (searchTerm = search) => {
     try {
       setLoading(true);
-      const token = getToken();
 
       const params = new URLSearchParams({
         page: pagination.page,
@@ -35,9 +34,7 @@ const AdminOrders = () => {
       if (statusFilter) params.append('status', statusFilter);
       if (paymentFilter) params.append('payment_status', paymentFilter);
 
-      const response = await fetch(`${API_URL}/api/admin/orders?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await adminFetch(`${API_URL}/api/admin/orders?${params}`);
 
       if (!response.ok) throw new Error('Failed to fetch orders');
 
@@ -71,14 +68,11 @@ const AdminOrders = () => {
 
   const exportToCSV = async () => {
     try {
-      const token = getToken();
       const params = new URLSearchParams();
       if (statusFilter) params.append('status', statusFilter);
       if (paymentFilter) params.append('payment_status', paymentFilter);
 
-      const response = await fetch(`${API_URL}/api/admin/orders/export?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await adminFetch(`${API_URL}/api/admin/orders/export?${params}`);
 
       if (!response.ok) throw new Error('Failed to export orders');
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAdminAuth } from '../AdminApp';
 
 const AdminShipping = () => {
-  const { getToken } = useAdminAuth();
+  const { adminFetch } = useAdminAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,11 +20,7 @@ const AdminShipping = () => {
   const fetchShippingOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/admin/orders/shipping`, {
-        headers: {
-          'Authorization': `Bearer ${getToken()}`,
-        },
-      });
+      const response = await adminFetch(`${API_URL}/api/admin/orders/shipping`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch shipping orders');
@@ -66,10 +62,9 @@ const AdminShipping = () => {
     try {
       setSavingTracking(prev => ({ ...prev, [orderId]: true }));
 
-      const response = await fetch(`${API_URL}/api/admin/orders/${orderId}/tracking`, {
+      const response = await adminFetch(`${API_URL}/api/admin/orders/${orderId}/tracking`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${getToken()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -121,9 +116,7 @@ const AdminShipping = () => {
           <button
             onClick={async () => {
               try {
-                const response = await fetch(`${API_URL}/api/admin/orders/export-spx`, {
-                  headers: { 'Authorization': `Bearer ${getToken()}` },
-                });
+                const response = await adminFetch(`${API_URL}/api/admin/orders/export-spx`);
                 if (!response.ok) throw new Error('Export failed');
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);

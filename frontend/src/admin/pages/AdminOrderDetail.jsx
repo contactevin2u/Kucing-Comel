@@ -6,7 +6,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AdminOrderDetail = () => {
   const { id } = useParams();
-  const { getToken } = useAdminAuth();
+  const { adminFetch } = useAdminAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -24,11 +24,8 @@ const AdminOrderDetail = () => {
   const fetchOrder = async () => {
     try {
       setLoading(true);
-      const token = getToken();
 
-      const response = await fetch(`${API_URL}/api/admin/orders/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await adminFetch(`${API_URL}/api/admin/orders/${id}`);
 
       if (!response.ok) throw new Error('Failed to fetch order');
 
@@ -47,7 +44,6 @@ const AdminOrderDetail = () => {
     try {
       setUpdating(true);
       setMessage('');
-      const token = getToken();
 
       const body = {};
       if (newStatus !== order.status) body.status = newStatus;
@@ -58,10 +54,9 @@ const AdminOrderDetail = () => {
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/admin/orders/${id}/status`, {
+      const response = await adminFetch(`${API_URL}/api/admin/orders/${id}/status`, {
         method: 'PATCH',
         headers: {
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
