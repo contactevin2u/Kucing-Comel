@@ -66,6 +66,14 @@ const initiatePayment = async (req, res, next) => {
       return res.status(400).json({ error: 'Order ID is required.' });
     }
 
+    console.log('[SenangPay DEBUG] Initiate payment request:', {
+      order_id,
+      guest_email,
+      has_user: !!req.user,
+      user_id: req.user?.id,
+      user_email: req.user?.email,
+    });
+
     let order;
 
     // Check if this is a guest order or authenticated user order
@@ -79,7 +87,16 @@ const initiatePayment = async (req, res, next) => {
         [order_id, req.user.id]
       );
 
+      console.log('[SenangPay DEBUG] Order lookup result:', {
+        order_id,
+        user_id: req.user.id,
+        rows_found: orderResult.rows.length,
+      });
+
       if (orderResult.rows.length === 0) {
+        // Debug: check if order exists at all
+        const debugResult = await db.query('SELECT id, user_id, guest_email, payment_status FROM orders WHERE id = $1', [order_id]);
+        console.log('[SenangPay DEBUG] Order exists check:', debugResult.rows[0] || 'NOT FOUND');
         return res.status(404).json({ error: 'Order not found.' });
       }
 
