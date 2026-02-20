@@ -78,8 +78,8 @@ const initiatePayment = async (req, res, next) => {
 
     // Check if this is a guest order or authenticated user order
     if (req.user) {
-      // Authenticated user - verify order belongs to them
-      const orderResult = await db.query(
+      // Authenticated user - first try matching by user_id
+      let orderResult = await db.query(
         `SELECT o.*, u.name as user_name, u.email as user_email
          FROM orders o
          LEFT JOIN users u ON o.user_id = u.id
@@ -87,16 +87,17 @@ const initiatePayment = async (req, res, next) => {
         [order_id, req.user.id]
       );
 
-      console.log('[SenangPay DEBUG] Order lookup result:', {
-        order_id,
-        user_id: req.user.id,
-        rows_found: orderResult.rows.length,
-      });
+      // Fallback: check if order was created via guest endpoint with same email (e.g. Buy Now mode)
+      if (orderResult.rows.length === 0) {
+        orderResult = await db.query(
+          `SELECT o.*, $2 as user_name, $3 as user_email
+           FROM orders o
+           WHERE o.id = $1 AND o.guest_email = $3 AND o.user_id IS NULL`,
+          [order_id, req.user.name || '', req.user.email]
+        );
+      }
 
       if (orderResult.rows.length === 0) {
-        // Debug: check if order exists at all
-        const debugResult = await db.query('SELECT id, user_id, guest_email, payment_status FROM orders WHERE id = $1', [order_id]);
-        console.log('[SenangPay DEBUG] Order exists check:', debugResult.rows[0] || 'NOT FOUND');
         return res.status(404).json({ error: 'Order not found.' });
       }
 
