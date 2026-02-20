@@ -162,6 +162,16 @@ const initiatePayment = async (req, res, next) => {
     // ============================================================
     const hash = generateRequestHash(orderDetails, amount, senangpayOrderId);
 
+    console.log('[SenangPay DEBUG] Payment initiation:', {
+      merchant_id: SENANGPAY_MERCHANT_ID,
+      secret_key_prefix: SENANGPAY_SECRET_KEY?.substring(0, 6) + '...',
+      detail: orderDetails,
+      amount,
+      order_id: senangpayOrderId,
+      hash,
+      payment_url: `${SENANGPAY_BASE_URL}/payment/${SENANGPAY_MERCHANT_ID}`,
+    });
+
     res.json({
       success: true,
       mode: 'senangpay',
@@ -484,7 +494,8 @@ const getConfig = (req, res) => {
     is_sandbox: process.env.NODE_ENV !== 'production',
     message: isMockMode()
       ? 'Running in MOCK mode - SenangPay integration pending approval'
-      : 'Running in LIVE mode - Connected to SenangPay'
+      : 'Running in LIVE mode - Connected to SenangPay',
+    _debug_key_prefix: SENANGPAY_SECRET_KEY ? SENANGPAY_SECRET_KEY.substring(0, 8) + '...' : 'NOT SET'
   });
 };
 
